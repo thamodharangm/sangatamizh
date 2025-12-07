@@ -1,11 +1,11 @@
 [phases.setup]
-nixPkgs = ["nodejs_18", "npm-9_x"]
+nixPkgs = ["nodejs_18"]
 
 [phases.install]
-cmds = ["cd backend && npm ci"]
+cmds = ["npm install"]
 
 [phases.build]
-cmds = ["cd backend && npm install && npx prisma generate && npm run build"]
+cmds = ["npm run build"]
 
 [start]
-cmd = "cd backend && npx prisma migrate deploy && npm start"
+cmd = "npm start"
