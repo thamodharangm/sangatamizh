@@ -1,123 +1,120 @@
 import { Router, Request, Response } from 'express';
-import { v4 as uuidv4 } from 'uuid';
 import { PrismaClient } from '@prisma/client';
-import { getSignedPutUrl, getSignedGetUrl } from '../services/s3.service';
-import { enqueueTranscodeJob } from '../services/queue.service';
-import { authenticate } from '../middleware/auth';
+import {
+  generatePresignedUploadUrl,
+  generatePresignedDownloadUrl,
+  validateFileSize,
+  ALLOWED_AUDIO_TYPES,
+  ALLOWED_IMAGE_TYPES,
+} from '../services/s3.service';
+import { authenticateToken } from '../middleware/auth';
 
 const router = Router();
 const prisma = new PrismaClient();
 
-// Init upload: create DB entry and return signed PUT URL
-router.post('/init', authenticate, async (req: Request, res: Response) => {
+/**
+ * GET /api/upload/presign
+ * Generate presigned URL for file upload
+ * Query params: filename, contentType, fileType (audio|image), contentLength
+ */
+router.get('/presign', authenticateToken, async (req: Request, res: Response) => {
   try {
-    const { title, artist, filename, contentType } = req.body;
-    const userId = (req as any).user.id;
+    const { filename, contentType, fileType = 'audio', contentLength } = req.query;
 
-    if (!title || !filename || !contentType) {
-      return res.status(400).json({ error: 'Missing required fields' });
+    // Validate required parameters
+    if (!filename || !contentType) {
+      return res.status(400).json({
+        error: 'Missing required parameters: filename, contentType',
+      });
     }
 
-    // Create upload record
-    const uploadId = uuidv4();
-    const storageKey = `uploads/${uploadId}/${filename}`;
+    // Validate file size
+    if (contentLength) {
+      try {
+        validateFileSize(Number(contentLength), fileType as 'audio' | 'image');
+      } catch (error: any) {
+        return res.status(400).json({ error: error.message });
+      }
+    }
 
-    const upload = await prisma.upload.create({
-      data: {
-        id: uploadId,
-        userId,
-        fileName: filename,
-        originalSize: 0, // Will be updated on complete
-        mimeType: contentType,
-        status: 'pending',
-      },
+    // Generate presigned URL
+    const result = await generatePresignedUploadUrl(
+      filename as string,
+      contentType as string,
+      fileType as 'audio' | 'image'
+    );
+
+    res.json({
+      uploadUrl: result.uploadUrl,
+      key: result.key,
+      expiresIn: result.expiresIn,
+      message: 'Upload URL generated successfully',
     });
+  } catch (error: any) {
+    console.error('Error generating presigned URL:', error);
+    res.status(500).json({
+      error: error.message || 'Failed to generate upload URL',
+    });
+  }
+});
 
-    // Create song record
+/**
+ * POST /api/upload/complete
+ * Mark upload as complete and create song record
+ * Body: { key, title, artist, album, duration, genre }
+ */
+router.post('/complete', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { key, title, artist, album, duration, genre } = req.body;
+    const userId = (req as any).user.userId;
+
+    // Validate required fields
+    if (!key || !title) {
+      return res.status(400).json({
+        error: 'Missing required fields: key, title',
+      });
+    }
+
+    // Create song record in database
     const song = await prisma.song.create({
       data: {
         title,
         artist: artist || 'Unknown Artist',
-        uploaderId: userId,
-        status: 'uploaded',
-        moderationStatus: 'pending',
+        album: album || null,
+        duration: duration ? parseInt(duration) : null,
+        genre: genre || null,
+        storageKey: key,
+        status: 'ready',
+        uploadedById: userId,
       },
     });
 
-    // Update upload with song reference
-    await prisma.upload.update({
-      where: { id: uploadId },
-      data: { jobId: song.id },
-    });
-
-    // Generate signed PUT URL
-    const signedUrl = await getSignedPutUrl(storageKey, contentType);
-
     res.json({
-      uploadId,
-      songId: song.id,
-      signedUrl,
-      storageKey,
+      message: 'Upload completed successfully',
+      song: {
+        id: song.id,
+        title: song.title,
+        artist: song.artist,
+        storageKey: song.storageKey,
+      },
     });
-  } catch (error) {
-    console.error('Upload init error:', error);
-    res.status(500).json({ error: 'Failed to initialize upload' });
+  } catch (error: any) {
+    console.error('Error completing upload:', error);
+    res.status(500).json({
+      error: error.message || 'Failed to complete upload',
+    });
   }
 });
 
-// Complete: mark DB entry and enqueue transcode job
-router.post('/complete', authenticate, async (req: Request, res: Response) => {
-  try {
-    const { uploadId } = req.body;
-
-    if (!uploadId) {
-      return res.status(400).json({ error: 'Missing uploadId' });
-    }
-
-    // Find upload
-    const upload = await prisma.upload.findUnique({
-      where: { id: uploadId },
-    });
-
-    if (!upload) {
-      return res.status(404).json({ error: 'Upload not found' });
-    }
-
-    // Update upload status
-    await prisma.upload.update({
-      where: { id: uploadId },
-      data: { status: 'uploaded' },
-    });
-
-    // Update song status
-    if (upload.jobId) {
-      await prisma.song.update({
-        where: { id: upload.jobId },
-        data: { status: 'processing' },
-      });
-
-      // Enqueue transcode job
-      await enqueueTranscodeJob({
-        songId: upload.jobId,
-        uploadId: upload.id,
-        storageKey: `uploads/${uploadId}/${upload.fileName}`,
-      });
-    }
-
-    res.json({ ok: true, message: 'Upload complete, processing started' });
-  } catch (error) {
-    console.error('Upload complete error:', error);
-    res.status(500).json({ error: 'Failed to complete upload' });
-  }
-});
-
-// Stream: return signed GET URL for requested quality
+/**
+ * GET /api/upload/stream/:songId
+ * Get presigned URL for streaming a song
+ */
 router.get('/stream/:songId', async (req: Request, res: Response) => {
   try {
     const { songId } = req.params;
-    const quality = (req.query.quality as string) || 'preview';
 
-    // Find song
+    // Get song from database
     const song = await prisma.song.findUnique({
       where: { id: songId },
     });
@@ -126,41 +123,42 @@ router.get('/stream/:songId', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Song not found' });
     }
 
-    if (song.status !== 'ready') {
-      return res.status(400).json({ error: 'Song not ready for streaming' });
+    if (!song.storageKey) {
+      return res.status(404).json({ error: 'Song file not available' });
     }
 
-    // Get storage key from song metadata
-    const storageKeys = song.storageKeys as any;
-    let storageKey: string;
-
-    switch (quality) {
-      case '128':
-        storageKey = storageKeys?.high;
-        break;
-      case '64':
-        storageKey = storageKeys?.low;
-        break;
-      case 'preview':
-      default:
-        storageKey = storageKeys?.preview;
-    }
-
-    if (!storageKey) {
-      return res.status(404).json({ error: 'Quality variant not available' });
-    }
-
-    // Generate signed GET URL
-    const url = await getSignedGetUrl(storageKey);
+    // Generate presigned download URL
+    const streamUrl = await generatePresignedDownloadUrl(song.storageKey, 3600); // 1 hour
 
     res.json({
-      url,
-      expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+      streamUrl,
+      song: {
+        id: song.id,
+        title: song.title,
+        artist: song.artist,
+        duration: song.duration,
+      },
     });
-  } catch (error) {
-    console.error('Stream error:', error);
-    res.status(500).json({ error: 'Failed to get stream URL' });
+  } catch (error: any) {
+    console.error('Error generating stream URL:', error);
+    res.status(500).json({
+      error: error.message || 'Failed to generate stream URL',
+    });
   }
+});
+
+/**
+ * GET /api/upload/info
+ * Get upload configuration info
+ */
+router.get('/info', (req: Request, res: Response) => {
+  res.json({
+    allowedAudioTypes: ALLOWED_AUDIO_TYPES,
+    allowedImageTypes: ALLOWED_IMAGE_TYPES,
+    maxAudioSize: 50 * 1024 * 1024, // 50MB
+    maxImageSize: 5 * 1024 * 1024, // 5MB
+    presignedUrlTTL: 300, // 5 minutes
+  });
 });
 
 export default router;
