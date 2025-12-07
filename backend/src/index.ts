@@ -19,8 +19,12 @@ app.use(cookieParser());
 app.use('/api/auth', authRoutes);
 app.use('/api/upload', uploadRoutes);
 
-// Health check
+// Health check endpoints
 app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
