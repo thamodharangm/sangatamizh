@@ -7,7 +7,7 @@ export default function Signup() {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    name: ''
+    displayName: ''
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -64,8 +64,8 @@ export default function Signup() {
               id="name"
               type="text"
               required
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              value={formData.displayName}
+              onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               placeholder="John Doe"
             />
