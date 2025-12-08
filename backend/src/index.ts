@@ -3,6 +3,7 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import authRoutes from './controllers/auth.controller';
 import uploadRoutes from './controllers/upload.controller';
+import uploadLegacyRoutes from './controllers/upload-legacy.controller';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -18,6 +19,7 @@ app.use(cookieParser());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/upload-legacy', uploadLegacyRoutes);
 
 // Health check endpoints
 app.get('/health', (req, res) => {

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { uploadSong } from '../services/upload.service';
+import api from '../services/api';
 
 export default function UploadForm() {
   const [file, setFile] = useState<File | null>(null);
@@ -9,7 +9,6 @@ export default function UploadForm() {
   const [genre, setGenre] = useState('');
   const [status, setStatus] = useState('');
   const [uploading, setUploading] = useState(false);
-  const [progress, setProgress] = useState(0);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,23 +17,22 @@ export default function UploadForm() {
 
     setUploading(true);
     setStatus('Uploading...');
-    setProgress(0);
 
     try {
-      // Upload song using the new upload service
-      const result = await uploadSong(
-        file,
-        {
-          title,
-          artist: artist || 'Unknown Artist',
-          album: album || undefined,
-          genre: genre || undefined,
+      // Create FormData for file upload
+      const formData = new FormData();
+      formData.append('audio', file);
+      formData.append('title', title);
+      formData.append('artist', artist || 'Unknown Artist');
+      if (album) formData.append('album', album);
+      if (genre) formData.append('genre', genre);
+
+      // Upload using legacy endpoint
+      const response = await api.post('/upload-legacy', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
         },
-        (progressData) => {
-          setProgress(progressData.percentage);
-          setStatus(`Uploading... ${progressData.percentage}%`);
-        }
-      );
+      });
       
       setStatus('✓ Uploaded successfully!');
       setFile(null);
@@ -42,12 +40,11 @@ export default function UploadForm() {
       setArtist('');
       setAlbum('');
       setGenre('');
-      setProgress(0);
       
       setTimeout(() => setStatus(''), 3000);
     } catch (error: any) {
       console.error('Upload failed:', error);
-      setStatus(`✗ Upload failed: ${error.message}`);
+      setStatus(`✗ Upload failed: ${error.response?.data?.error || error.message}`);
     } finally {
       setUploading(false);
     }
