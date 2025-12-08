@@ -4,6 +4,11 @@ import PlayerBar from './components/PlayerBar'
 import UploadForm from './components/UploadForm'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
+import AdminRoute from './components/AdminRoute'
+import AdminDashboard from './pages/admin/Dashboard'
+import SongsList from './pages/admin/SongsList'
+import EditSong from './pages/admin/EditSong'
+import Uploads from './pages/admin/Uploads'
 
 function Home() {
   const [currentTrack, setCurrentTrack] = useState<{
@@ -31,12 +36,20 @@ function Home() {
           <h1 className="text-3xl font-bold text-gray-900">
             🎵 Sangtamizh Music
           </h1>
-          <button
-            onClick={handleLogout}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-          >
-            Logout
-          </button>
+          <div className="flex gap-4">
+            <a
+              href="/admin"
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            >
+              Admin
+            </a>
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            >
+              Logout
+            </button>
+          </div>
         </div>
       </header>
 
@@ -73,10 +86,39 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/" element={<Home />} />
+        
+        {/* Admin Routes */}
+        <Route path="/admin" element={
+          <AdminRoute>
+            <AdminDashboard />
+          </AdminRoute>
+        } />
+        <Route path="/admin/songs" element={
+          <AdminRoute>
+            <SongsList />
+          </AdminRoute>
+        } />
+        <Route path="/admin/songs/:id/edit" element={
+          <AdminRoute>
+            <EditSong />
+          </AdminRoute>
+        } />
+        <Route path="/admin/uploads" element={
+          <AdminRoute>
+            <Uploads />
+          </AdminRoute>
+        } />
+        <Route path="/admin/songs/new" element={
+          <AdminRoute>
+            <Home />
+          </AdminRoute>
+        } />
       </Routes>
     </BrowserRouter>
   )
 }
+
+export default App
 
 export default App
 

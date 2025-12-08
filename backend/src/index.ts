@@ -4,6 +4,7 @@ import cors from 'cors';
 import authRoutes from './controllers/auth.controller';
 import uploadRoutes from './controllers/upload.controller';
 import uploadLegacyRoutes from './controllers/upload-legacy.controller';
+import adminRoutes from './controllers/admin.controller';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -20,6 +21,7 @@ app.use(cookieParser());
 app.use('/api/auth', authRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/upload-legacy', uploadLegacyRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Health check endpoints
 app.get('/health', (req, res) => {
