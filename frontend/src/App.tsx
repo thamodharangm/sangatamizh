@@ -19,7 +19,7 @@ function Home() {
   }
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem('accessToken');
     localStorage.removeItem('user');
     window.location.href = '/login';
   };

@@ -27,7 +27,7 @@ export default function Signup() {
       });
       
       // Store token
-      localStorage.setItem('token', loginResponse.data.accessToken);
+      localStorage.setItem('accessToken', loginResponse.data.accessToken);
       localStorage.setItem('user', JSON.stringify(loginResponse.data.user));
       
       // Redirect to home

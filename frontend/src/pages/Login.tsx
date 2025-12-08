@@ -20,7 +20,7 @@ export default function Login() {
       const response = await api.post('/auth/login', formData);
       
       // Store token
-      localStorage.setItem('token', response.data.accessToken);
+      localStorage.setItem('accessToken', response.data.accessToken);
       localStorage.setItem('user', JSON.stringify(response.data.user));
       
       // Redirect to home
