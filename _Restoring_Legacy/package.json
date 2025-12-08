@@ -1,0 +1,16 @@
+{
+  "name": "sangtamizh-music-root",
+  "private": true,
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
+    "build": "npm run build --prefix client",
+    "install:all": "npm install"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
