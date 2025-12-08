@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios'; 
+import api from '../config/api'; 
 
 const AdminUpload = () => {
   const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard', 'upload', 'manage'
@@ -28,7 +28,7 @@ const AdminUpload = () => {
 
   const fetchSongs = async () => {
     try {
-      const res = await axios.get('/api/songs');
+      const res = await api.get('/songs');
       setSongs(res.data);
       setStats({
         totalSongs: res.data.length,
@@ -46,7 +46,7 @@ const AdminUpload = () => {
     if (!youtubeUrl) return;
     setLoading(true);
     try {
-      const res = await axios.post('/api/yt-metadata', { url: youtubeUrl });
+      const res = await api.post('/yt-metadata', { url: youtubeUrl });
       const { title, artist, coverUrl } = res.data;
       setMetadata(prev => ({ ...prev, title, artist, coverUrl }));
       setMessage('Metadata fetched!');
@@ -72,40 +72,6 @@ const AdminUpload = () => {
 
   const handleUpload = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setMessage('');
-    setError('');
-
-    try {
-      if (uploadTab === 'youtube') {
-         // Backend Process (YouTube)
-         await axios.post('/api/upload-from-yt', {
-           url: youtubeUrl,
-           category: metadata.category,
-           customMetadata: metadata
-         });
-         setMessage('YouTube Import Successful!');
-         setYoutubeUrl('');
-      } else {
-         // Backend Process (File Upload)
-        if (!file) throw new Error("Please select an audio file.");
-
-        const formData = new FormData();
-        formData.append('audio', file);
-        if (cover) {
-          formData.append('cover', cover);
-        }
-        formData.append('title', metadata.title || file.name.replace(/\.[^/.]+$/, ""));
-        formData.append('artist', metadata.artist || 'Unknown Artist');
-        formData.append('album', metadata.album || 'Single');
-        formData.append('category', metadata.category || 'General');
-
-        await axios.post('/api/upload-file', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
-        
-        setMessage('File Upload Successful!');
-        setFile(null);
         setCover(null);
         document.getElementById('audio-input').value = "";
         if(document.getElementById('cover-input')) document.getElementById('cover-input').value = "";
@@ -124,7 +90,7 @@ const AdminUpload = () => {
 
   const confirmDelete = async (id) => {
     try {
-      await axios.delete(`/api/songs/${id}`);
+      await api.delete(`/songs/${id}`);
       fetchSongs();
       setStats(prev => ({ ...prev, totalSongs: prev.totalSongs - 1 }));
       setMessage('Song deleted successfully!');

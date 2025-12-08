@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../config/api';
 import SongCard from '../components/SongCard';
 import { useMusic } from '../context/MusicContext';
 
@@ -11,7 +11,7 @@ function Home() {
   useEffect(() => {
     const fetchSongs = async () => {
       try {
-        const res = await axios.get('/api/songs');
+        const res = await api.get('/songs');
         const songsList = res.data.map(song => ({
           ...song,
           audioUrl: song.file_url, // Map for MusicContext
