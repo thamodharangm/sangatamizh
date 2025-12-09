@@ -47,16 +47,28 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 // Initialize yt-dlp
+// Initialize yt-dlp
 const ytDlpWrap = new YTDlpWrap();
 (async () => {
   try {
     console.log('Checking for yt-dlp binary...');
-    // Only download if missing
-    if (!fs.existsSync('./yt-dlp.exe') && !fs.existsSync('./yt-dlp')) {
+    // Ensure binary exists
+    if (!fs.existsSync('./yt-dlp')) {
         console.log('Downloading yt-dlp binary from GitHub...');
         await YTDlpWrap.downloadFromGithub();
         console.log('yt-dlp downloaded successfully!');
     }
+    
+    // Ensure executable permissions (Linux/Render)
+    try {
+      if (process.platform !== 'win32') {
+         fs.chmodSync('./yt-dlp', '755');
+         console.log('Set 755 permissions on yt-dlp');
+      }
+    } catch (e) {
+      console.error('Failed to set permissions on yt-dlp:', e);
+    }
+
     ytDlpWrap.setBinaryPath('./yt-dlp');
   } catch (e) {
     console.error('Failed to setup yt-dlp:', e);
@@ -133,12 +145,18 @@ app.post('/api/upload-from-yt', async (req, res) => {
     console.log(`Downloading ${videoId} to disk...`);
 
     // 2. Download File to Disk (Native Spawn)
-    // Using native spawn to bypass wrapper issues
     console.log('Spawning yt-dlp process...');
     const { spawn } = require('child_process');
+    const path = require('path');
+    const ytDlpPath = path.resolve(__dirname, 'yt-dlp');
     
+    console.log(`yt-dlp Absolute Path: ${ytDlpPath}`);
+    if (!fs.existsSync(ytDlpPath)) {
+       throw new Error(`yt-dlp binary NOT found at ${ytDlpPath}`);
+    }
+
     await new Promise((resolve, reject) => {
-      const child = spawn('./yt-dlp', [
+      const child = spawn(ytDlpPath, [
         url,
         '-f', 'bestaudio',
         '--force-ipv4',
