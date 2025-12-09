@@ -173,7 +173,8 @@ app.post('/api/upload-from-yt', async (req, res) => {
     // 1. Get Metadata
     const extraFlags = [
         '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-        '--js-runtimes', 'node'
+        '--js-runtimes', 'node',
+        '--extractor-args', 'youtube:player_client=android',
     ];
     
     const metadataStdout = await ytDlpWrap.execPromise([
