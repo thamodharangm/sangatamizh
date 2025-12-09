@@ -189,36 +189,57 @@ app.post('/api/upload-from-yt', async (req, res) => {
     console.log(`Downloading ${videoId} to disk...`);
 
     // 2. Download File to Disk (Native Spawn)
-    // 2. Download File to Disk (Native Spawn)
-    console.log('Spawning yt-dlp process...');
-    const { spawn } = require('child_process');
-    const os = require('os');
-    // Re-construct path to temp dir
-    const ytDlpPath = path.join(os.tmpdir(), 'yt-dlp'); 
-    
-    console.log(`yt-dlp Absolute Path for spawn: ${ytDlpPath}`);
-    if (!fs.existsSync(ytDlpPath)) {
-       console.log(`Critical: yt-dlp not found in ${os.tmpdir()}`);
-       throw new Error(`yt-dlp binary NOT found at ${ytDlpPath}`);
+    // Support for Cookies (The "Silver Bullet" for bot detection)
+    if (process.env.YOUTUBE_COOKIES) {
+        const cookiePath = path.join(os.tmpdir(), 'cookies.txt');
+        fs.writeFileSync(cookiePath, process.env.YOUTUBE_COOKIES);
+        console.log('Cookies loaded from env to:', cookiePath);
+        extraFlags.push('--cookies', cookiePath);
     }
 
-    await new Promise((resolve, reject) => {
-      const child = spawn(ytDlpPath, [
-        url,
-        '-f', 'bestaudio',
-        '--force-ipv4',
-        '-o', tempFilePath,
-        ...extraFlags
-      ]);
+    try {
+        console.log('Attepting download with yt-dlp...');
+        await new Promise((resolve, reject) => {
+            const child = spawn(ytDlpPath, [
+                url,
+                '-f', 'bestaudio',
+                '--force-ipv4',
+                '-o', tempFilePath,
+                ...extraFlags
+            ]);
 
-      child.stdout.on('data', (data) => console.log(`stdout: ${data}`));
-      child.stderr.on('data', (data) => console.error(`stderr: ${data}`));
+            child.stdout.on('data', (d) => console.log(`[yt-dlp] ${d}`));
+            child.stderr.on('data', (d) => console.error(`[yt-dlp err] ${d}`));
 
-      child.on('close', (code) => {
-        if (code === 0) resolve();
-        else reject(new Error(`yt-dlp exited with code ${code}`));
-      });
-    });
+            child.on('close', (code) => {
+                if (code === 0) resolve();
+                else reject(new Error(`yt-dlp exited with code ${code}`));
+            });
+        });
+        console.log('yt-dlp download success!');
+
+    } catch (ytDlpError) {
+        console.error('yt-dlp failed:', ytDlpError.message);
+        console.log('Falling back to @distube/ytdl-core...');
+        
+        // Fallback: Use @distube/ytdl-core (Pure JS)
+        const ytdl = require('@distube/ytdl-core');
+        await new Promise((resolve, reject) => {
+             const stream = ytdl(url, { 
+                 quality: 'highestaudio',
+                 requestOptions: {
+                     headers: {
+                         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                     }
+                 }
+             });
+             
+             stream.pipe(fs.createWriteStream(tempFilePath))
+                   .on('finish', resolve)
+                   .on('error', reject);
+        });
+        console.log('ytdl-core download success!');
+    }
 
     console.log(`Download complete. Reading file...`);
     
