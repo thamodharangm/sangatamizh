@@ -78,68 +78,99 @@ app.post('/api/upload-from-yt', async (req, res) => {
     let title = 'Unknown';
     let cover = null;
 
+    // Debug: Log environment variable status
+    console.log('[DEBUG] Environment Check:', {
+        hasYtApiKey: !!process.env.YT_API_KEY,
+        hasCookies: !!process.env.YOUTUBE_COOKIES,
+        cookieFileExists: fs.existsSync('./cookies.txt')
+    });
+
     try {
         // 1. Metadata: Try ytdl-core (Pure JS) FIRST
         try {
+            console.log('[Meta] Level 1: Trying ytdl-core...');
             const ytdl = require('@distube/ytdl-core');
             const info = await ytdl.getBasicInfo(url);
             videoId = info.videoDetails.videoId;
             title = info.videoDetails.title;
             cover = info.videoDetails.thumbnails.pop().url;
-            console.log('Meta: ytdl-core success');
-        } catch(e) { console.log('Meta: ytdl-core failed'); }
+            console.log('[Meta] ✅ Level 1 SUCCESS: ytdl-core');
+        } catch(e) { 
+            console.log('[Meta] ❌ Level 1 FAILED: ytdl-core -', e.message); 
+        }
 
         // 2. Metadata: Fallback to yt-dlp (Binary + Cookies)
         if (!videoId) {
             try {
+                console.log('[Meta] Level 2: Trying yt-dlp with cookies...');
                 const cmd = `${ytDlpBinaryPath} "${url}" --dump-json --no-warnings --prefer-free-formats --force-ipv4 --js-runtimes "node:${process.execPath}" --extractor-args "youtube:player_client=ios" --cookies "${cookiePath}"`;
                 const { stdout } = await exec(cmd);
                 const info = JSON.parse(stdout);
                 videoId = info.id;
                 title = info.title;
                 cover = info.thumbnail;
-                console.log('Meta: yt-dlp success');
-            } catch(e) { console.log('Meta: yt-dlp failed'); }
+                console.log('[Meta] ✅ Level 2 SUCCESS: yt-dlp');
+            } catch(e) { 
+                console.log('[Meta] ❌ Level 2 FAILED: yt-dlp -', e.message); 
+            }
         }
 
         // 3. Metadata: Fallback to Invidious
         if (!videoId) {
+             console.log('[Meta] Level 3: Trying Invidious mirrors...');
              const id = url.match(/(?:v=|youtu\.be\/|embed\/)([\w-]{11})/)?.[1];
              if (id) {
                  const mirrors = ['https://inv.tux.pizza', 'https://vid.uff.io', 'https://invidious.jing.rocks'];
                  for (const m of mirrors) {
                      try {
+                         console.log(`[Meta] Level 3: Trying mirror ${m}...`);
                          const r = await fetch(`${m}/api/v1/videos/${id}`);
                          if (r.ok) {
                              const d = await r.json();
                              videoId = d.videoId;
                              title = d.title;
                              cover = d.videoThumbnails?.[0]?.url;
-                             console.log(`Meta: Invidious success (${m})`);
+                             console.log(`[Meta] ✅ Level 3 SUCCESS: Invidious (${m})`);
                              break;
+                         } else {
+                             console.log(`[Meta] Mirror ${m} returned status ${r.status}`);
                          }
-                     } catch(e) {}
+                     } catch(e) {
+                         console.log(`[Meta] Mirror ${m} error:`, e.message);
+                     }
                  }
+             } else {
+                 console.log('[Meta] ❌ Level 3 FAILED: Could not extract video ID from URL');
              }
         }
 
         // 4. Metadata: Fallback to Official YouTube Data API (The Final Solution)
         if (!videoId && process.env.YT_API_KEY) {
             try {
+                console.log('[Meta] Level 4: Trying Official YouTube Data API...');
                 const id = url.match(/(?:v=|youtu\.be\/|embed\/)([\w-]{11})/)?.[1];
                 if (id) {
-                    console.log('Meta: Trying Official YouTube API...');
                     const apiUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${id}&key=${process.env.YT_API_KEY}`;
+                    console.log(`[Meta] API Request to: ${apiUrl.replace(process.env.YT_API_KEY, 'API_KEY_HIDDEN')}`);
                     const r = await fetch(apiUrl);
                     const d = await r.json();
+                    console.log('[Meta] API Response:', JSON.stringify(d).substring(0, 200));
                     if (d.items && d.items.length > 0) {
                         videoId = id;
                         title = d.items[0].snippet.title;
                         cover = d.items[0].snippet.thumbnails.high.url;
-                        console.log('Meta: YouTube API success');
+                        console.log('[Meta] ✅ Level 4 SUCCESS: YouTube Data API');
+                    } else {
+                        console.log('[Meta] ❌ Level 4 FAILED: No items in API response');
                     }
+                } else {
+                    console.log('[Meta] ❌ Level 4 FAILED: Could not extract video ID');
                 }
-            } catch(e) { console.error('Meta: YouTube API failed', e); }
+            } catch(e) { 
+                console.error('[Meta] ❌ Level 4 FAILED: YouTube API error -', e.message); 
+            }
+        } else if (!videoId) {
+            console.log('[Meta] ⚠️ Level 4 SKIPPED: YT_API_KEY not set in environment');
         }
 
         if (!videoId) throw new Error('MetaData Failed completely.');
