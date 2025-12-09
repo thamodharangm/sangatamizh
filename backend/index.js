@@ -106,7 +106,7 @@ app.post('/api/upload-from-yt', async (req, res) => {
         if (!videoId) {
              const id = url.match(/(?:v=|youtu\.be\/|embed\/)([\w-]{11})/)?.[1];
              if (id) {
-                 const mirrors = ['https://inv.tux.pizza', 'https://vid.uff.io'];
+                 const mirrors = ['https://inv.tux.pizza', 'https://vid.uff.io', 'https://invidious.jing.rocks'];
                  for (const m of mirrors) {
                      try {
                          const r = await fetch(`${m}/api/v1/videos/${id}`);
@@ -121,6 +121,25 @@ app.post('/api/upload-from-yt', async (req, res) => {
                      } catch(e) {}
                  }
              }
+        }
+
+        // 4. Metadata: Fallback to Official YouTube Data API (The Final Solution)
+        if (!videoId && process.env.YT_API_KEY) {
+            try {
+                const id = url.match(/(?:v=|youtu\.be\/|embed\/)([\w-]{11})/)?.[1];
+                if (id) {
+                    console.log('Meta: Trying Official YouTube API...');
+                    const apiUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${id}&key=${process.env.YT_API_KEY}`;
+                    const r = await fetch(apiUrl);
+                    const d = await r.json();
+                    if (d.items && d.items.length > 0) {
+                        videoId = id;
+                        title = d.items[0].snippet.title;
+                        cover = d.items[0].snippet.thumbnails.high.url;
+                        console.log('Meta: YouTube API success');
+                    }
+                }
+            } catch(e) { console.error('Meta: YouTube API failed', e); }
         }
 
         if (!videoId) throw new Error('MetaData Failed completely.');
