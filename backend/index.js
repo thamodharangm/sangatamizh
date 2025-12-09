@@ -130,7 +130,16 @@ app.post('/api/upload-from-yt', async (req, res) => {
                  for (const m of mirrors) {
                      try {
                          console.log(`[Meta] Level 3: Trying mirror ${m}...`);
-                         const r = await fetch(`${m}/api/v1/videos/${id}`);
+                         
+                         // Add 5-second timeout
+                         const controller = new AbortController();
+                         const timeoutId = setTimeout(() => controller.abort(), 5000);
+                         
+                         const r = await fetch(`${m}/api/v1/videos/${id}`, { 
+                             signal: controller.signal 
+                         });
+                         clearTimeout(timeoutId);
+                         
                          if (r.ok) {
                              const d = await r.json();
                              videoId = d.videoId;
