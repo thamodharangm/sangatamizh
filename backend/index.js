@@ -206,23 +206,43 @@ app.post('/api/upload-from-yt', async (req, res) => {
                 for (const instance of instances) {
                     try {
                         console.log(`[Meta] Trying Invidious Mirror: ${instance}`);
-                        const apiRes = await fetch(`${instance}/api/v1/videos/${tempId}`);
+                        const apiRes = await fetch(`${instance}/api/v1/videos/${tempId}`, { timeout: 5000 });
+                        
                         if (apiRes.ok) {
                             const data = await apiRes.json();
                             videoId = data.videoId;
                             videoTitle = data.title;
-                            videoCover = data.videoThumbnails?.[0]?.url;
+                            // Ensure we find a valid thumbnail
+                            videoCover = data.videoThumbnails?.find(t => t.quality === 'high')?.url || data.videoThumbnails?.[0]?.url;
                             console.log(`[Meta] Success via ${instance}`);
-                            break; // Stop loop on success
+                            break; 
+                        } else {
+                             console.warn(`[Meta] Mirror ${instance} HTTP Error: ${apiRes.status}`);
                         }
                     } catch (e) {
-                        console.warn(`[Meta] Mirror ${instance} failed.`);
+                        console.warn(`[Meta] Mirror ${instance} failed: ${e.message}`);
                     }
                 }
             } else {
                 console.warn('[Meta] Could not extract ID for Invidious fallback.');
             }
         }
+
+// Debug endpoint to check connectivity
+app.get('/api/debug-network', async (req, res) => {
+    try {
+        const fetch = require('node-fetch');
+        const google = await fetch('https://www.google.com');
+        const inv = await fetch('https://inv.tux.pizza/api/v1/stats');
+        res.json({
+            google: google.status,
+            invidious_mirror: inv.status,
+            ip: (await (await fetch('https://api.ipify.org?format=json')).json()).ip
+        });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
 
         if (!videoId) throw new Error('CRITICAL: All metadata methods failed. YouTube blocked server IP.');
 
