@@ -61,8 +61,28 @@ const ytDlpBinaryPath = path.join(os.tmpdir(), 'yt-dlp');
     
     // Check if it exists
     if (!fs.existsSync(ytDlpBinaryPath)) {
-        console.log('Binary not found. Downloading yt-dlp binary from GitHub to temp dir...');
-        await YTDlpWrap.downloadFromGithub(ytDlpBinaryPath); 
+        console.log('Binary not found. Downloading Standalone yt-dlp binary...');
+        
+        // Determine correct URL for standalone binary (Bundles Python)
+        // For Render (Linux), we MUST use 'yt-dlp_linux' to avoid python dependency issues
+        let binaryUrl = 'https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp'; // Default
+        if (process.platform === 'linux') {
+            binaryUrl = 'https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux';
+        } else if (process.platform === 'win32') {
+            binaryUrl = 'https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe';
+        }
+
+        console.log(`Fetching from: ${binaryUrl}`);
+        const res = await fetch(binaryUrl);
+        if (!res.ok) throw new Error(`Failed to download binary: ${res.statusText}`);
+        
+        const fileStream = fs.createWriteStream(ytDlpBinaryPath);
+        await new Promise((resolve, reject) => {
+            res.body.pipe(fileStream);
+            res.body.on('error', reject);
+            fileStream.on('finish', resolve);
+        });
+        
         console.log('yt-dlp downloaded successfully to temp!');
     } else {
         console.log('yt-dlp binary already exists in temp.');
