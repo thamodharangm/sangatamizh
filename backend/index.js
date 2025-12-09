@@ -177,12 +177,18 @@ app.post('/api/upload-from-yt', async (req, res) => {
     if (process.env.YOUTUBE_COOKIES) {
         console.log(`[DEBUG] YOUTUBE_COOKIES Env Var detected! Length: ${process.env.YOUTUBE_COOKIES.length}`);
         const cookiePath = path.join(os.tmpdir(), 'cookies.txt');
-        // Force write to ensure latest content
         fs.writeFileSync(cookiePath, process.env.YOUTUBE_COOKIES);
         console.log('Cookies written successfully to:', cookiePath);
         extraFlags.push('--cookies', cookiePath);
     } else {
-        console.log('[DEBUG] YOUTUBE_COOKIES Env Var is MISSING or EMPTY.');
+        // Fallback: Check for local cookies.txt file
+        const localCookieFile = path.join(__dirname, 'cookies.txt');
+        if (fs.existsSync(localCookieFile)) {
+             console.log('[DEBUG] Local cookies.txt found. Using it.');
+             extraFlags.push('--cookies', localCookieFile);
+        } else {
+             console.log('[DEBUG] YOUTUBE_COOKIES Env Var and local cookies.txt are MISSING.');
+        }
     }
 
     // 1. Get Metadata (Robust Fallback System)
