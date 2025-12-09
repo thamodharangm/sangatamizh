@@ -20,7 +20,7 @@ const fetch = require('node-fetch');
 
 // Initialize Supabase
 let supabaseUrl = process.env.SUPABASE_URL;
-const fallbackUrl = 'https://lemirqphbiyhmulyzzzg.supabase.co';
+const fallbackUrl = 'https://lemirqphbiyhmulyczzg.supabase.co';
 
 // Sanitize URL: If missing or invalid (doesn't start with http), use fallback
 if (!supabaseUrl || !supabaseUrl.startsWith('http')) {
