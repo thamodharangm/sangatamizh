@@ -22,9 +22,9 @@ const fetch = require('node-fetch');
 let supabaseUrl = process.env.SUPABASE_URL;
 const fallbackUrl = 'https://lemirqphbiyhmulyczzg.supabase.co';
 
-// Sanitize URL: If missing or invalid (doesn't start with http), use fallback
-if (!supabaseUrl || !supabaseUrl.startsWith('http')) {
-  console.log(`Invalid or missing SUPABASE_URL ('${supabaseUrl}'). Using fallback.`);
+// Sanitize URL: If missing or invalid (doesn't start with http), OR has known typo, use fallback
+if (!supabaseUrl || !supabaseUrl.startsWith('http') || supabaseUrl.includes('zzzg')) {
+  console.log(`Invalid or Typo in SUPABASE_URL ('${supabaseUrl}'). Switching to fallback.`);
   supabaseUrl = fallbackUrl;
 }
 
