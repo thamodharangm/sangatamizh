@@ -82,16 +82,98 @@ function Home() {
         <section id="trending">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
             <h2>Trending Now</h2>
-            <button className="btn-3d btn-secondary" style={{ height: '36px', fontSize: '0.8rem' }}>View All</button>
+            <button 
+              className="btn-3d btn-secondary" 
+              style={{ height: '36px', fontSize: '0.8rem' }}
+              onClick={() => navigate('/playlist')}
+            >
+              My Playlist
+            </button>
           </div>
+          
           
           {loading ? (
              <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>Loading songs...</div>
           ) : songs.length > 0 ? (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1.5rem' }}>
-              {songs.map(song => (
-                <SongCard key={song.id} song={song} onPlay={() => playSong(song, songs)} />
-              ))}
+            <div style={{ position: 'relative' }}>
+              {/* Left Arrow */}
+              <button 
+                onClick={() => document.getElementById('trending-scroll').scrollBy({ left: -400, behavior: 'smooth' })}
+                style={{
+                  position: 'absolute',
+                  left: '-20px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '50%',
+                  border: '2px solid var(--border-color)',
+                  background: 'var(--bg-card)',
+                  color: 'var(--text-main)',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  zIndex: 20,
+                  opacity: 1, /* Always visible */
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.5)'
+                }}
+                className="nav-arrow"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M15 18l-6-6 6-6" />
+                </svg>
+              </button>
+
+              {/* Scroll Container */}
+              <div 
+                id="trending-scroll"
+                className="no-scrollbar"
+                style={{ 
+                  display: 'flex', 
+                  gap: '1.5rem', 
+                  overflowX: 'auto', 
+                  padding: '1rem 0',
+                  scrollBehavior: 'smooth'
+                }}
+              >
+                {songs.map(song => (
+                  <div key={song.id} style={{ minWidth: '160px', maxWidth: '160px', flex: '0 0 auto', transition: 'transform 0.3s' }} className="song-card-wrapper">
+                    <SongCard song={song} onPlay={() => playSong(song, songs)} />
+                  </div>
+                ))}
+              </div>
+
+              {/* Right Arrow */}
+              <button 
+                 onClick={() => document.getElementById('trending-scroll').scrollBy({ left: 400, behavior: 'smooth' })}
+                 style={{
+                  position: 'absolute',
+                  right: '-20px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '50%',
+                  border: '2px solid var(--border-color)',
+                  background: 'var(--bg-card)',
+                  color: 'var(--text-main)',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  zIndex: 20,
+                  opacity: 1, /* Always visible */
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.5)'
+                }}
+                className="nav-arrow"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 18l6-6-6-6" />
+                </svg>
+              </button>
             </div>
           ) : (
              <div className="card-flat" style={{ textAlign: 'center', padding: '3rem' }}>

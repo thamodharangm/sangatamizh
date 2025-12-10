@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../config/api'; 
+import AdminAnalytics from './AdminAnalytics'; 
 
 const AdminUpload = () => {
   const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard', 'upload', 'manage'
@@ -172,8 +173,8 @@ const AdminUpload = () => {
 
       {/* Main Tabs */}
       <div className="admin-tabs" style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
-        {['dashboard', 'upload', 'manage'].map((tab) => (
-          <button 
+        {['dashboard', 'analytics', 'upload', 'manage'].map((tab) => (
+          <button  
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`btn-3d ${activeTab === tab ? 'btn-primary' : 'btn-secondary'}`}
@@ -209,6 +210,11 @@ const AdminUpload = () => {
             </ul>
           )}
         </div>
+      )}
+
+      {/* ANALYTICS TAB CONTENT */}
+      {activeTab === 'analytics' && (
+        <AdminAnalytics />
       )}
 
       {/* UPLOAD TAB CONTENT */}

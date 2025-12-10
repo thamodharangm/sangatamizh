@@ -180,3 +180,6 @@ h2 { font-size: 2rem; }
   background-color: rgba(88, 204, 2, 0.15); /* Green tint */
   border: 2px solid var(--primary);
 }
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

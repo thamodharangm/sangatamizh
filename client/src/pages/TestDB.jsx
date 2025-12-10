@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { firestore } from '../firebase';
+import { ref, set, get, child } from 'firebase/database'; // RTDB Imports
+import { firestore, db } from '../firebase'; // Import 'db' for RTDB
 import { useAuth } from '../context/AuthContext';
 
 const TestDB = () => {
@@ -13,57 +14,134 @@ const TestDB = () => {
     const runTest = async () => {
         setLogs([]);
         setStatus('Testing...');
-        log('Starting Firestore Connection Test...');
+        log('Starting Diagnostics...');
 
+        // 1. Backend Connectivity Test
+        log('--- Phase 1: Backend Connection Check ---');
         try {
-            // Test 1: Write
-            log('Attempting to WRITE to firestore/user/test_doc...');
-            const testRef = doc(firestore, 'user', 'test_doc');
-            await setDoc(testRef, {
-                timestamp: new Date().toISOString(),
-                test: 'success',
-                message: 'Hello from Sangatamizh Test'
-            });
-            log('✅ WRITE Successful!');
-
-            // Test 2: Read
-            log('Attempting to READ from firestore/user/test_doc...');
-            const docSnap = await getDoc(testRef);
-            if (docSnap.exists()) {
-                log('✅ READ Successful!');
-                log(`Data: ${JSON.stringify(docSnap.data())}`);
-            } else {
-                log('❌ READ Failed: Document not found (Write might have failed silently?)');
-            }
-
-            // Test 3: Check Current User
-            log('Checking Current Auth Context...');
-            if (user) {
-                log(`User ID: ${user.uid}`);
-                log(`User Role: ${user.role} ${user.role === 'admin' ? '✅ (Admin)' : '❌ (Not Admin)'}`);
-                
-                // Try reading ACTUAL user doc
-                log(`Attempting to read actual user profile: user/${user.uid}`);
-                const userRef = doc(firestore, 'user', user.uid);
-                const userSnap = await getDoc(userRef);
-                if (userSnap.exists()) {
-                    log('✅ Actual User Profile found in Firestore!');
-                    log(`Profile Data: ${JSON.stringify(userSnap.data())}`);
-                } else {
-                    log('⚠️ Actual User Profile NOT found in Firestore (Login/Save logic might be failing)');
-                }
-
-            } else {
-                log('⚠️ No User Logged In. Cannot test user profile.');
-            }
-
-            setStatus('Test Complete');
+           const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3002';
+           log(`Pinging Backend: ${apiBase}/api/test/connections ...`);
+           
+           const res = await fetch(`${apiBase}/api/test/connections`);
+           if (!res.ok) throw new Error(`Backend Error ${res.status}`);
+           const data = await res.json();
+           
+           log(`📡 Backend Prisma (Postgres): ${data.prisma.status === 'success' ? '✅' : '❌'}`);
+           if (data.prisma.message) log(`-> ${data.prisma.message}`);
+           
+           log(`🌩️ Backend Supabase Config: ${data.supabase.status === 'success' ? '✅' : '❌'}`);
+           if (data.supabase.message) log(`-> ${data.supabase.message}`);
 
         } catch (err) {
-            console.error(err);
-            log(`❌ CRITICAL ERROR: ${err.message}`);
-            setStatus('Error');
+           log(`❌ Backend Check Failed: ${err.message}`);
         }
+
+        // 2. Client-Side Firebase Firestore
+        log('\n--- Phase 2: Firestore (NoSQL) Check ---');
+        
+        // A. Check Auth First
+        log('Checking Current Auth Context...');
+        if (user) {
+            log(`✅ Logged in as: ${user.email} (${user.role})`);
+            log(`User ID: ${user.uid}`);
+        } else {
+            log('⚠️ User is NOT logged in. Writes will likely fail.');
+        }
+
+        // Helper to test a collection
+        const testCollection = async (colName, docId = 'test_doc') => {
+             log(`\nTesting Collection: '${colName}' (Doc: ${docId})...`);
+             try {
+                // Write
+                log(`   Writing to ${colName}/${docId}...`);
+                const testRef = doc(firestore, colName, docId);
+                await setDoc(testRef, {
+                    lastDiagnosticRun: new Date().toISOString(),
+                    updatedBy: user ? user.email : 'anonymous'
+                }, { merge: true });
+                log(`   ✅ WRITE Success (${colName})`);
+                
+                // Read
+                log(`   Reading from ${colName}/${docId}...`);
+                const docSnap = await getDoc(testRef);
+                if (docSnap.exists()) {
+                    log(`   ✅ READ Success (${colName})`);
+                } else {
+                    log(`   ⚠️ READ Empty: Document written but not found?`);
+                }
+                return true;
+             } catch (e) {
+                 log(`   ❌ Failed (${colName}): ${e.message}`);
+                 if (e.code === 'permission-denied') {
+                     log(`   -> Check Firestore Rules for '${colName}' collection.`);
+                     if (colName === 'users' && docId === 'test_doc') {
+                         log(`   -> NOTE: Rules often forbid writing to random docs. Testing self-profile next...`);
+                     }
+                 }
+                 return false;
+             }
+        };
+
+        // B. Test 'user' (Singular - likely deprecated)
+        await testCollection('user', 'test_doc');
+
+        // C. Test 'users' (Plural - Standard)
+        if (user) {
+            await testCollection('users', user.uid);
+        } else {
+            await testCollection('users', 'public_test');
+        }
+
+        // D. Check Actual User Profile
+        if (user) {
+             try {
+                log(`\nAttempting to read actual user profile: users/${user.uid}`);
+                const userRef = doc(firestore, 'users', user.uid);
+                const userSnap = await getDoc(userRef);
+                if (userSnap.exists()) {
+                    log('✅ Actual User Profile found in Firestore (users)!');
+                } else {
+                    log('⚠️ Actual User Profile NOT found in users (Might be new user)');
+                }
+             } catch (e) {
+                 log(`❌ User Profile Read Failed: ${e.message}`);
+             }
+        }
+
+        // 3. Realtime Database Test
+        log('\n--- Phase 3: Realtime Database (RTDB) Check ---');
+        try {
+            const testPath = user ? `_tests/${user.uid}` : `_tests/public`;
+            log(`Testing RTDB Path: '${testPath}'...`);
+            
+            // WRITE
+            log(`   Writing timestamp...`);
+            const dbRef = ref(db, testPath);
+            await set(dbRef, {
+                status: 'online',
+                timestamp: Date.now(),
+                user: user ? user.email : 'anonymous'
+            });
+            log('   ✅ RTDB WRITE Success');
+
+            // READ
+            log(`   Reading back...`);
+            const snapshot = await get(child(ref(db), testPath));
+            if (snapshot.exists()) {
+                log('   ✅ RTDB READ Success');
+                log(`   -> Val: ${JSON.stringify(snapshot.val())}`);
+            } else {
+                log('   ⚠️ RTDB Read Empty (Data not available)');
+            }
+
+        } catch (e) {
+            log(`❌ RTDB Failed: ${e.message}`);
+            if (e.message.includes('permission_denied')) {
+                 log('   -> Check Realtime Database Rules (read/write = true?)');
+            }
+        }
+
+        setStatus('Test Complete');
     };
 
     return (
@@ -78,7 +156,7 @@ const TestDB = () => {
                 <h3 style={{ borderBottom: '1px solid #475569', paddingBottom: '0.5rem', marginBottom: '0.5rem' }}>System Logs:</h3>
                 {logs.length === 0 && <span style={{color: '#64748b'}}>Waiting to run tests...</span>}
                 {logs.map((L, i) => (
-                    <div key={i} style={{ padding: '4px 0', borderBottom: '1px solid #334155', color: L.includes('❌') ? '#fca5a5' : L.includes('✅') ? '#86efac' : '#cbd5e1' }}>{L}</div>
+                    <div key={i} style={{ padding: '4px 0', borderBottom: '1px solid #334155', color: L.includes('❌') ? '#fca5a5' : L.includes('✅') ? '#86efac' : '#cbd5e1', whiteSpace: 'pre-wrap' }}>{L}</div>
                 ))}
             </div>
         </div>

@@ -20,6 +20,8 @@ const PrivateRoute = ({ children, adminOnly = false }) => {
   return children;
 };
 
+import Playlist from './pages/Playlist';
+
 function App() {
   return (
     <AuthProvider>
@@ -33,6 +35,9 @@ function App() {
                 <Route path="/test-db" element={<TestDB />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/library" element={<Library />} />
+                <Route path="/playlist" element={<Playlist />} />
+                
+                {/* Admin Routes */}
                 <Route path="/admin" element={
                   <PrivateRoute adminOnly={true}>
                     <AdminUpload />

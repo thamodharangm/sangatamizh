@@ -26,8 +26,8 @@ const Login = () => {
   const saveUserToDB = async (user) => {
     try {
       if (!user) return;
-      const userRef = doc(firestore, 'user', user.uid);
-      console.log("Login: Saving to Firestore 'user' collection...");
+      const userRef = doc(firestore, 'users', user.uid);
+      console.log("Login: Saving to Firestore 'users' collection...");
       await setDoc(userRef, {
         email: user.email,
         displayName: user.displayName || '',

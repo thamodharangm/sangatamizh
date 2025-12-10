@@ -39,3 +39,10 @@ model Song {
 
   @@map("songs")
 }
+
+model LoginLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  email     String?
+  createdAt DateTime @default(now())
+}

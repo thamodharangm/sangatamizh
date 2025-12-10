@@ -37,19 +37,44 @@ const MusicPlayer = () => {
         </div>
       </div>
 
-      <div className="mp-controls">
-        <button className="mp-btn-mini" onClick={prevSong} aria-label="Previous">
-          ⏮
+      <div className="mp-controls" style={{ gap: '1rem' }}>
+        <button 
+          className="btn-3d btn-secondary" 
+          onClick={prevSong} 
+          aria-label="Previous"
+          style={{ padding: '0', width: '48px', height: '48px', borderRadius: '50%' }}
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+             <path d="M19 20L9 12l10-8v16zM5 4h2v16H5V4z"/>
+          </svg>
         </button>
+        
         <button 
           onClick={togglePlay}
-          className="mp-play-btn"
+          className="btn-3d btn-primary"
           aria-label={isPlaying ? 'Pause' : 'Play'}
+          style={{ padding: '0', width: '56px', height: '56px', borderRadius: '50%' }}
         >
-          {isPlaying ? '⏸' : '▶'}
+          {isPlaying ? (
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+            </svg>
+          ) : (
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+          )}
         </button>
-        <button className="mp-btn-mini" onClick={nextSong} aria-label="Next">
-          ⏭
+        
+        <button 
+          className="btn-3d btn-secondary" 
+          onClick={nextSong} 
+          aria-label="Next"
+          style={{ padding: '0', width: '48px', height: '48px', borderRadius: '50%' }}
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M5 4l10 8-10 8V4zm14 0h2v16h-2V4z"/>
+          </svg>
         </button>
       </div>
 

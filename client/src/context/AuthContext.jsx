@@ -41,10 +41,10 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
-        // Fetch from Firestore ('user' collection) - Debugging Enabled
+        // Fetch from Firestore ('users' collection) - Debugging Enabled
         try {
-          console.log("Auth: Fetching profile from Firestore 'user' collection...");
-          const userDocRef = doc(firestore, "user", currentUser.uid);
+          console.log("Auth: Fetching profile from Firestore 'users' collection...");
+          const userDocRef = doc(firestore, "users", currentUser.uid);
           const userDocSnap = await getDoc(userDocRef);
           
           let userData = {};
@@ -65,6 +65,29 @@ export const AuthProvider = ({ children }) => {
           }
 
           setUser(finalUser);
+
+          // Analytics: Log Login
+          try {
+             // Basic check to avoid excessive logging on every refresh? 
+             // Ideally we only log explicit login, but on refresh is ok for "Activity"
+             // Or use a session flag. For now, log it.
+             // Import api properly?
+             // Since AuthContext is foundational, importing 'api' might cause cycle if api imports auth.
+             // Let's use fetch directly or check imports.
+             const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3002';
+             // Simple fetch
+             fetch(`${apiBase}/api/analytics/login`, {
+                 method: 'POST',
+                 headers: { 'Content-Type': 'application/json' },
+                 body: JSON.stringify({ 
+                    email: currentUser.email,
+                    userId: currentUser.uid
+                 })
+             }).catch(e => console.error("Analytics log failed", e));
+          } catch(err) {
+              console.error(err);
+          }
+
         } catch (error) {
           console.error("Auth: Error fetching user data", error);
           // Fallback if DB fails completely

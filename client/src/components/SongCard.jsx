@@ -1,6 +1,51 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import confetti from 'canvas-confetti';
 
 const SongCard = ({ song, onPlay }) => {
+  const [isLiked, setIsLiked] = useState(false);
+
+  useEffect(() => {
+    // Check if initially liked
+    const liked = JSON.parse(localStorage.getItem('likedSongs') || '[]');
+    setIsLiked(liked.some(s => s.id === song.id));
+  }, [song.id]);
+
+  const handleLike = (e) => {
+    e.stopPropagation();
+    
+    // Toggle state
+    const newState = !isLiked;
+    setIsLiked(newState);
+
+    // Update Local Storage
+    const existing = JSON.parse(localStorage.getItem('likedSongs') || '[]');
+    let updated;
+    if (newState) {
+      updated = [...existing, song];
+      
+      // Trigger Confetti Explosion
+      const rect = e.target.getBoundingClientRect();
+      const x = (rect.left + rect.width / 2) / window.innerWidth;
+      const y = (rect.top + rect.height / 2) / window.innerHeight;
+
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { x, y },
+        colors: ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF'],
+        disableForReducedMotion: true,
+        zIndex: 9999, // Ensure it's on top
+      });
+
+    } else {
+      updated = existing.filter(s => s.id !== song.id);
+    }
+    localStorage.setItem('likedSongs', JSON.stringify(updated));
+    
+    // Dispatch event to update Playlist page if open
+    window.dispatchEvent(new Event('storage'));
+  };
+
   return (
     <>
       <div 
@@ -48,17 +93,43 @@ const SongCard = ({ song, onPlay }) => {
             className="card-image"
           />
           
+          {/* Top Right Like Button (Always visible if liked, or on hover via parent) */}
+          <button 
+                onClick={handleLike}
+                className="like-btn"
+                style={{
+                  position: 'absolute',
+                  top: '8px',
+                  right: '8px',
+                  background: isLiked ? 'rgba(255, 0, 50, 0.2)' : 'rgba(0,0,0,0.4)',
+                  backdropFilter: 'blur(4px)',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: '32px',
+                  height: '32px',
+                  color: isLiked ? '#ff4055' : 'white',
+                  cursor: 'pointer',
+                  zIndex: 10,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.2s ease',
+                }}
+             >
+               {isLiked ? '❤️' : '🤍'}
+          </button>
+
           {/* Premium Play Overlay */}
-          <div className="play-overlay" style={{
+           <div className="play-overlay" style={{
             position: 'absolute',
             inset: 0,
-            background: 'rgba(0,0,0,0.4)',
+            background: 'rgba(0,0,0,0.2)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             opacity: 0,
             transition: 'all 0.3s ease',
-            pointerEvents: 'none' // Let clicks pass through to card
+            pointerEvents: 'none' 
           }}>
              <div style={{
                width: '50px',
@@ -70,8 +141,16 @@ const SongCard = ({ song, onPlay }) => {
                justifyContent: 'center',
                boxShadow: '0 8px 16px rgba(0,0,0,0.3)',
                transform: 'scale(1)',
-               transition: 'transform 0.2s'
-             }}>
+               transition: 'transform 0.2s',
+               pointerEvents: 'auto',
+               cursor: 'pointer'
+             }}
+             className="play-btn"
+             onClick={(e) => {
+               e.stopPropagation();
+               onPlay && onPlay(song);
+             }}
+             >
                <span style={{ fontSize: '1.5rem', color: 'white', marginLeft: '4px' }}>▶</span>
              </div>
           </div>
@@ -104,6 +183,10 @@ const SongCard = ({ song, onPlay }) => {
       <style>{`
         .card-flat:hover .card-image {
            transform: scale(1.05);
+        }
+        .song-card:hover .like-btn {
+          opacity: 1;
+          transform: scale(1);
         }
       `}</style>
     </>
