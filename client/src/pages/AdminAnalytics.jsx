@@ -30,10 +30,10 @@ const AdminAnalytics = () => {
   };
 
   return (
-    <div style={{ padding: '0 0 2rem 0' }}>
+    <div className="admin-analytics-wrapper">
       
       {/* Stats Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+      <div className="analytics-stats-grid">
         <div className="card-flat" style={{ padding: '1.5rem', background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '16px' }}>
           <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Total Logins</div>
           <div style={{ fontSize: '2.5rem', fontWeight: '800', color: 'white' }}>
@@ -57,7 +57,7 @@ const AdminAnalytics = () => {
       </div>
 
       {/* Chart Section */}
-      <div className="card-flat" style={{ padding: '1.5rem', background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '16px' }}>
+      <div className="card-flat analytics-chart-card">
         <h3 style={{ color: 'white', marginBottom: '1.5rem', fontSize: '1.1rem' }}>Login Trends (Last 7 Days)</h3>
         
         <div style={{ height: '300px', width: '100%' }}>

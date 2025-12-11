@@ -38,7 +38,7 @@ function Home() {
 
   return (
     <div className="home-container">
-      <main style={{ padding: '2rem 0', maxWidth: '1000px', margin: '0 auto' }}>
+      <main style={{ padding: '20px 0', maxWidth: '1000px', margin: '0 auto' }}>
         
         {/* Welcome / Hero Section - Duolingo Style (Clean, Bold) */}
         <section className="hero-section" style={{ 
@@ -183,28 +183,7 @@ function Home() {
         </section>
 
         {/* Features / Info Grid */}
-        <section style={{ marginTop: '4rem' }}>
-          <h3 style={{ marginBottom: '1.5rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontSize: '1rem', letterSpacing: '1px' }}>
-            Why Sangatamizh?
-          </h3>
-          <div className="features-grid">
-            <div className="feature-card">
-              <div className="feature-icon">🔥</div>
-              <h4 className="feature-title">Curated Playlists</h4>
-              <p className="feature-desc">Hand-picked tracks for every mood.</p>
-            </div>
-            <div className="feature-card">
-               <div className="feature-icon">💎</div>
-              <h4 className="feature-title">Hi-Res Audio</h4>
-              <p className="feature-desc">Crystal clear sound quality.</p>
-            </div>
-            <div className="feature-card">
-               <div className="feature-icon">🏆</div>
-              <h4 className="feature-title">Weekly Charts</h4>
-              <p className="feature-desc">See what's topping the leaderboards.</p>
-            </div>
-          </div>
-        </section>
+
 
       </main>
     </div>

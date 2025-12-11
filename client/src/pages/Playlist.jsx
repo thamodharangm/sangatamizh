@@ -70,29 +70,33 @@ function Playlist() {
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
                 <th style={{ padding: '1rem', width: '50px' }}>#</th>
-                <th style={{ padding: '1rem' }}>Title</th>
-                <th style={{ padding: '1rem' }}>Artist</th>
-                <th style={{ padding: '1rem', textAlign: 'right' }}>Action</th>
+                <th style={{ padding: '1rem' }}>Song</th>
+                <th style={{ padding: '1rem', textAlign: 'right', width: '80px' }}>Action</th>
               </tr>
             </thead>
             <tbody>
               {likedSongs.map((song, index) => (
                 <tr key={song.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', transition: 'background 0.2s' }} className="playlist-row">
-                  <td style={{ padding: '1rem', color: 'var(--text-muted)' }}>{index + 1}</td>
-                  <td style={{ padding: '1rem' }}>
+                  <td style={{ padding: '1rem', color: 'var(--text-muted)', width: '50px', verticalAlign: 'middle' }}>{index + 1}</td>
+                  <td style={{ padding: '1rem', verticalAlign: 'middle' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                      <img src={song.coverUrl} alt="" style={{ width: '40px', height: '40px', borderRadius: '4px' }} />
-                      <span style={{ fontWeight: '600', color: 'white' }}>{song.title}</span>
+                      <img src={song.coverUrl} alt="" style={{ width: '48px', height: '48px', borderRadius: '8px', objectFit: 'cover' }} />
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                        <span style={{ fontWeight: '600', color: 'white', fontSize: '0.95rem', lineHeight: '1.2' }}>{song.title}</span>
+                         <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{song.artist}</span>
+                      </div>
                     </div>
                   </td>
-                  <td style={{ padding: '1rem', color: 'var(--text-muted)' }}>{song.artist}</td>
-                  <td style={{ padding: '1rem', textAlign: 'right' }}>
+                  <td style={{ padding: '1rem', textAlign: 'right', verticalAlign: 'middle' }}>
                      <button 
-                       className="btn-3d btn-primary" 
-                       style={{ height: '32px', padding: '0 1rem', fontSize: '0.8rem' }}
+                       className="btn-3d btn-primary"
+                       style={{ height: '40px', width: '40px', padding: 0, borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
                        onClick={() => playSong(song, likedSongs)}
+                       title="Play"
                      >
-                       Play
+                       <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                         <path d="M8 5v14l11-7z" />
+                       </svg>
                      </button>
                   </td>
                 </tr>

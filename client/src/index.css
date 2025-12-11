@@ -157,28 +157,61 @@ h2 { font-size: 2rem; }
 }
 
 /* Navigation Links (Sidebar style) */
+/* Navigation Links (Sidebar style) - 3D Buttons */
 .nav-item {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 16px;
-  margin: 4px 0;
+  padding: 0 16px; /* Horizontal padding, height handled by height prop */
+  height: 48px;     /* Fixed height for button look */
+  margin: 8px 0;    /* More space between buttons */
   border-radius: var(--radius-md);
+  
+  /* Default State (Inactive) - Like "My Library" button */
+  background-color: transparent;
+  border: 2px solid var(--border-color);
+  border-bottom: 4px solid var(--border-color); /* 3D Edge */
   color: var(--text-muted);
+  
   font-weight: 700;
   font-size: 0.95rem;
   text-transform: uppercase;
-  border: 2px solid transparent;
-  transition: background 0.2s;
+  letter-spacing: 0.8px;
   text-decoration: none;
+  transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
 .nav-item:hover {
   background-color: var(--bg-card);
+  transform: translateY(-2px); /* Slight lift */
+  color: white;
 }
+
+.nav-item:active {
+  border-bottom-width: 2px; /* Press down effect */
+  transform: translateY(2px);
+}
+
+/* Active State - Like "Start Listening" Green Button */
 .nav-item.active {
-  color: var(--primary);
-  background-color: rgba(88, 204, 2, 0.15); /* Green tint */
-  border: 2px solid var(--primary);
+  background-color: var(--primary);
+  border-color: var(--primary-depth); /* Darker green border */
+  border-bottom: 4px solid var(--primary-depth); /* Darker green 3D edge */
+  color: white;
+  box-shadow: 0 4px 12px rgba(88, 204, 2, 0.3); /* Green Glow */
+}
+
+.nav-item.active:hover {
+  background-color: #5ce602; /* Slightly brighter green */
+  transform: none; /* Active button stays put usually, or subtle lift */
+}
+
+.nav-item.active:active {
+  transform: translateY(2px);
+  border-bottom-width: 0px; /* Fully pressed */
+  margin-bottom: 10px; /* Compensate for lost border height to keep layout stable-ish, or just limit effect */
+  /* Simpler active press: */
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
 }
 
 /* --- SIDEBAR & NAVIGATION STRUCTURE --- */
@@ -288,12 +321,15 @@ h2 { font-size: 2rem; }
     border: none;
     background: transparent !important; /* No background boxes on mobile nav */
     gap: 4px;
+    height: auto;
+    box-shadow: none !important;
   }
   
   .nav-item.active {
     color: var(--primary);
-    background: transparent;
+    background: transparent !important;
     border: none;
+    box-shadow: none !important;
   }
   
   /* Bigger Icons for Mobile Touch Targets */
@@ -372,4 +408,22 @@ h2 { font-size: 2rem; }
 .no-scrollbar {
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
+}
+
+/* Playlist Mobile Optimization */
+@media (max-width: 600px) {
+  .playlist-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem !important;
+  }
+  
+  .playlist-row td:first-child, 
+  thead th:first-child {
+    display: none; /* Hide Index # on small screens */
+  }
+  
+  .playlist-row td {
+    padding: 0.75rem !important;
+  }
 }

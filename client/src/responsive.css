@@ -628,6 +628,11 @@
 
 /* 6️⃣ Admin Dashboard Mobile Fixes */
 @media (max-width: 768px) {
+  /* Fix Container Spacing */
+  div[style*="padding: 2rem 1rem"] { /* Weak selector but targets inline style in AdminUpload */
+      padding: 1.5rem 1rem !important;
+      padding-bottom: 80px !important; /* Space for bottom nav */
+  }
   /* Fix Stats Grid Layout */
   .admin-stats-grid {
     grid-template-columns: repeat(2, 1fr) !important;
@@ -653,18 +658,44 @@
     font-size: 0.7rem !important;
   }
 
+  /* Admin Analytics Grid Fixes */
+  .analytics-stats-grid {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+    margin-bottom: 2rem !important;
+  }
+  
+  .analytics-chart-card {
+    margin-bottom: 300px !important; /* Huge margin to clear bottom nav */
+    padding: 1rem !important;
+  }
+
   /* Admin Tabs scrolling */
+  /* Admin Tabs scrolling & Alignment */
   .admin-tabs {
+     display: flex; /* Ensure it's flex */
      flex-wrap: nowrap;
      overflow-x: auto;
-     padding-bottom: 5px;
+     padding-bottom: 0px !important; /* Remove bottom padding to hide scrollbar space */
      justify-content: flex-start;
+     gap: 12px !important; /* Space between tabs */
+     margin-bottom: 1.5rem !important; /* Adjust bottom margin */
+     
+     /* Hide Scrollbar */
+     scrollbar-width: none; /* Firefox */
+     -ms-overflow-style: none; /* IE/Edge */
+  }
+  
+  .admin-tabs::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
   }
   
   .admin-tabs button {
       flex: 0 0 auto;
       min-width: auto;
-      padding: 0 16px !important;
+      padding: 0.6rem 1.2rem !important; /* Better touch padding */
+      font-size: 0.9rem !important;
   }
 }
   
@@ -766,4 +797,22 @@
      width: 100% !important;
      min-width: 0 !important;
   }
+}
+/* --- Admin Analytics Global/Desktop Styles --- */
+.admin-analytics-wrapper {
+  padding-bottom: 2rem;
+  width: 100%;
+}
+
+.analytics-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 3 Columns on Desktop */
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.analytics-chart-card {
+  width: 100%;
+  min-height: 400px;
+  padding: 1.5rem;
 }

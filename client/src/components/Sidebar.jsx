@@ -1,7 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import './Sidebar.css';
-
 
 const Sidebar = () => {
   const { pathname } = useLocation();
