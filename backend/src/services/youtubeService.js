@@ -1,4 +1,5 @@
 const fs = require('fs');
+const { getProxyAgent, rotateProxy, getCurrentProxyUrl } = require('../utils/proxyManager');
 const path = require('path');
 const os = require('os');
 const fetch = require('node-fetch');
@@ -9,6 +10,10 @@ const { YT_API_KEY, YOUTUBE_COOKIES } = require('../config/env');
 let ytDlpBinaryPath = process.platform === 'win32' 
     ? path.join(__dirname, '../../yt-dlp.exe') 
     : path.join(os.tmpdir(), "yt-dlp");
+
+
+
+
 
 async function ensureYtDlp() {
   if (fs.existsSync(ytDlpBinaryPath)) {
@@ -138,30 +143,53 @@ async function downloadAudio(videoId) {
         }
     }
 
-    // Fallback: Try yt-dlp (Binary + Cookies)
-    console.log('[Download] All mirrors failed. Trying yt-dlp (Raw M4A)...');
-    try {
-        const cookiePath = getCookiePath();
-        // Use m4a so we don't depend on ffmpeg for conversion
-        const m4aFile = tempFile.replace('.mp3', '.m4a');
-        
-        // Command: Download best audio as m4a directly
-        const cmd = `${ytDlpBinaryPath} -f "bestaudio[ext=m4a]" -o "${m4aFile}" "https://www.youtube.com/watch?v=${videoId}" --force-ipv4 --cookies "${cookiePath}"`;
-        
-        await exec(cmd);
-        
-        if (fs.existsSync(m4aFile)) {
-             const stats = fs.statSync(m4aFile);
-             if (stats.size > 0) {
-                 console.log(`[Download] ✅ SUCCESS via yt-dlp (m4a) - Size: ${stats.size} bytes`);
-                 return m4aFile;
-             } else {
-                 console.log('[Download] yt-dlp created empty file.');
-                 fs.unlinkSync(m4aFile);
-             }
+
+
+    // Fallback: Try yt-dlp (Binary + Cookies + Proxy Rotation)
+    console.log('[Download] All mirrors failed. Trying yt-dlp (Raw M4A) with Proxy Rotation...');
+    
+    // Retry loop with proxies
+    let attempts = 0;
+    const maxRetries = 3;
+
+    while (attempts <= maxRetries) {
+        try {
+            const cookiePath = getCookiePath();
+            const m4aFile = tempFile.replace('.mp3', '.m4a');
+            const proxyUrl = getCurrentProxyUrl();
+            
+            console.log(`[Download] Attempt ${attempts + 1}: Using Proxy ${proxyUrl}`);
+
+            // Command: Download best audio as m4a directly
+            let cmd = `${ytDlpBinaryPath} -f "bestaudio[ext=m4a]" -o "${m4aFile}" "https://www.youtube.com/watch?v=${videoId}" --force-ipv4 --cookies "${cookiePath}"`;
+            
+            // Add proxy argument if not DIRECT
+            if (proxyUrl && proxyUrl !== 'DIRECT') {
+                cmd += ` --proxy "${proxyUrl}"`;
+            }
+            
+            await exec(cmd);
+            
+            if (fs.existsSync(m4aFile)) {
+                 const stats = fs.statSync(m4aFile);
+                 if (stats.size > 0) {
+                     console.log(`[Download] ✅ SUCCESS via yt-dlp (m4a) - Size: ${stats.size} bytes`);
+                     return m4aFile;
+                 } else {
+                     console.log('[Download] yt-dlp created empty file.');
+                     fs.unlinkSync(m4aFile);
+                 }
+            }
+        } catch(e) {
+            console.error(`[Download] yt-dlp failed (Attempt ${attempts + 1}):`, e.message);
+            // If failed and using proxy, rotate
+            const currentProxy = getCurrentProxyUrl();
+            if (currentProxy && currentProxy !== 'DIRECT') {
+                 console.log('[Download] Rotating proxy due to failure...');
+                 rotateProxy();
+            }
         }
-    } catch(e) {
-        console.error('[Download] yt-dlp failed:', e.message);
+        attempts++;
     }
 
     throw new Error("Download failed: All methods blocked.");
