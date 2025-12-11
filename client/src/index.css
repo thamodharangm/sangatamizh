@@ -292,6 +292,7 @@ h2 { font-size: 2rem; }
 
   .main-content {
     padding: 1rem;
+    padding-top: 70px; /* 60px header + 10px buffer */
     padding-bottom: 100px; /* Space for music player */
   }
 }
