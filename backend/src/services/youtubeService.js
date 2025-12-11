@@ -176,6 +176,12 @@ const { runYtDlp } = require('../utils/runYtDlp');
                 proxyUrl = envProxy;
             } else {
                 proxyUrl = getCurrentProxyUrl();
+                // If pool is empty (returns DIRECT) but we want a proxy, wait a bit
+                if (proxyUrl === 'DIRECT') {
+                    console.log('[Download] Proxy pool empty, waiting 5s for fetcher...');
+                    await new Promise(r => setTimeout(r, 5000));
+                    proxyUrl = getCurrentProxyUrl(); 
+                }
             }
 
             console.log(`[Download] Attempt ${attempts + 1}: Using Proxy ${proxyUrl || 'DIRECT'}`);
