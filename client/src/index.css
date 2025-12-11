@@ -364,3 +364,12 @@ h2 { font-size: 2rem; }
   color: var(--text-muted);
   line-height: 1.5;
 }
+
+/* Utility to hide scrollbar */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
