@@ -35,7 +35,8 @@ We will systematically test and fix the application module by module.
 
 - [x] **Playback**: Verified (Play works).
 - [x] **Context Integration**: Verified playing from Library updates Player.
-- [ ] **Streaming**: Verify Audio loads from Backend/Proxy.
+- [x] **Streaming**: Verified (Manual seek & Auto-continue).
+- [x] **Production Deployment**: Vercel SPA rewrite fix pushed.
 
 ---
 

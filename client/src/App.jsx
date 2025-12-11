@@ -23,11 +23,14 @@ const PrivateRoute = ({ children, adminOnly = false }) => {
 
 import Playlist from './pages/Playlist';
 
+import ScrollToTop from './components/ScrollToTop';
+
 function App() {
   return (
     <AuthProvider>
       <MusicProvider>
         <Router>
+          <ScrollToTop />
           <div className="app-shell">
             <Sidebar />
             <div className="main-content">

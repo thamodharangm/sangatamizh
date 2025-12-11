@@ -87,6 +87,14 @@
   width: 300px;
 }
 
+/* Admin Analytics (Desktop Default) */
+.analytics-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
 /* --- Mobile Logic (< 768px) --- */
 @media (max-width: 768px) {
   /* Sidebar becomes Bottom Navigation */
@@ -165,10 +173,7 @@
   }
 
   /* Hide specific Desktop only items if needed */
-  .mobile-logout,
-  .mobile-login {
-    /* These are handled in the general Nav flow now */
-  }
+  /* Hide specific Desktop only items if needed - handled below */
 
   /* Show Mobile Logout & Login */
   .mobile-logout,
@@ -202,7 +207,7 @@
     margin-left: 0;
     width: 100%;
     padding: 1rem;
-    padding-bottom: 160px; /* Space for Bottom Nav + Music Player */
+    padding-bottom: 110px; /* Space for Bottom Nav + Music Player */
   }
 
   /* Fix Grid Layouts on Mobile */
@@ -662,7 +667,7 @@
   div[style*="padding: 2rem 1rem"] {
     /* Weak selector but targets inline style in AdminUpload */
     padding: 1.5rem 1rem !important;
-    padding-bottom: 80px !important; /* Space for bottom nav */
+    padding-bottom: 0 !important; /* Managed by main-content */
   }
   /* Fix Stats Grid Layout */
   .admin-stats-grid {
@@ -698,7 +703,7 @@
   }
 
   .analytics-chart-card {
-    margin-bottom: 300px !important; /* Huge margin to clear bottom nav */
+    margin-bottom: 2rem !important; /* Adjusted margin, main-content padding handles the rest */
     padding: 1rem !important;
   }
 
@@ -828,7 +833,32 @@
     width: 100% !important;
     min-width: 0 !important;
   }
+  /* Home Sections Mobile Optimization */
+  .section-header h2 {
+    font-size: 1.25rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+  
+  /* Hide Desktop Scroll Arrows on Mobile */
+  .nav-arrow {
+    display: none !important; 
+  }
+
+  /* Improve Horizontal Scroll Experience */
+  .no-scrollbar {
+    padding-right: 20px !important; /* Peek affordance */
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch; /* Momentum scroll */
+    gap: 1rem !important; /* Slightly tighter gap */
+  }
+  
+  /* Ensure cards in scroll sections size correctly */
+  .no-scrollbar > div {
+    min-width: 140px !important;
+    max-width: 140px !important;
+  }
 }
+
 /* --- Admin Analytics Global/Desktop Styles --- */
 .admin-analytics-wrapper {
   padding-bottom: 2rem;
