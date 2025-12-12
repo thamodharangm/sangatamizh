@@ -187,3 +187,5 @@ const formatTime = (time) => {
 
 export default MusicPlayer;
 
+
+export default MusicPlayer;
