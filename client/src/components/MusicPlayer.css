@@ -283,3 +283,155 @@
     opacity: 1; /* Always visible on mobile, no hover needed */
   }
 }
+
+/* FULL SCREEN PLAYER STYLES */
+.music-player-full {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: linear-gradient(to bottom, #1e293b, #0f172a);
+  display: flex;
+  flex-direction: column;
+  padding: 2rem;
+  touch-action: none; /* Prevent scroll for Swipe */
+}
+
+.full-player-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: white;
+  margin-bottom: 2rem;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 0.5rem;
+}
+
+.full-player-art-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.full-player-art {
+  width: 100%;
+  max-width: 350px;
+  aspect-ratio: 1/1;
+  border-radius: 20px;
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+
+.full-player-info {
+  margin-bottom: 2rem;
+}
+
+.full-player-info h2 {
+  font-size: 1.5rem;
+  color: white;
+  margin: 0 0 0.5rem 0;
+}
+
+.full-player-info p {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.full-player-progress-wrapper {
+  margin-bottom: 2rem;
+  cursor: pointer;
+}
+
+.full-time-codes {
+  display: flex;
+  justify-content: space-between;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+}
+
+.full-progress-bg {
+  height: 6px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 3px;
+  overflow: visible;
+  position: relative;
+}
+
+.full-progress-fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 3px;
+  position: relative;
+}
+
+.full-progress-knob {
+  width: 16px;
+  height: 16px;
+  background: white;
+  border-radius: 50%;
+  position: absolute;
+  right: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.full-player-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  margin-bottom: 2rem;
+}
+
+.ctrl-btn-lg {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 1rem;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.ctrl-btn-lg:hover { opacity: 1; }
+
+.play-btn-lg {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: white;
+  color: black;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(255,255,255,0.2);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.play-btn-lg:active { transform: scale(0.95); }
+
+/* Desktop: Make it a floating card instead of full screen */
+@media (min-width: 769px) {
+  .music-player-full {
+     max-width: 400px;
+     height: 600px;
+     top: auto;
+     bottom: 20px;
+     right: 20px;
+     left: auto;
+     border-radius: 20px;
+     box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+}
