@@ -288,12 +288,23 @@ h2 { font-size: 2rem; }
 .logout-btn {
   width: 100%;
   margin-top: 0.5rem;
-  /* Specific override if needed for red focus */
-  color: #ef4444 !important; /* Tailwind Red-500 equivalent for Logout */
-  box-shadow: 0px 4px 0px #7f1d1d !important;
+  background-color: var(--bg-card);
+  border: 2px solid var(--border-color);
+  border-radius: 30px; /* Pill Shape */
+  
+  /* Red Alert Style */
+  color: #ef4444 !important; 
+  box-shadow: 0px 4px 0px #7f1d1d !important; /* Red Shadow */
+  
+  transition: transform 0.1s, box-shadow 0.1s;
 }
 .logout-btn:active {
   box-shadow: none !important;
+  transform: translateY(4px);
+}
+.logout-btn:hover {
+  border-color: #ef4444; 
+  background-color: rgba(239, 68, 68, 0.05);
 }
 
 .user-stats {
