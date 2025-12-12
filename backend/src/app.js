@@ -6,7 +6,13 @@ const testRoutes = require('./routes/testRoutes');
 
 const app = express();
 
-app.use(cors({ origin: '*' }));
+app.use(cors({ 
+    origin: [
+        'http://localhost:5173', 
+        'https://sangatamizh-music-premium.vercel.app'
+    ],
+    credentials: true
+}));
 app.use(express.json());
 
 // Mount Routes
