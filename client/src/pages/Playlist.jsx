@@ -40,20 +40,6 @@ function Playlist() {
   return (
     <div className="playlist-container" style={{ padding: '2rem', maxWidth: '1000px', margin: '0 auto' }}>
       <header className="playlist-header" style={{ marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '2rem' }}>
-         <div className="playlist-cover" style={{ 
-           width: '180px', 
-           height: '180px', 
-           background: 'linear-gradient(135deg, var(--secondary), var(--primary))',
-           borderRadius: '16px',
-           display: 'flex',
-           alignItems: 'center',
-           justifyContent: 'center',
-           fontSize: '4rem',
-           color: 'white',
-           boxShadow: '0 8px 32px rgba(0,0,0,0.3)'
-         }}>
-           ❤️
-         </div>
          <div className="playlist-info">
             <h4 style={{ textTransform: 'uppercase', color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Playlist</h4>
             <h1 style={{ fontSize: '3.5rem', marginBottom: '1rem', fontWeight: '800' }}>Liked Songs</h1>

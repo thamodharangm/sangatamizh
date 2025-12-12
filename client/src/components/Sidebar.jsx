@@ -53,13 +53,11 @@ const Sidebar = () => {
       <div className="sidebar-footer">
         {user ? (
           <div className="user-info">
-
-             <p className="user-login-msg">
-               Logged in as <br/> <strong>{user.email.split('@')[0]}</strong>
-             </p>
-             <button onClick={logout} className="btn-3d btn-secondary logout-btn">
-               Logout
-             </button>
+            <p className="user-login-label">Logged in as</p>
+            <p className="user-name">{user.email.split('@')[0]}</p>
+            <button onClick={logout} className="btn-logout">
+              LOGOUT
+            </button>
           </div>
         ) : (
           <Link to="/login" className="btn-3d btn-primary login-btn">
