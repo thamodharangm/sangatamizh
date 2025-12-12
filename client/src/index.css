@@ -1,3 +1,4 @@
+
 :root {
   /* Core Colors (Tactile/Flat) */
   --bg-main: #111b21;       /* Deep Gunmetal (Duolingo Dark BG) */
@@ -269,7 +270,7 @@ h2 { font-size: 2rem; }
 .sidebar-footer {
   margin-top: auto;
   padding-top: 1rem;
-  padding-bottom: 12px; /* Reduced space below logout */
+  padding-bottom: 0; /* Remove space below logout */
   border-top: 2px solid var(--border-color);
   flex-shrink: 0; /* Never shrink footer */
 }
@@ -291,7 +292,7 @@ h2 { font-size: 2rem; }
 
 .logout-btn {
   width: 100%;
-  margin-top: 0.5rem;
+  margin-top: 0.25rem; /* Reduced from 0.5rem */
   /* Specific override if needed for red focus */
   color: #ef4444 !important; /* Tailwind Red-500 equivalent for Logout */
   

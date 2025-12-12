@@ -1,4 +1,4 @@
-fix this code import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useMusic } from '../context/MusicContext';
 import './MusicPlayer.css';
 
