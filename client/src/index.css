@@ -181,29 +181,32 @@ h2 { font-size: 2rem; }
   text-transform: uppercase;
   letter-spacing: 0.8px;
   text-decoration: none;
-  transition: transform 0.1s, box-shadow 0.1s, background-color 0.2s;
+  transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   user-select: none;
+  position: relative;
+  overflow: hidden;
 }
 
 .nav-item:hover {
-  background-color: #283840; /* Slightly lighter card bg */
-  border-color: #4b5d67;
-  transform: translateY(-2px); /* Slight lift */
-  box-shadow: 0px 6px 0px var(--border-color); /* Increased shadow on lift */
+  background-color: #2c3e50; /* Richer dark hover */
+  border-color: #5d6d7e;
+  transform: translateY(-2px); 
+  box-shadow: 0px 6px 0px var(--border-color); 
   color: white;
 }
 
 .nav-item:active {
   transform: translateY(4px);
-  box-shadow: 0px 0px 0px var(--border-color); /* Pressed down */
+  box-shadow: 0px 0px 0px var(--border-color); 
 }
 
 /* Active State - Like "Start Listening" Green Button (btn-primary) */
 .nav-item.active {
   background-color: var(--primary);
   border-color: var(--primary-depth); 
-  box-shadow: 0px 4px 0px var(--primary-depth); /* Green 3D edge */
+  box-shadow: 0px 4px 0px var(--primary-depth); 
   color: white;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3); /* Premium depth */
 }
 
 .nav-item.active:hover {
