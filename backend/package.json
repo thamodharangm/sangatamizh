@@ -32,6 +32,6 @@
     "yt-dlp-wrap": "^2.3.12"
   },
   "devDependencies": {
-    "prisma": "^6.19.0"
+    "prisma": "^6.19.1"
   }
 }
