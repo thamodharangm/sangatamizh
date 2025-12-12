@@ -257,6 +257,7 @@ h2 { font-size: 2rem; }
 .sidebar-footer {
   margin-top: auto;
   padding-top: 1rem;
+  padding-bottom: 2rem; /* Added breathing room for Logout button */
   border-top: 2px solid var(--border-color);
 }
 
