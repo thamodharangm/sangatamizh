@@ -158,12 +158,9 @@ h2 { font-size: 2rem; }
 
 /* Navigation Links (Sidebar style) */
 /* Navigation Links (Sidebar style) - 3D Buttons */
-/* Navigation Links (Sidebar style) - 3D Buttons */
 .nav-item {
   display: flex;
   align-items: center;
-  justify-content: flex-start; /* Ensure left alignment */
-  width: 100%; /* Force full width */
   gap: 12px;
   padding: 0 24px; /* Matches 'Start Listening' padding */
   height: var(--btn-height); /* Matches 'Start Listening' height (48px) */
@@ -181,32 +178,29 @@ h2 { font-size: 2rem; }
   text-transform: uppercase;
   letter-spacing: 0.8px;
   text-decoration: none;
-  transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: transform 0.1s, box-shadow 0.1s, background-color 0.2s;
   user-select: none;
-  position: relative;
-  overflow: hidden;
 }
 
 .nav-item:hover {
-  background-color: #2c3e50; /* Richer dark hover */
-  border-color: #5d6d7e;
-  transform: translateY(-2px); 
-  box-shadow: 0px 6px 0px var(--border-color); 
+  background-color: #283840; /* Slightly lighter card bg */
+  border-color: #4b5d67;
+  transform: translateY(-2px); /* Slight lift */
+  box-shadow: 0px 6px 0px var(--border-color); /* Increased shadow on lift */
   color: white;
 }
 
 .nav-item:active {
   transform: translateY(4px);
-  box-shadow: 0px 0px 0px var(--border-color); 
+  box-shadow: 0px 0px 0px var(--border-color); /* Pressed down */
 }
 
 /* Active State - Like "Start Listening" Green Button (btn-primary) */
 .nav-item.active {
   background-color: var(--primary);
   border-color: var(--primary-depth); 
-  box-shadow: 0px 4px 0px var(--primary-depth); 
+  box-shadow: 0px 4px 0px var(--primary-depth); /* Green 3D edge */
   color: white;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.3); /* Premium depth */
 }
 
 .nav-item.active:hover {
@@ -291,23 +285,21 @@ h2 { font-size: 2rem; }
 .logout-btn {
   width: 100%;
   margin-top: 0.5rem;
+  /* Specific override if needed for red focus */
+  color: #ef4444 !important; /* Tailwind Red-500 equivalent for Logout */
+  
+  /* Classic Rectangular 3D Style */
   background-color: var(--bg-card);
   border: 2px solid var(--border-color);
-  border-radius: var(--radius-lg); /* Match Classic Rectangular Theme */
-  
-  /* Red Alert Style */
-  color: #ef4444 !important; 
-  box-shadow: 0px 4px 0px #7f1d1d !important; /* Red Shadow */
-  
-  transition: transform 0.1s, box-shadow 0.1s;
+  border-radius: var(--radius-lg);
+  box-shadow: 0px 4px 0px var(--border-color) !important;
 }
 .logout-btn:active {
   box-shadow: none !important;
   transform: translateY(4px);
 }
 .logout-btn:hover {
-  border-color: #ef4444; 
-  background-color: rgba(239, 68, 68, 0.05);
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
 .user-stats {
@@ -319,7 +311,7 @@ h2 { font-size: 2rem; }
   border-radius: var(--radius-md);
   font-weight: 700;
   font-size: 0.9rem;
-  width: 100%; 
+  width: 100%; /* Ensure stats span full width too */
 }
 .stat-item { display: flex; align-items: center; gap: 6px; }
 
@@ -384,7 +376,7 @@ h2 { font-size: 2rem; }
   
   /* Bigger Icons for Mobile Touch Targets */
   .nav-item span:first-child {
-    font-size: 2rem; /* Increased from 1.5rem for better visibility */
+    font-size: 1.5rem;
   }
 
   /* Show logout/login icons if needed */
