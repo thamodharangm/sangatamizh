@@ -1,4 +1,4 @@
-/* Music Player Component */
+/* -------- Base Player Card (unchanged mostly) -------- */
 .music-player {
   position: fixed;
   bottom: 24px;
@@ -12,252 +12,160 @@
   justify-content: space-between;
   z-index: 1000;
   gap: 20px;
-
-  /* Premium Glass Effect */
-  background: rgba(
-    22,
-    32,
-    42,
-    0.9
-  ); /* Slightly more opaque for better contrast */
+  background: rgba(22,32,42,0.9);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255,255,255,0.1);
   border-radius: 16px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
-
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.05);
+  transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
 }
 
 .music-player:hover {
-  transform: translateX(-50%) translateY(-2px); /* Subtle lift */
-  background: rgba(22, 32, 42, 0.95);
-  border-color: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.6),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  transform: translateX(-50%) translateY(-2px);
+  background: rgba(22,32,42,0.95);
+  border-color: rgba(255,255,255,0.2);
+  box-shadow: 0 15px 50px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.1);
 }
 
-/* Left Section: Song Info */
-.mp-song-info {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex: 1;
-  min-width: 0;
-  max-width: 35%;
-}
+/* Song info, art, details (unchanged) */
+.mp-song-info { display:flex; align-items:center; gap:16px; flex:1; min-width:0; max-width:35%; }
+.mp-art { width:50px; height:50px; border-radius:8px; background-size:cover; background-position:center; box-shadow:0 4px 10px rgba(0,0,0,0.4); flex-shrink:0; border:1px solid rgba(255,255,255,0.1); transition: transform .3s ease; }
+.music-player:hover .mp-art { transform: scale(1.05) rotate(2deg); }
+.mp-details { display:flex; flex-direction:column; justify-content:center; overflow:hidden; }
+.mp-title { margin:0; font-size:.95rem; color:white; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:.3px; }
+.mp-artist { margin:2px 0 0 0; font-size:.8rem; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
-.mp-art {
-  width: 50px;
-  height: 50px;
-  border-radius: 8px;
-  background-size: cover;
-  background-position: center;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
-  flex-shrink: 0;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: transform 0.3s ease;
-}
+/* Controls */
+.mp-controls { display:flex; align-items:center; gap:20px; flex-shrink:0; }
+.mp-btn-mini { background:none; border:none; cursor:pointer; color:var(--text-muted); font-size:20px; transition: all .2s ease; padding:8px; border-radius:50%; display:flex; align-items:center; justify-content:center; }
+.mp-btn-mini:hover { color:white; background: rgba(255,255,255,0.1); transform: scale(1.1); }
+.mp-play-btn { width:48px; height:48px; border-radius:50%; background:white; border:none; color:#111b21; display:flex; align-items:center; justify-content:center; font-size:1.2rem; cursor:pointer; box-shadow:0 0 15px rgba(255,255,255,0.2); transition: all .2s cubic-bezier(.34,1.56,.64,1); }
+.mp-play-btn:hover { transform: scale(1.1); box-shadow:0 0 25px rgba(255,255,255,0.4); }
+.mp-play-btn:active { transform: scale(.95); }
 
-.music-player:hover .mp-art {
-  transform: scale(1.05) rotate(2deg); /* Playful micro-interaction */
-}
+/* Progress container */
+.mp-progress-container { display:flex; align-items:center; gap:12px; flex:1; max-width:600px; min-width:0; }
+.mp-time { font-size:.75rem; font-variant-numeric: tabular-nums; color:#b3b3b3; min-width:35px; }
 
-.mp-details {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  overflow: hidden;
-}
+/* -------- Range (iPhone style) -------- */
 
-.mp-title {
-  margin: 0;
-  font-size: 0.95rem;
-  color: white;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  letter-spacing: 0.3px;
-  cursor: default;
-}
-
-.mp-artist {
-  margin: 2px 0 0 0;
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  cursor: default;
-}
-
-/* Center Section: Controls */
-.mp-controls {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  flex-shrink: 0;
-}
-
-.mp-btn-mini {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--text-muted);
-  font-size: 20px;
-  transition: all 0.2s ease;
-  padding: 8px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.mp-btn-mini:hover {
-  color: white;
-  background: rgba(255, 255, 255, 0.1);
-  transform: scale(1.1);
-}
-
-.mp-play-btn {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: white;
-  border: none;
-  color: #111b21;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.2rem;
-  cursor: pointer;
-  box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
-  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.mp-play-btn:hover {
-  transform: scale(1.1);
-  box-shadow: 0 0 25px rgba(255, 255, 255, 0.4);
-}
-
-.mp-play-btn:active {
-  transform: scale(0.95);
-}
-
-/* Right Section: Progress & Time */
-.mp-progress-container {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex: 1; /* Take remaining space */
-  max-width: 600px; /* Limit width on desktop */
-}
-
-.mp-time {
-  font-size: 0.75rem;
-  font-variant-numeric: tabular-nums;
-  color: #b3b3b3;
-  min-width: 35px;
-}
-
-/* Custom Range Input (iPhone Style) */
+/* Reset native appearance so we control visual layering */
 .prog-range {
   -webkit-appearance: none;
+  appearance: none;
   width: 100%;
-  height: 3px; /* Thin Track */
-  background: transparent; 
+  height: 3px;            /* visible track height */
+  background: transparent;/* gradient is applied inline on the element */
   border-radius: 2px;
   cursor: pointer;
   outline: none;
-  padding: 0;
+  padding: 10px 0;        /* increase vertical hit area without changing visible height */
   margin: 0;
-  touch-action: pan-y; /* Allow vertical scroll, block horizontal for swipe */
+  touch-action: pan-y;
+  position: relative;
+  /* allow the inline background gradient to show */
+  background-clip: padding-box;
 }
 
-/* Chrome/Safari Thumb - iPhone White Circle */
+/* Make browser-specific track backgrounds transparent so inline background shows */
+.prog-range::-webkit-slider-runnable-track { background: transparent !important; height: 3px; border-radius: 2px; }
+.prog-range::-moz-range-track { background: transparent !important; height: 3px; border-radius: 2px; }
+
+/* Chrome/Safari Thumb - small visible circle but larger hit area via padding above */
 .prog-range::-webkit-slider-thumb {
   -webkit-appearance: none;
   height: 14px;
   width: 14px;
   border-radius: 50%;
   background: #ffffff;
-  margin-top: -5.5px; /* (3px track - 14px thumb) / 2 = -5.5px */
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
-  transform: scale(1); /* Always visible like native iOS */
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  margin-top: -5.5px; /* align thumb center with track */
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  transform-origin: center;
+  transition: transform .1s ease, box-shadow .1s ease;
+  position: relative;
+  z-index: 2;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.prog-range:active::-webkit-slider-thumb {
-  transform: scale(1.2); /* Expand on touch */
-  box-shadow: 0 0 10px rgba(50, 215, 75, 0.5); /* Green glow */
+/* Visual thumb expansion on active/touch */
+.prog-range:active::-webkit-slider-thumb,
+.prog-range:focus::-webkit-slider-thumb {
+  transform: scale(1.15);
+  box-shadow: 0 0 10px rgba(50,215,75,0.45);
 }
 
-/* Track (Chrome/Safari) */
-.prog-range::-webkit-slider-runnable-track {
-  width: 100%;
-  height: 3px;
-  cursor: pointer;
-  border-radius: 2px;
-}
-
-/* Firefox Thumb */
+/* Firefox thumb */
 .prog-range::-moz-range-thumb {
   height: 14px;
   width: 14px;
-  border: none;
   border-radius: 50%;
   background: #ffffff;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  border: none;
+  position: relative;
+  z-index: 2;
 }
 
-/* Responsive: Mobile */
+/* Firefox: make the filled track "transparent" so the input's background gradient is visible */
+.prog-range::-moz-range-progress { background: transparent; height: 3px; border-radius: 2px; }
+
+/* Focus outline for keyboard users */
+.prog-range:focus {
+  outline: 3px solid rgba(50,215,75,0.12);
+  outline-offset: 6px;
+  border-radius: 6px;
+}
+
+/* Improve touch hit target on mobile by increasing pseudo element area (invisible) */
+.prog-range::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -8px;
+  bottom: -8px;
+  pointer-events: none; /* pointer should still hit the input itself */
+}
+
+/* Hide default tap highlight on mobile for a smoother look */
+.prog-range, .prog-range::-webkit-slider-thumb { -webkit-tap-highlight-color: transparent; }
+
+/* Prefers reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .music-player, .mp-art, .mp-play-btn, .prog-range::-webkit-slider-thumb { transition: none !important; }
+}
+
+/* -------- Responsive: Mobile -------- */
 @media (max-width: 768px) {
   .music-player {
     bottom: 110px;
     width: calc(100% - 24px);
     padding: 12px 16px;
-    /* Let's keep Row for Player */
     overflow: visible;
   }
-  
-  .mp-song-info {
-    max-width: 60%;
-    margin-right: auto; /* Push controls right */
-  }
-
-  .mp-controls {
-    gap: 16px;
-  }
-
-  /* Position Progress on top of card for Mobile */
+  .mp-song-info { max-width: 60%; margin-right: auto; }
+  .mp-controls { gap: 16px; }
+  /* Move progress above controls but keep it inside the card and increase hit area */
   .mp-progress-container {
     position: absolute;
-    top: -10px; /* Touch target area */
-    left: 0;
-    width: 100%;
+    top: -18px;
+    left: 12px;
+    right: 12px;
+    width: auto;
     max-width: none;
-    padding: 0 12px; /* Inset */
+    padding: 6px 0;
     box-sizing: border-box;
-    height: 20px; /* Larger Touch target */
+    height: 28px;
     display: flex;
     align-items: center;
+    gap: 8px;
   }
-
-  /* Hide Time on Mobile (optional, or move elsewhere) */
-  .mp-time {
-    display: none; 
-  }
-
-  .prog-range {
-    height: 4px;
-  }
-  
-  /* Always show thumb on Mobile? usually better UX */
-  .prog-range::-webkit-slider-thumb {
-    transform: scale(1); 
-  }
+  .mp-time { display: none; }
+  .prog-range { height: 4px; padding: 12px 0; }
+  .prog-range::-webkit-slider-thumb { margin-top: -6px; }
 }
+
 
 /* FULL SCREEN PLAYER STYLES */
 .music-player-full {
@@ -268,7 +176,7 @@
   display: flex;
   flex-direction: column;
   padding: 2rem;
-  touch-action: none; /* Prevent scroll for Swipe */
+  touch-action: none;
 }
 
 .full-player-header {
@@ -397,7 +305,7 @@
 
 .play-btn-lg:active { transform: scale(0.95); }
 
-/* Desktop: Make it a floating card instead of full screen */
+/* Desktop: Make it a floating card */
 @media (min-width: 769px) {
   .music-player-full {
      max-width: 400px;
@@ -410,3 +318,4 @@
      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
   }
 }
+
