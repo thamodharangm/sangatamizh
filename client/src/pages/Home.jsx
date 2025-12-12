@@ -170,7 +170,7 @@ function Home() {
 
   return (
     <div className="home-container">
-      <main style={{ padding: '20px 0', maxWidth: '1000px', margin: '0 auto' }}>
+      <main style={{ paddingBottom: '2rem', maxWidth: '1000px', margin: '0 auto' }}>
         
         {/* Hero Section */}
         <section className="hero-section" style={{ 
@@ -182,7 +182,7 @@ function Home() {
           paddingBottom: '2rem'
         }}>
           <div className="hero-content">
-            <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem', color: 'white' }}>
+            <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem', marginTop: 0, color: 'white' }}>
               Welcome to <span style={{ color: 'var(--primary)' }}>Sangatamizh</span>
             </h1>
             <p style={{ fontSize: '1.2rem', color: 'var(--text-muted)', maxWidth: '500px', marginBottom: '2rem' }}>
