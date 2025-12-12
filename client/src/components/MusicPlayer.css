@@ -161,63 +161,54 @@
   min-width: 35px;
 }
 
-/* Custom Range Input (Spotify Style) */
+/* Custom Range Input (iPhone Style) */
 .prog-range {
   -webkit-appearance: none;
   width: 100%;
-  height: 4px;
-  background: transparent; /* Handled via inline JS for progress */
+  height: 3px; /* Thin Track */
+  background: transparent; 
   border-radius: 2px;
   cursor: pointer;
   outline: none;
   padding: 0;
   margin: 0;
+  touch-action: pan-y; /* Allow vertical scroll, block horizontal for swipe */
 }
 
-/* Chrome/Safari Thumb */
+/* Chrome/Safari Thumb - iPhone White Circle */
 .prog-range::-webkit-slider-thumb {
   -webkit-appearance: none;
-  height: 12px;
-  width: 12px;
+  height: 14px;
+  width: 14px;
   border-radius: 50%;
-  background: #fff;
-  margin-top: -4px; /* (4px track - 12px thumb) / 2 = -4px to center */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-  transform: scale(0); /* Hidden by default */
-  transition: transform 0.1s ease;
+  background: #ffffff;
+  margin-top: -5.5px; /* (3px track - 14px thumb) / 2 = -5.5px */
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  transform: scale(1); /* Always visible like native iOS */
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.prog-range:active::-webkit-slider-thumb {
+  transform: scale(1.2); /* Expand on touch */
+  box-shadow: 0 0 10px rgba(50, 215, 75, 0.5); /* Green glow */
 }
 
 /* Track (Chrome/Safari) */
 .prog-range::-webkit-slider-runnable-track {
   width: 100%;
-  height: 4px;
+  height: 3px;
   cursor: pointer;
   border-radius: 2px;
-  /* background sets in JS */
 }
 
-/* Show Thumb on Hover */
-.mp-progress-container:hover .prog-range::-webkit-slider-thumb {
-  transform: scale(1);
-}
-
-/* Active Drag State - Always show */
-.prog-range:active::-webkit-slider-thumb {
-  transform: scale(1);
-}
-
-/* Firefox Support */
+/* Firefox Thumb */
 .prog-range::-moz-range-thumb {
-  height: 12px;
-  width: 12px;
+  height: 14px;
+  width: 14px;
   border: none;
   border-radius: 50%;
-  background: #fff;
-  transform: scale(0);
-  transition: transform 0.1s ease;
-}
-.mp-progress-container:hover .prog-range::-moz-range-thumb {
-  transform: scale(1);
+  background: #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
 }
 
 /* Responsive: Mobile */

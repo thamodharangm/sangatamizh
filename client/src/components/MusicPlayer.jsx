@@ -28,12 +28,13 @@ const MusicPlayer = () => {
   if (!currentSong) return null;
 
   // Calculate percentage for gradient background
+  // Calculate percentage for gradient background
   const currentProgress = isScrubbing ? scrubTime : currentTime;
   const percent = duration ? (currentProgress / duration) * 100 : 0;
   
-  // Spotify Green styling
+  // iPhone Neon Green styling
   const trackStyle = {
-    background: `linear-gradient(to right, #1db954 ${percent}%, #535353 ${percent}%)`
+    background: `linear-gradient(to right, #32D74B ${percent}%, #535353 ${percent}%)`
   };
 
   const handleScrubChange = (e) => {
