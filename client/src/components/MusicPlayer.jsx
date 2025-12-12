@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+fix this code import { useState, useEffect } from 'react';
 import { useMusic } from '../context/MusicContext';
 import './MusicPlayer.css';
 
@@ -21,31 +21,25 @@ const MusicPlayer = () => {
   // Sync scrubTime only when NOT scrubbing
   useEffect(() => {
     if (!isScrubbing) {
-      // ensure numeric
-      setScrubTime(typeof currentTime === 'number' && !isNaN(currentTime) ? currentTime : 0);
+        setScrubTime(currentTime);
     }
   }, [currentTime, isScrubbing]);
 
   if (!currentSong) return null;
 
-  // Current progress used for UI (either live audio time or scrub time while dragging)
-  const currentProgress = isScrubbing ? scrubTime : (typeof currentTime === 'number' && !isNaN(currentTime) ? currentTime : 0);
-
-  // Ensure duration is numeric and > 0 before dividing
-  const safeDuration = typeof duration === 'number' && !isNaN(duration) && duration > 0 ? duration : 0;
-  const percent = safeDuration ? (currentProgress / safeDuration) * 100 : 0;
-
-  // clamp percent between 0..100
-  const clampedPercent = Math.max(0, Math.min(100, percent));
-
-  // iPhone Neon Green styling (track gradient)
+  // Calculate percentage for gradient background
+  // Calculate percentage for gradient background
+  const currentProgress = isScrubbing ? scrubTime : currentTime;
+  const percent = duration ? (currentProgress / duration) * 100 : 0;
+  
+  // iPhone Neon Green styling
   const trackStyle = {
-    background: `linear-gradient(to right, #32D74B ${clampedPercent}%, #535353 ${clampedPercent}%)`
+    background: `linear-gradient(to right, #32D74B ${percent}%, #535353 ${percent}%)`
   };
 
   const handleScrubChange = (e) => {
-    const v = Number(e.target.value);
-    if (!isNaN(v)) setScrubTime(v);
+    // User is dragging
+    setScrubTime(Number(e.target.value));
   };
   
   const handleScrubStart = () => {
@@ -53,19 +47,10 @@ const MusicPlayer = () => {
   };
 
   const handleScrubEnd = (e) => {
-    // value might come from event or fall back to scrubTime
-    const valFromEvent = e && e.target && typeof e.target.value !== 'undefined' ? Number(e.target.value) : NaN;
-    const newTime = !isNaN(valFromEvent) ? valFromEvent : scrubTime;
-    // Seek only if valid
-    if (!isNaN(newTime) && safeDuration >= 0) {
-      seek(newTime);
-      setScrubTime(newTime);
-    }
+    // User let go
     setIsScrubbing(false);
+    seek(Number(e.target.value));
   };
-
-  // ensure input value never exceeds max (avoids React warning)
-  const inputValue = safeDuration ? Math.max(0, Math.min(currentProgress, safeDuration)) : 0;
 
   return (
     <div className="music-player">
@@ -121,38 +106,25 @@ const MusicPlayer = () => {
         </button>
       </div>
 
-      {/* Progress Bar (Spotify / iPhone style range input) */}
+      {/* Progress Bar (Spotify Style Range Input) */}
       <div className="mp-progress-container">
-        <span className="mp-time">{formatTime(inputValue)}</span>
+        <span className="mp-time">{formatTime(currentProgress)}</span>
         
         <input 
-          type="range"
-          className="prog-range"
-          min="0"
-          max={safeDuration}
-          step="0.1"
-          value={inputValue}
-          onChange={handleScrubChange}
-          onMouseDown={handleScrubStart}
-          onTouchStart={handleScrubStart}
-          onPointerDown={handleScrubStart}
-          onMouseUp={handleScrubEnd}
-          onTouchEnd={handleScrubEnd}
-          onPointerUp={handleScrubEnd}
-          onKeyUp={(e) => {
-            if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'Home' || e.key === 'End') {
-              // commit keyboard seek when user releases key
-              const v = Number(e.target.value);
-              if (!isNaN(v)) seek(v);
-            }
-          }}
-          aria-valuemin={0}
-          aria-valuemax={safeDuration}
-          aria-valuenow={inputValue}
-          style={trackStyle}
+            type="range"
+            className="prog-range"
+            min="0"
+            max={duration || 0}
+            value={currentProgress}
+            onChange={handleScrubChange}
+            onMouseDown={handleScrubStart}
+            onTouchStart={handleScrubStart}
+            onMouseUp={handleScrubEnd}
+            onTouchEnd={handleScrubEnd}
+            style={trackStyle}
         />
         
-        <span className="mp-time">{formatTime(safeDuration)}</span>
+        <span className="mp-time">{formatTime(duration)}</span>
       </div>
     </div>
   );
@@ -160,10 +132,10 @@ const MusicPlayer = () => {
 
 // Helper
 const formatTime = (time) => {
-  const t = typeof time === 'number' && !isNaN(time) ? Math.floor(time) : 0;
-  const min = Math.floor(t / 60);
-  const sec = t % 60;
-  return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+    if (!time) return '0:00';
+    const min = Math.floor(time / 60);
+    const sec = Math.floor(time % 60);
+    return `${min}:${sec < 10 ? '0' : ''}${sec}`;
 };
 
 export default MusicPlayer;
