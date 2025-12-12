@@ -168,7 +168,7 @@ h2 { font-size: 2rem; }
   padding: 0 24px; /* Matches 'Start Listening' padding */
   height: var(--btn-height); /* Matches 'Start Listening' height (48px) */
   margin-bottom: 12px; 
-  border-radius: 30px; /* Pill Shape */
+  border-radius: var(--radius-lg); /* Matches 'Start Listening' radius */
   
   /* Default State (Inactive) - Like "My Library" button (btn-secondary) */
   background-color: var(--bg-card); /* Filled background */
@@ -288,18 +288,12 @@ h2 { font-size: 2rem; }
 .logout-btn {
   width: 100%;
   margin-top: 0.5rem;
-  /* Specific override if needed for red focus */
-  color: #ef4444 !important; /* Tailwind Red-500 equivalent for Logout */
-  box-shadow: 0px 4px 0px #7f1d1d !important;
-}
-.logout-btn:active {
-  box-shadow: none !important;
 }
 
 .user-stats {
   display: flex;
   justify-content: space-around;
-  margin-bottom: 2rem; /* Increased spacing */
+  margin-bottom: 1rem;
   padding: 0.5rem;
   background: rgba(255,255,255,0.05);
   border-radius: var(--radius-md);
