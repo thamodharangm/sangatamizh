@@ -1,49 +1,60 @@
 import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
+import api from '../config/api';
+import { useAuth } from '../context/AuthContext';
 
 const SongCard = ({ song, onPlay }) => {
   const [isLiked, setIsLiked] = useState(false);
+  const { user } = useAuth();
 
-  useEffect(() => {
-    // Check if initially liked
-    const liked = JSON.parse(localStorage.getItem('likedSongs') || '[]');
-    setIsLiked(liked.some(s => s.id === song.id));
-  }, [song.id]);
-
-  const handleLike = (e) => {
+  // On mount, if 'song' has a 'liked' property from backend, use it.
+  // Otherwise, we might need to fetch status? 
+  // For scalability, let's assume the parent list might pass initial 'isLiked' status if it fetched it.
+  // But since we are incrementally upgrading, let's keep it simple: 
+  // We won't fetch individual status per card to avoid N+1 requests.
+  // We rely on the User doing the action or Parent Component passing 'likedIds'.
+  // For now, let's just make the Action work.
+  
+  const handleLike = async (e) => {
     e.stopPropagation();
     
-    // Toggle state
-    const newState = !isLiked;
-    setIsLiked(newState);
-
-    // Update Local Storage
-    const existing = JSON.parse(localStorage.getItem('likedSongs') || '[]');
-    let updated;
-    if (newState) {
-      updated = [...existing, song];
-      
-      // Trigger Confetti Explosion
-      const rect = e.target.getBoundingClientRect();
-      const x = (rect.left + rect.width / 2) / window.innerWidth;
-      const y = (rect.top + rect.height / 2) / window.innerHeight;
-
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { x, y },
-        colors: ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF'],
-        disableForReducedMotion: true,
-        zIndex: 9999, // Ensure it's on top
-      });
-
-    } else {
-      updated = existing.filter(s => s.id !== song.id);
+    if (!user) {
+        // Simple alert or redirect
+        alert("Please Login to Like Songs!"); 
+        return;
     }
-    localStorage.setItem('likedSongs', JSON.stringify(updated));
-    
-    // Dispatch event to update Playlist page if open
-    window.dispatchEvent(new Event('storage'));
+
+    // Optimistic Update
+    const previousState = isLiked;
+    setIsLiked(!previousState);
+
+    // Confetti Effect if Liking
+    if (!previousState) {
+        const rect = e.target.getBoundingClientRect();
+        const x = (rect.left + rect.width / 2) / window.innerWidth;
+        const y = (rect.top + rect.height / 2) / window.innerHeight;
+  
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { x, y },
+          colors: ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF'],
+          disableForReducedMotion: true,
+          zIndex: 9999,
+        });
+    }
+
+    try {
+        await api.post('/likes/toggle', { 
+            userId: user.uid, // Firebase UID 
+            songId: song.id 
+        });
+        // Success
+    } catch (err) {
+        console.error("Like Toggle Failed", err);
+        // Revert UI on failure
+        setIsLiked(previousState);
+    }
   };
 
   return (
