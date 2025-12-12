@@ -113,19 +113,34 @@ function Home() {
   const [sections, setSections] = useState({ trending: [], hits: [], recent: [] });
   // Keep regular songs state if needed for "All", but sections are prioritize
   
+  // Helper to get Identity (User ID or Guest ID)
+  const getIdentity = () => {
+      try {
+          const user = JSON.parse(localStorage.getItem('user'));
+          if (user?.id) return user.id;
+      } catch (e) { /* ignore */ }
+      
+      let guestId = localStorage.getItem('guestId');
+      if (!guestId) {
+          guestId = 'guest_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+          localStorage.setItem('guestId', guestId);
+      }
+      return guestId;
+  };
+
   useEffect(() => {
     const fetchSections = async () => {
       try {
-        const user = JSON.parse(localStorage.getItem('user'));
+        const userId = getIdentity();
         const [songsRes, sectionRes] = await Promise.all([
              api.get('/songs'),
-             api.get(`/home-sections?userId=${user?.id || ''}`)
+             api.get(`/home-sections?userId=${userId}`)
         ]);
 
         const normalize = (list) => list.map(s => ({
             ...s,
             audioUrl: s.file_url || s.fileUrl,
-            coverUrl: s.cover_url || s.coverUrl
+            coverUrl: s.cover_url || s.coverArt || s.coverUrl
         }));
 
         setSongs(normalize(songsRes.data));
@@ -147,9 +162,9 @@ function Home() {
   const handlePlay = async (song, playlist) => {
        playSong(song, playlist);
        // Log play in background
-       const user = JSON.parse(localStorage.getItem('user'));
-       if (user?.id) {
-           api.post('/log-play', { userId: user.id, songId: song.id }).catch(e => console.error("Log fail", e));
+       const userId = getIdentity();
+       if (userId) {
+           api.post('/log-play', { userId, songId: song.id }).catch(e => console.error("Log fail", e));
        }
   };
 
