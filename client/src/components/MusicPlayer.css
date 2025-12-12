@@ -145,154 +145,126 @@
   transform: scale(0.95);
 }
 
-/* Right Section: Progress */
+/* Right Section: Progress & Time */
 .mp-progress-container {
-  flex: 1.5; /* Take more space on desktop */
-  height: 6px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
-  overflow: hidden;
-  cursor: pointer; /* Pointer filling */
-  max-width: 400px;
-  position: relative;
-  transition: height 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1; /* Take remaining space */
+  max-width: 600px; /* Limit width on desktop */
 }
 
-/* Hover effect on progress container to make it easier to click */
-.mp-progress-container:hover {
-  height: 8px;
+.mp-time {
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  color: #b3b3b3;
+  min-width: 35px;
 }
 
-.mp-progress-bar {
-  height: 100%;
-  background: linear-gradient(90deg, var(--primary), #4ade80);
-  border-radius: 3px;
-  box-shadow: 0 0 10px rgba(88, 204, 2, 0.4);
-  position: relative;
+/* Custom Range Input (Spotify Style) */
+.prog-range {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 4px;
+  background: transparent; /* Handled via inline JS for progress */
+  border-radius: 2px;
+  cursor: pointer;
+  outline: none;
+  padding: 0;
+  margin: 0;
 }
 
-/* Add a "knob" or glowing end to the progress bar */
-.mp-progress-bar::after {
-  content: "";
-  position: absolute;
-  right: -2px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 8px;
-  height: 8px;
-  background: white;
+/* Chrome/Safari Thumb */
+.prog-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  height: 12px;
+  width: 12px;
   border-radius: 50%;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
-  opacity: 0;
-  transition: opacity 0.2s;
+  background: #fff;
+  margin-top: -4px; /* (4px track - 12px thumb) / 2 = -4px to center */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  transform: scale(0); /* Hidden by default */
+  transition: transform 0.1s ease;
 }
 
-.mp-progress-container:hover .mp-progress-bar::after {
-  opacity: 1;
+/* Track (Chrome/Safari) */
+.prog-range::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 4px;
+  cursor: pointer;
+  border-radius: 2px;
+  /* background sets in JS */
+}
+
+/* Show Thumb on Hover */
+.mp-progress-container:hover .prog-range::-webkit-slider-thumb {
+  transform: scale(1);
+}
+
+/* Active Drag State - Always show */
+.prog-range:active::-webkit-slider-thumb {
+  transform: scale(1);
+}
+
+/* Firefox Support */
+.prog-range::-moz-range-thumb {
+  height: 12px;
+  width: 12px;
+  border: none;
+  border-radius: 50%;
+  background: #fff;
+  transform: scale(0);
+  transition: transform 0.1s ease;
+}
+.mp-progress-container:hover .prog-range::-moz-range-thumb {
+  transform: scale(1);
 }
 
 /* Responsive: Mobile */
 @media (max-width: 768px) {
   .music-player {
-    bottom: 100px; /* Increased to ensure clear separation from bottom nav */
-    width: calc(100% - 24px); /* Full width minus safety margin */
+    bottom: 110px;
+    width: calc(100% - 24px);
     padding: 12px 16px;
-    gap: 12px;
-    background: rgba(32, 47, 54, 0.98);
-    backdrop-filter: blur(30px);
-    overflow: visible; /* Allow progress knob (top: -6px) to be seen */
-    border-radius: 12px; /* Ensure uniform radius */
+    /* Let's keep Row for Player */
+    overflow: visible;
   }
-
-  .music-player:hover {
-    transform: translateX(-50%);
-  }
-
+  
   .mp-song-info {
     max-width: 60%;
-    gap: 10px;
-  }
-
-  .mp-art {
-    width: 44px; /* Slightly larger touch target */
-    height: 44px;
-    box-shadow: none;
-    border-radius: 6px;
-  }
-
-  .mp-title {
-    font-size: 0.95rem;
-    margin-bottom: 2px;
-  }
-
-  .mp-artist {
-    font-size: 0.8rem;
+    margin-right: auto; /* Push controls right */
   }
 
   .mp-controls {
-    gap: 16px; /* slightly more breathing room */
-    margin-left: auto;
+    gap: 16px;
   }
 
-  .mp-play-btn {
-    width: 44px;
-    height: 44px;
-    font-size: 1.2rem;
-    box-shadow: none;
-    background: white;
-    color: #111b21;
-  }
-
-  /* Progress Bar: Absolute Top */
+  /* Position Progress on top of card for Mobile */
   .mp-progress-container {
     position: absolute;
-    top: -6px; /* Position visual track */
-    left: 12px; 
-    width: calc(100% - 24px);
+    top: -10px; /* Touch target area */
+    left: 0;
+    width: 100%;
     max-width: none;
-    height: 4px; /* Visual Height */
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 2px;
-    overflow: visible; /* CRITICAL: Allow touch-target overlay to overflow */
-    z-index: 10;
+    padding: 0 12px; /* Inset */
+    box-sizing: border-box;
+    height: 20px; /* Larger Touch target */
+    display: flex;
+    align-items: center;
   }
 
-  /* Increase Touch Target for iPhone without affecting visuals */
-  .mp-progress-container::before {
-    content: "";
-    position: absolute;
-    top: -20px; /* Extend touch area up */
-    bottom: -20px; /* Extend touch area down */
-    left: -10px;
-    right: -10px;
-    background: transparent;
-    z-index: 20; /* Ensure it catches taps */
+  /* Hide Time on Mobile (optional, or move elsewhere) */
+  .mp-time {
+    display: none; 
   }
 
-  .mp-progress-container:hover {
-    height: 4px; /* Maintain fixed height on mobile */
+  .prog-range {
+    height: 4px;
   }
-
-  .mp-progress-bar {
-    border-radius: 2px;
-    box-shadow: none;
-    background: var(--primary);
-    position: relative;
-  }
-
-  .mp-progress-bar::after {
-    display: block; /* Show the knob on mobile */
-    content: "";
-    position: absolute;
-    right: -6px; /* Center the 12px knob */
-    top: 50%;
-    transform: translateY(-50%);
-    width: 12px;
-    height: 12px;
-    background: white;
-    border-radius: 50%;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
-    opacity: 1; /* Always visible on mobile, no hover needed */
+  
+  /* Always show thumb on Mobile? usually better UX */
+  .prog-range::-webkit-slider-thumb {
+    transform: scale(1); 
   }
 }
 

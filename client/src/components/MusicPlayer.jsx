@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { useMusic } from '../context/MusicContext';
 import './MusicPlayer.css';
 
@@ -12,16 +13,42 @@ const MusicPlayer = () => {
     duration,
     seek 
   } = useMusic();
+  
+  // Local state for smooth scrubbing
+  const [scrubTime, setScrubTime] = useState(0);
+  const [isScrubbing, setIsScrubbing] = useState(false);
+
+  // Sync scrubTime only when NOT scrubbing
+  useEffect(() => {
+    if (!isScrubbing) {
+        setScrubTime(currentTime);
+    }
+  }, [currentTime, isScrubbing]);
 
   if (!currentSong) return null;
 
-  const progressPercent = duration ? (currentTime / duration) * 100 : 0;
+  // Calculate percentage for gradient background
+  const currentProgress = isScrubbing ? scrubTime : currentTime;
+  const percent = duration ? (currentProgress / duration) * 100 : 0;
+  
+  // Spotify Green styling
+  const trackStyle = {
+    background: `linear-gradient(to right, #1db954 ${percent}%, #535353 ${percent}%)`
+  };
 
-  const handleSeek = (e) => {
-    const width = e.currentTarget.clientWidth;
-    const clickX = e.nativeEvent.offsetX;
-    const newTime = (clickX / width) * duration;
-    seek(newTime);
+  const handleScrubChange = (e) => {
+    // User is dragging
+    setScrubTime(Number(e.target.value));
+  };
+  
+  const handleScrubStart = () => {
+    setIsScrubbing(true);
+  };
+
+  const handleScrubEnd = (e) => {
+    // User let go
+    setIsScrubbing(false);
+    seek(Number(e.target.value));
   };
 
   return (
@@ -78,15 +105,36 @@ const MusicPlayer = () => {
         </button>
       </div>
 
-      {/* Progress Bar (Interactive) */}
-      <div className="mp-progress-container" onClick={handleSeek}>
-        <div 
-          className="mp-progress-bar" 
-          style={{ width: `${progressPercent}%` }}
-        ></div>
+      {/* Progress Bar (Spotify Style Range Input) */}
+      <div className="mp-progress-container">
+        <span className="mp-time">{formatTime(currentProgress)}</span>
+        
+        <input 
+            type="range"
+            className="prog-range"
+            min="0"
+            max={duration || 0}
+            value={currentProgress}
+            onChange={handleScrubChange}
+            onMouseDown={handleScrubStart}
+            onTouchStart={handleScrubStart}
+            onMouseUp={handleScrubEnd}
+            onTouchEnd={handleScrubEnd}
+            style={trackStyle}
+        />
+        
+        <span className="mp-time">{formatTime(duration)}</span>
       </div>
     </div>
   );
+};
+
+// Helper
+const formatTime = (time) => {
+    if (!time) return '0:00';
+    const min = Math.floor(time / 60);
+    const sec = Math.floor(time % 60);
+    return `${min}:${sec < 10 ? '0' : ''}${sec}`;
 };
 
 export default MusicPlayer;
