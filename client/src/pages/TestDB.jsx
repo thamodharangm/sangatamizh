@@ -19,10 +19,10 @@ const TestDB = () => {
         // 1. Backend Connectivity Test
         log('--- Phase 1: Backend Connection Check ---');
         try {
-           const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3002';
-           log(`Pinging Backend: ${apiBase}/api/test/connections ...`);
+           const apiBase = import.meta.env.VITE_API_URL || '/api';
+           log(`Pinging Backend: ${apiBase}/test/connections ...`);
            
-           const res = await fetch(`${apiBase}/api/test/connections`);
+           const res = await fetch(`${apiBase}/test/connections`);
            if (!res.ok) throw new Error(`Backend Error ${res.status}`);
            const data = await res.json();
            

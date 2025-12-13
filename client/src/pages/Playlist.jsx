@@ -4,7 +4,7 @@ import { useMusic } from '../context/MusicContext';
 import { useNavigate } from 'react-router-dom';
 
 // Use relative path to leverage Vite proxy (defined in vite.config.js)
-const API_URL = import.meta.env.VITE_API_URL || '';
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 function Playlist() {
   const { user } = useAuth();
@@ -17,7 +17,7 @@ function Playlist() {
   const fetchLikedSongs = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/api/likes/list?userId=${user.uid}`);
+      const response = await fetch(`${API_URL}/likes/list?userId=${user.uid}`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch liked songs');

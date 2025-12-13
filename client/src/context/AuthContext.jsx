@@ -74,9 +74,9 @@ export const AuthProvider = ({ children }) => {
              // Import api properly?
              // Since AuthContext is foundational, importing 'api' might cause cycle if api imports auth.
              // Let's use fetch directly or check imports.
-             const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3002';
+             const apiBase = import.meta.env.VITE_API_URL || '/api';
              // Simple fetch
-             fetch(`${apiBase}/api/analytics/login`, {
+             fetch(`${apiBase}/analytics/login`, {
                  method: 'POST',
                  headers: { 'Content-Type': 'application/json' },
                  body: JSON.stringify({ 
