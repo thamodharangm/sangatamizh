@@ -55,7 +55,8 @@ async function ensureYtDlp() {
 
 
 // Initialize on load
-ensureYtDlp();
+// Initialize on load - REMOVED to prevent double execution
+// ensureYtDlp();
 
 const getCookiePath = () => {
     const cookiePath = path.join(os.tmpdir(), "cookies.txt");
