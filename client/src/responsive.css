@@ -331,16 +331,14 @@
 
   /* Music Player Fixes for this range 
      NOTE: Targeting .glass-panel as used in previous mobile block, 
-     but ensure .music-player is also covered  /* --- Music Player (Fixed Layout) --- */
+     but ensure .music-player is also covered if structure changes */
   .glass-panel,
   .music-player {
-    bottom: 65px !important; /* Just above bottom nav */
-    left: 8px !important;
-    right: 8px !important;
-    width: auto !important;
-    padding: 8px 12px !important;
-    border-radius: 12px !important;
-    z-index: 10001 !important; /* Above everything including nav */
+    bottom: 90px !important; /* Clear the nav bar */
+    width: 94% !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    padding: 0.6rem 0.8rem !important;
     gap: 0.5rem;
   }
 
@@ -823,162 +821,4 @@
   width: 100%;
   min-height: 400px;
   padding: 1.5rem;
-}
-
-/* ==================================================
-   📱 SAMSUNG GALAXY S8+ & SMALL MOBILE FIXES
-   Target Width: ~360px
-   ================================================== */
-
-@media (max-width: 480px) {
-  /* --- Global Layout Adjustments --- */
-  .main-content {
-    padding: 12px !important;
-    padding-bottom: 140px !important; /* Space for Player + Nav */
-  }
-
-  h1 { font-size: 1.75rem !important; }
-  h2 { font-size: 1.5rem !important; }
-  h3 { font-size: 1.1rem !important; }
-
-  /* --- Navigation Bar (Bottom) --- */
-  .sidebar {
-    height: 60px !important;
-    padding: 0 4px !important;
-    background: rgba(17, 27, 33, 0.98) !important;
-  }
-  
-  .nav-item {
-    padding: 4px 0 !important;
-  }
-  
-  .nav-item span:first-child {
-    font-size: 1.25rem !important;
-  }
-  
-  .nav-text {
-    font-size: 0.65rem !important;
-  }
-
-  /* --- Song Grid (Force 2 Columns) --- */
-  div[style*="grid-template-columns"] {
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 8px !important;
-  }
-
-  .songs-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 8px !important;
-  }
-
-  /* Compact Song Card */
-  .song-card {
-    padding: 8px !important;
-  }
-  
-  .song-card h3 {
-    font-size: 0.8rem !important;
-    margin-bottom: 2px !important;
-  }
-  
-  .song-card p {
-    font-size: 0.7rem !important;
-  }
-
-  /* --- Music Player (Fixed Layout) --- */
-  .glass-panel,
-  .music-player {
-    bottom: 65px !important;
-    left: 8px !important;
-    right: 8px !important;
-    width: auto !important;
-    padding: 8px 12px !important;
-    border-radius: 12px !important;
-    z-index: 10001 !important; /* Above everything */
-  }
-
-  .mp-art {
-    width: 42px !important;
-    height: 42px !important;
-  }
-
-  .mp-controls button {
-    width: 32px !important;
-    height: 32px !important;
-  }
-  
-  .mp-controls button svg {
-    width: 20px !important;
-    height: 20px !important;
-  }
-  
-  .mp-controls button:nth-child(2) {
-    width: 40px !important;
-    height: 40px !important;
-  }
-
-  /* --- Library Page Specifics --- */
-  .library-title-row {
-    margin-bottom: 1rem !important;
-  }
-  
-  .search-input {
-    height: 40px !important;
-    font-size: 0.9rem !important;
-  }
-  
-  .category-chips button {
-    padding: 6px 14px !important;
-    font-size: 0.75rem !important;
-    height: 32px !important;
-  }
-
-  /* --- Admin Upload & Dashboard --- */
-  .admin-tabs {
-    gap: 8px !important;
-    flex-wrap: wrap !important;
-    justify-content: flex-start !important;
-    overflow-x: visible !important;
-  }
-  
-  .admin-tabs button {
-    flex: 1 0 45% !important;
-    font-size: 0.8rem !important;
-    padding: 8px 4px !important;
-    text-align: center !important;
-    min-width: unset !important;
-  }
-
-  .admin-stats-grid {
-    grid-template-columns: 1fr 1fr !important;
-    gap: 10px !important;
-  }
-  
-  .admin-stat-card {
-    padding: 12px !important;
-  }
-  
-  .admin-stat-card h3 {
-    font-size: 1.5rem !important;
-  }
-  
-  .analytics-chart-card {
-     padding: 1rem !important;
-  }
-
-  /* Login Form */
-  .login-card {
-    padding: 1.5rem 1rem !important;
-    margin: 1rem !important;
-  }
-}
-
-/* Specific Tweak for 360px width */
-@media (max-width: 360px) {
-  .mp-title { max-width: 100px; }
-  .mp-artist { max-width: 100px; }
-  
-  div[style*="grid-template-columns"] {
-    gap: 6px !important;
-  }
 }

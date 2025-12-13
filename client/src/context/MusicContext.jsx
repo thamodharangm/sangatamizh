@@ -85,11 +85,6 @@ export const MusicProvider = ({ children }) => {
 
   useEffect(() => {
     const audio = audioRef.current;
-    let durationSet = false; // Track if duration has been set for current song
-
-    // Configure audio element
-    audio.preload = 'metadata'; // Ensure metadata (duration) is loaded
-    audio.crossOrigin = 'anonymous'; // For CORS if needed
 
     const handlePlay = () => setIsPlaying(true);
     const handlePause = () => setIsPlaying(false);
@@ -98,7 +93,6 @@ export const MusicProvider = ({ children }) => {
     const handleEnded = () => {
       setIsPlaying(false);
       if (updateStats) updateStats('song_played');
-      durationSet = false; // Reset for next song
       nextSong();
     };
 
@@ -112,38 +106,21 @@ export const MusicProvider = ({ children }) => {
 
     const handleLoadedMetadata = () => {
       const dur = audio.duration;
-      // Only set if not already set and is valid
-      if (!durationSet && !isNaN(dur) && isFinite(dur) && dur > 0) {
+      // Validate duration is a valid number and not Infinity
+      if (!isNaN(dur) && isFinite(dur) && dur > 0) {
         setDuration(dur);
-        durationSet = true;
-        console.log('✅ Duration set from loadedmetadata:', dur);
+        console.log('✅ Duration loaded:', dur);
+      } else {
+        console.warn('⚠️ Invalid duration detected:', dur);
       }
     };
 
-    // More reliable event - fires when enough data is loaded
-    const handleCanPlayThrough = () => {
-      const dur = audio.duration;
-      // Only set if not already set and is valid
-      if (!durationSet && !isNaN(dur) && isFinite(dur) && dur > 0) {
-        // Double check against huge values (prevent VBR doubling error often > 10 hours)
-        if (dur < 36000) { 
-             setDuration(dur);
-             durationSet = true;
-             console.log('✅ Duration set from canplaythrough:', dur);
-        }
-      }
-    };
-
-    // Handle duration changes (backup)
+    // Handle duration changes (more reliable than loadedmetadata)
     const handleDurationChange = () => {
       const dur = audio.duration;
-      // Only update if we haven't set it, OR if the new duration is significantly different (e.g. real update) 
-      // AND it's not the "double" bug (heuristic: if current is X and new is 2X, ignore)
       if (!isNaN(dur) && isFinite(dur) && dur > 0) {
-         if (!durationSet) {
-             setDuration(dur);
-             durationSet = true;
-         }
+        setDuration(dur);
+        console.log('✅ Duration updated:', dur);
       }
     };
 
@@ -151,7 +128,6 @@ export const MusicProvider = ({ children }) => {
     const handleLoadStart = () => {
       setCurrentTime(0);
       setDuration(0);
-      durationSet = false;
     };
 
     audio.addEventListener('play', handlePlay);
@@ -159,7 +135,6 @@ export const MusicProvider = ({ children }) => {
     audio.addEventListener('ended', handleEnded);
     audio.addEventListener('timeupdate', handleTimeUpdate);
     audio.addEventListener('loadedmetadata', handleLoadedMetadata);
-    audio.addEventListener('canplaythrough', handleCanPlayThrough);
     audio.addEventListener('durationchange', handleDurationChange);
     audio.addEventListener('loadstart', handleLoadStart);
 
@@ -169,7 +144,6 @@ export const MusicProvider = ({ children }) => {
       audio.removeEventListener('ended', handleEnded);
       audio.removeEventListener('timeupdate', handleTimeUpdate);
       audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      audio.removeEventListener('canplaythrough', handleCanPlayThrough);
       audio.removeEventListener('durationchange', handleDurationChange);
       audio.removeEventListener('loadstart', handleLoadStart);
     };
