@@ -295,7 +295,8 @@ async function downloadAudio(videoId) {
     } 
     */
 
-    // 2. Try Invidious Mirrors
+    // 2. Try Invidious Mirrors (DISABLED - Force yt-dlp for testing reliability)
+    /*
     const mirrors = ["https://inv.tux.pizza", "https://vid.uff.io", "https://invidious.jing.rocks"];
     
     for (const mirror of mirrors) {
@@ -326,6 +327,7 @@ async function downloadAudio(videoId) {
             console.log(`[Download] Mirror ${mirror} failed:`, e.message);
         }
     }
+    */
 
     // 3. Fallback: Try yt-dlp (Binary + Cookies + Proxy Rotation)
     console.log('[Download] All mirrors failed. Trying yt-dlp (Raw M4A) with Proxy Rotation...');
@@ -342,6 +344,11 @@ async function downloadAudio(videoId) {
             const cookiePath = getCookiePath();
             const m4aFile = tempFile.replace('.mp3', '.m4a');
            
+            // Ensure clean start for this attempt
+            if (fs.existsSync(m4aFile)) {
+                try { fs.unlinkSync(m4aFile); } catch (e) {}
+            }
+
             // Proxy selection: Use env var first, but if it fails, switch to pool
             const envProxy = process.env.PROXY_URL;
             let proxyUrl;
@@ -367,6 +374,8 @@ async function downloadAudio(videoId) {
                 '-o', m4aFile,
                 `https://www.youtube.com/watch?v=${videoId}`,
                 '--force-ipv4',
+                '--no-continue', // Do not resume partially downloaded files (prevents corruption)
+                '--no-part',     // Do not use .part files
                 // '--js-runtimes', 'node' // Removed as it might cause errors
             ];
 
@@ -415,4 +424,5 @@ async function downloadAudio(videoId) {
     throw new Error("Download failed: All methods blocked.");
 }
 
+module.exports = { ensureYtDlp, getMetadata, downloadAudio };
 module.exports = { ensureYtDlp, getMetadata, downloadAudio };
