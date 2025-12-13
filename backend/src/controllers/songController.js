@@ -1,6 +1,7 @@
 const prisma = require('../config/prisma');
 const youtubeService = require('../services/youtubeService');
 const storageService = require('../services/storageService');
+const emotionDetector = require('../services/emotionDetector');
 const fs = require('fs');
 const fetch = require('node-fetch');
 const { YT_API_KEY, YOUTUBE_COOKIES } = require('../config/env');
@@ -31,7 +32,18 @@ exports.getMetadata = async (req, res) => {
         if (!url) return res.status(400).json({ error: 'URL is required' });
         
         const metadata = await youtubeService.getMetadata(url);
-        res.json(metadata);
+        
+        // Analyze emotion from metadata
+        const emotionAnalysis = emotionDetector.analyzeMetadata(metadata);
+        const suggestedCategory = emotionDetector.getSuggestedCategory(emotionAnalysis.emotion);
+        
+        // Return metadata with emotion suggestions
+        res.json({
+            ...metadata,
+            suggestedEmotion: emotionAnalysis.emotion,
+            suggestedCategory: suggestedCategory,
+            emotionConfidence: emotionAnalysis.confidence
+        });
     } catch (e) {
         console.error(e);
         res.status(500).json({ error: 'Failed to fetch metadata' });
@@ -50,6 +62,20 @@ exports.uploadFromYoutube = async (req, res) => {
         // We need the ID for filename
         const videoId = extractVideoId(url) || Date.now().toString();
         
+        // 1.5. Auto-detect emotion if not provided
+        let finalEmotion = emotion;
+        let finalCategory = category;
+        
+        if (!emotion) {
+            const emotionAnalysis = emotionDetector.analyzeMetadata(metadata);
+            finalEmotion = emotionAnalysis.emotion;
+            console.log(`[EmotionDetector] Auto-detected: ${finalEmotion} (confidence: ${emotionAnalysis.confidence})`);
+        }
+        
+        if (!category) {
+            finalCategory = emotionDetector.getSuggestedCategory(finalEmotion);
+        }
+        
         // 2. Download Audio
         tempFile = await youtubeService.downloadAudio(videoId);
         
@@ -61,16 +87,16 @@ exports.uploadFromYoutube = async (req, res) => {
         const fname = `songs/${Date.now()}_${videoId}.${ext}`;
         const publicUrl = await storageService.uploadFile(tempFile, fname, contentType);
         
-        // 4. Create DB Record
+        // 4. Create DB Record with auto-detected emotion
         const song = await prisma.song.create({
             data: {
                 title: customMetadata?.title || metadata.title,
                 artist: customMetadata?.artist || metadata.artist || "Unknown",
                 file_url: publicUrl,
                 cover_url: customMetadata?.coverUrl || metadata.coverUrl || "https://via.placeholder.com/150",
-                category: category || "Tamil",
-                category: category || "Tamil",
-                emotion: emotion || metadata.emotion || "Neutral",
+                category: finalCategory || "Tamil",
+                emotion: finalEmotion || "Feel Good",
+                source_url: url,
                 youtube_views: BigInt(metadata.viewCount || 0)
             },
         });

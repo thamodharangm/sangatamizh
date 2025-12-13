@@ -37,11 +37,10 @@ const Library = () => {
     const matchesSearch = (song.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                           (song.artist || '').toLowerCase().includes(searchTerm.toLowerCase());
     
-    // For now, if category data doesn't essentially match, we might want to just show all or strict filter
-    // Let's assume song.category might store these values, or we filter loosely for demo
+    // Match by emotion field - exact match with selected category
     const matchesCategory = selectedCategory === 'All' 
         ? true 
-        : (song.emotion || '').toLowerCase() === selectedCategory.toLowerCase();
+        : (song.emotion || 'Feel Good') === selectedCategory;
 
     return matchesSearch && matchesCategory;
   });

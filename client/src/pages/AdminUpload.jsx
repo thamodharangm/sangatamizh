@@ -48,9 +48,16 @@ const AdminUpload = () => {
     setLoading(true);
     try {
       const res = await api.post('/yt-metadata', { url: youtubeUrl });
-      const { title, artist, coverUrl, emotion } = res.data;
-      setMetadata(prev => ({ ...prev, title, artist, coverUrl, emotion: emotion || 'Neutral' }));
-      setMessage('Metadata fetched!');
+      const { title, artist, coverUrl, suggestedEmotion, suggestedCategory, emotionConfidence } = res.data;
+      setMetadata(prev => ({ 
+        ...prev, 
+        title, 
+        artist, 
+        coverUrl, 
+        emotion: suggestedEmotion || 'Feel Good',
+        category: suggestedCategory || 'Tamil'
+      }));
+      setMessage(`Metadata fetched! AI detected: ${suggestedEmotion} (${Math.round(emotionConfidence * 100)}% confidence)`);
     } catch (err) {
       console.error(err);
       setError('Failed to fetch metadata');
