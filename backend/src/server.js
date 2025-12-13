@@ -6,6 +6,12 @@ const { initAutoProxyRefresh } = require('./utils/proxyManager');
 app.listen(PORT, () => {
     console.log(`✅ Server running on port ${PORT}`);
     console.log(`🎵 Sangatamizh Music Backend Ready!`);
+
+    // Fix: Skip heavy initialization during Render build step
+    if (process.env.RENDER === "true") {
+       console.log("Skipping yt-dlp setup during Render build step");
+       return;
+    }
     
     // Async setup (non-blocking)
     ensureYtDlp().catch(err => console.error('YTDLP Setup Failed:', err));
