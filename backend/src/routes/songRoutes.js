@@ -7,6 +7,7 @@ const upload = require('../middlewares/upload');
 router.get('/songs', songController.getAllSongs);
 // Note: Frontend calls /api/songs/:id for delete.
 router.delete('/songs/:id', songController.deleteSong); 
+router.put('/songs/:id', songController.updateSong); 
 
 router.get('/debug-network', songController.debugNetwork);
 
@@ -20,8 +21,5 @@ router.post('/upload-file', cpUpload, songController.uploadFile);
 // Home Page Sections
 router.get('/home-sections', songController.getHomeSections);
 router.post('/log-play', songController.logPlay);
-
-// Safar-optimized Streaming Proxy
-router.get('/stream/:id', songController.streamSong);
 
 module.exports = router;

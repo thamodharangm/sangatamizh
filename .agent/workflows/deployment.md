@@ -2,47 +2,70 @@
 description: Deployment Guide for Sangatamizh Music
 ---
 
-# Deploy Live 🚀
+# Deploy Live 🚀 (Dual Frontend Strategy)
 
-Your project is ready for deployment! Follow these steps to put it online.
+You have two separate frontends: **Desktop** (`client`) and **Mobile** (`client-v2`). The professional way to deploy this is using **Subdomains** (like `facebook.com` vs `m.facebook.com`).
 
 ## 1. Backend (Railway)
 
-This hosts your API and handles YouTube downloads.
+_This is the shared brain for both apps._
 
-1. Go to [Railway.app](https://railway.app) and create a new project.
-2. Select **"Deploy from GitHub repo"**.
-3. Choose your repository: `thamodharangm/sangatamizh-music`.
-4. **Configuration**:
-   - **Root Directory**: `backend`
-   - **Build Command**: `npm install`
-   - **Start Command**: `node index.js`
-5. **Variables** (Add these in the Variables tab):
-   - `SUPABASE_URL`: (Your Supabase Project URL)
-   - `SUPABASE_SERVICE_ROLE_KEY`: (Your Supabase Service Role Key)
-   - `YT_API_KEY`: (Optional, if you use the API route, otherwise yt-dlp works without it)
+1. Deploy `backend` to Railway (as per previous instructions).
+2. Copy your **Railway App URL** (e.g., `https://api.sangatamizh.com`).
 
-## 2. Frontend (Vercel)
+---
 
-This hosts your React User Interface.
+## 2. Desktop Deployment (Vercel)
 
-1. Go to [Vercel.com](https://vercel.com) and add a new project.
-2. Import from GitHub: `thamodharangm/sangatamizh-music`.
-3. **Configuration**:
-   - **Root Directory**: `client` (Click 'Edit' next to Root Directory)
-   - **Framework Preset**: Vite
-   - **Build Command**: `npm run build`
-   - **Output Directory**: `dist`
+_This will be your main site (e.g., `sangatamizh.com`)._
+
+1. Go to Vercel -> **Add New Project**.
+2. Select Repo: `thamodharangm/sangatamizh-music`.
+3. **Root Directory**: `client` (Select the Desktop folder).
 4. **Environment Variables**:
-   - `VITE_API_URL`: The URL of your Railway Backend + `/api`.
-     - Example: `https://sangtamizh-backend-production.up.railway.app/api`
-     - _Important_: Do not forget the `/api` at the end if your backend routes start with it.
+   - `VITE_API_URL`: Your Railway URL + `/api`.
+5. **Deploy**.
+6. **Domain**: Connect your main domain (e.g., `sangatamizh.com`).
 
-## 3. Final Check
+---
 
-Once both are deployed:
+## 3. Mobile Deployment (Vercel)
 
-1. Open your Vercel URL.
-2. The Home page should load songs from the backend.
-3. Try playing a song (Music Player should work).
-4. Check the "Admin" page to verify uploads work.
+_This will be your mobile site (e.g., `m.sangatamizh.com`)._
+
+1. Go to Vercel -> **Add New Project** (Again).
+2. Select SAME Repo: `thamodharangm/sangatamizh-music`.
+3. **Project Name**: `sangatamizh-mobile` (to distinguish it).
+4. **Root Directory**: `client-v2` (**Crucial**: Select the Mobile folder).
+5. **Environment Variables**:
+   - `VITE_API_URL`: Your Railway URL + `/api`.
+6. **Deploy**.
+7. **Domain**: Connect a subdomain (e.g., `m.sangatamizh.com`).
+
+---
+
+## 4. The "Magic" Redirect 🪄
+
+To make users go to the right place automatically, add this script to your **Desktop** code.
+
+**Step 1:** Open `client/index.html` (Desktop).
+**Step 2:** Paste this script inside the `<head>` tag:
+
+```html
+<script>
+  // Mobile Detection Redirect
+  if (
+    /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent
+    )
+  ) {
+    // Replace with your actual Vercel Mobile URL
+    window.location.href = "https://m.your-domain.com";
+  }
+</script>
+```
+
+Now:
+
+- **PC Users** -> Go to `sangatamizh.com` -> Stay there.
+- **Mobile Users** -> Go to `sangatamizh.com` -> Auto-redirected to `m.sangatamizh.com`.

@@ -16,4 +16,16 @@ async function uploadFile(filePath, destinationPath, contentType = 'audio/mpeg')
     return publicUrl;
 }
 
-module.exports = { uploadFile };
+async function deleteFile(path) {
+    // Expecting path to be relative "songs/filename.mp3"
+    const { error } = await supabase.storage
+        .from("music_assets")
+        .remove([path]);
+    
+    if (error) {
+        console.error("Supabase Delete Error:", error);
+        // We don't throw here to avoid blocking DB delete if file is already gone
+    }
+}
+
+module.exports = { uploadFile, deleteFile };

@@ -1,0 +1,358 @@
+/* ===== EMOTION MANAGER CONTAINER ===== */
+.emotion-manager-container {
+  padding: 0;
+  max-width: 100%;
+  margin: 0 auto;
+  min-height: 100vh;
+}
+
+/* ===== LOADING STATE ===== */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 1rem;
+  color: var(--text-muted);
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border-color);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ===== HEADER SECTION ===== */
+.emotion-header {
+  background: var(--bg-card);
+  border-bottom: 2px solid var(--border-color);
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.header-title-section {
+  margin-bottom: 1rem;
+}
+
+.page-title {
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 0.25rem 0;
+  letter-spacing: -0.5px;
+}
+
+.page-subtitle {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+/* ===== ACTION BUTTONS ===== */
+.action-buttons {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: nowrap; /* Prevent messy wrapping */
+  margin-bottom: 1rem;
+  align-items: stretch; /* Make buttons same height */
+}
+
+.btn-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border: 2px solid var(--border-color);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: var(--bg-main);
+  color: white;
+  box-shadow: 0 2px 0 var(--border-color);
+}
+
+.btn-action:active {
+  transform: translateY(2px);
+  box-shadow: 0 0 0 var(--border-color);
+}
+
+.btn-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-initialize {
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+.btn-discard {
+  color: #ef4444;
+  border-color: #ef4444;
+}
+
+.btn-save {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary-depth);
+  box-shadow: 0 3px 0 var(--primary-depth);
+  flex: 1; /* Expand to fill space */
+  justify-content: center; /* Center text */
+}
+
+.btn-icon {
+  font-size: 1rem;
+}
+
+/* ===== STATS GRID ===== */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.stat-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 0.75rem 0.5rem;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.stat-card:hover {
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateY(-2px);
+}
+
+.stat-total {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.stat-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 0.25rem;
+}
+
+.stat-total .stat-value {
+  color: #3b82f6;
+}
+
+.stat-label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ===== SEARCH BAR ===== */
+.search-wrapper {
+  margin-bottom: 1rem;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: var(--bg-main);
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 500;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.search-input:focus {
+  border-color: var(--primary);
+}
+
+.search-input::placeholder {
+  color: var(--text-muted);
+}
+
+/* ===== FILTER BUTTONS ===== */
+.filter-scroll-container {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.filter-scroll-container::-webkit-scrollbar {
+  display: none;
+}
+
+.filter-btn {
+  flex-shrink: 0;
+  padding: 0.5rem 0.875rem;
+  background: var(--bg-main);
+  border: 2px solid var(--border-color);
+  border-radius: 20px;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  box-shadow: 0 2px 0 var(--border-color);
+}
+
+.filter-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 0 0 var(--border-color);
+}
+
+.filter-btn.active {
+  background: var(--primary);
+  border-color: var(--primary-depth);
+  color: white;
+  box-shadow: 0 3px 0 var(--primary-depth);
+}
+
+/* ===== MOBILE SONG LIST ===== */
+.songs-grid-mobile {
+  display: flex;
+  flex-direction: column;
+  padding: 0 1rem 2rem; /* Add bottom padding for scroll */
+  background: var(--bg-card); /* Optional: Background for the list area */
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  margin: 0 1rem;
+}
+
+/* Remove old card styles */
+.emotion-song-card {
+  display: none; 
+}
+
+.emotion-song-card.has-change {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.4);
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+}
+
+.song-card-header {
+  display: flex;
+  gap: 0.875rem;
+  align-items: flex-start; /* Align to top for better balance */
+}
+
+.song-card-image {
+  width: 60px; /* Increased size */
+  height: 60px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.song-card-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-top: 2px; /* Visual adjustment for text alignment */
+}
+
+.song-card-title {
+  color: white;
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1.2;
+  margin-bottom: 0.25rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.song-card-artist {
+  color: var(--text-muted);
+  font-size: 0.825rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 0.6rem; /* More space for select */
+}
+
+
+/* Compact Select Styles */
+.emotion-select-compact {
+  width: 100%;
+  padding: 0.5rem 0.75rem; /* Larger touch target */
+  background: rgba(255, 255, 255, 0.05); /* Lighter background */
+  border: 1px solid var(--border-color);
+  border-radius: 12px; /* Softer corners */
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+  appearance: none; /* Custom styling support */
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1rem;
+}
+
+.emotion-select-compact:focus {
+  border-color: var(--primary);
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.change-indicator {
+  padding: 0.5rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+  text-align: center;
+}
+
+/* ===== EMPTY STATE ===== */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text-muted);
+}
+
+.empty-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.empty-text {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 0.5rem;
+}
+
+.empty-subtext {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}

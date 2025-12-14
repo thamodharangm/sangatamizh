@@ -10,7 +10,8 @@ const app = express();
 
 app.use(cors({ 
     origin: [
-        'http://localhost:5173', 
+        'http://localhost:5173',  // Desktop client
+        'http://localhost:5174',  // Mobile client
         'https://sangatamizh-music-premium.vercel.app'
     ],
     credentials: true

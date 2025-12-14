@@ -33,20 +33,6 @@ const Sidebar = () => {
             <span>⚡</span> <span className="nav-text">Admin</span>
           </Link>
         )}
-
-        {/* Mobile Logout (Hidden on Desktop via CSS) */}
-        {user && (
-          <button onClick={logout} className="nav-item mobile-logout">
-              <span>🚪</span> <span className="nav-text">Logout</span>
-          </button>
-        )}
-
-        {/* Mobile Login (Hidden on Desktop via CSS) */}
-        {!user && (
-            <Link to="/login" className="nav-item mobile-login">
-                <span>👤</span> <span className="nav-text">Login</span>
-            </Link>
-        )}
       </nav>
 
       {/* User Section */}

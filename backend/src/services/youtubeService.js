@@ -55,8 +55,7 @@ async function ensureYtDlp() {
 
 
 // Initialize on load
-// Initialize on load - REMOVED to prevent double execution
-// ensureYtDlp();
+ensureYtDlp();
 
 const getCookiePath = () => {
     const cookiePath = path.join(os.tmpdir(), "cookies.txt");
@@ -264,8 +263,7 @@ async function downloadAudio(videoId) {
     console.log(`Downloading ${videoId}...`);
     const tempFile = path.join(os.tmpdir(), `song_${Date.now()}.mp3`);
     
-    // 1. Try @distube/ytdl-core (DISABLED - Suspected cause of double-stream bug)
-    /* 
+    // 1. Try @distube/ytdl-core (Node Native - Often fastest)
     try {
         console.log('[Download] Trying @distube/ytdl-core...');
         const ytdl = require('@distube/ytdl-core');
@@ -292,11 +290,9 @@ async function downloadAudio(videoId) {
     } catch (e) {
         console.log('[Download] ytdl-core failed:', e.message);
         if (fs.existsSync(tempFile)) fs.unlinkSync(tempFile);
-    } 
-    */
+    }
 
-    // 2. Try Invidious Mirrors (DISABLED - Force yt-dlp for testing reliability)
-    /*
+    // 2. Try Invidious Mirrors
     const mirrors = ["https://inv.tux.pizza", "https://vid.uff.io", "https://invidious.jing.rocks"];
     
     for (const mirror of mirrors) {
@@ -327,7 +323,6 @@ async function downloadAudio(videoId) {
             console.log(`[Download] Mirror ${mirror} failed:`, e.message);
         }
     }
-    */
 
     // 3. Fallback: Try yt-dlp (Binary + Cookies + Proxy Rotation)
     console.log('[Download] All mirrors failed. Trying yt-dlp (Raw M4A) with Proxy Rotation...');
@@ -342,12 +337,8 @@ async function downloadAudio(videoId) {
     while (attempts <= maxRetries) {
         try {
             const cookiePath = getCookiePath();
+            const m4aFile = tempFile.replace('.mp3', '.m4a');
            
-            // Ensure clean start for this attempt (MP3 file)
-            if (fs.existsSync(tempFile)) {
-                try { fs.unlinkSync(tempFile); } catch (e) {}
-            }
-
             // Proxy selection: Use env var first, but if it fails, switch to pool
             const envProxy = process.env.PROXY_URL;
             let proxyUrl;
@@ -369,14 +360,11 @@ async function downloadAudio(videoId) {
             // Build args array for runYtDlp
             const args = [
                 ytDlpBinaryPath,
-                '--extract-audio',
-                '--audio-format', 'mp3',
-                '--audio-quality', '0',
-                '-o', tempFile,
+                '-f', 'bestaudio[ext=m4a]',
+                '-o', m4aFile,
                 `https://www.youtube.com/watch?v=${videoId}`,
                 '--force-ipv4',
-                '--no-continue',
-                '--no-part',
+                // '--js-runtimes', 'node' // Removed as it might cause errors
             ];
 
             // Add cookies if they exist
@@ -392,14 +380,14 @@ async function downloadAudio(videoId) {
             // Execute using wrapper
             await runYtDlp(args, { timeout: 60000 });
             
-            if (fs.existsSync(tempFile)) {
-                 const stats = fs.statSync(tempFile);
+            if (fs.existsSync(m4aFile)) {
+                 const stats = fs.statSync(m4aFile);
                  if (stats.size > 0) {
-                     console.log(`[Download] ✅ SUCCESS via yt-dlp (mp3) - Size: ${stats.size} bytes`);
-                     return tempFile;
+                     console.log(`[Download] ✅ SUCCESS via yt-dlp (m4a) - Size: ${stats.size} bytes`);
+                     return m4aFile;
                  } else {
                      console.log('[Download] yt-dlp created empty file.');
-                     fs.unlinkSync(tempFile);
+                     fs.unlinkSync(m4aFile);
                  }
             }
         } catch(e) {
@@ -424,5 +412,4 @@ async function downloadAudio(videoId) {
     throw new Error("Download failed: All methods blocked.");
 }
 
-module.exports = { ensureYtDlp, getMetadata, downloadAudio };
 module.exports = { ensureYtDlp, getMetadata, downloadAudio };

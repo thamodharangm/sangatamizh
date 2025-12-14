@@ -1,0 +1,418 @@
+/* Mobile-First CSS (Premium UI) */
+
+:root {
+  /* Core Colors (Tactile/Flat) */
+  --bg-main: #111b21;       /* Deep Gunmetal */
+  --bg-card: #202f36;       /* Lighter Gunmetal */
+  --border-color: #37464f;  /* Border/Divider */
+
+  /* Primary Brand (Green) */
+  --primary: #58cc02;       
+  --primary-depth: #46a302; /* 3D Edge */
+  --primary-text: #ffffff;
+
+  /* Secondary (Pink) */
+  --secondary: #ec4899;
+  --secondary-depth: #be185d;
+
+  /* Text */
+  --text-main: #e5e5e5;
+  --text-muted: #afbacc;
+
+  /* Dimensions */
+  --bottom-nav-height: 70px;
+  --player-height: 80px;
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --btn-height: 48px;
+
+  /* Animations */
+  --bounce: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: "Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  overscroll-behavior-y: none; /* Prevent pull-to-refresh on mobile if needed */
+}
+
+/* Custom Scrollbar - mobile friendly */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding-bottom: calc(var(--bottom-nav-height) + var(--player-height) + 10px);
+}
+
+.main-content {
+  flex: 1;
+  padding: 1rem;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* --- TACTILE BUTTONS (3D) --- */
+.btn-3d {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--btn-height);
+  padding: 0 20px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  border-radius: var(--radius-lg);
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s, filter 0.2s;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background-color: var(--primary);
+  color: var(--primary-text);
+  box-shadow: 0px 4px 0px var(--primary-depth);
+  margin-bottom: 4px;
+}
+.btn-primary:active {
+  box-shadow: 0px 0px 0px var(--primary-depth);
+  transform: translateY(4px);
+}
+
+.btn-secondary {
+  background-color: var(--bg-card);
+  color: var(--secondary);
+  border: 2px solid var(--border-color);
+  box-shadow: 0px 4px 0px var(--border-color);
+  margin-bottom: 4px;
+}
+.btn-secondary:active {
+  box-shadow: 0px 0px 0px var(--border-color);
+  transform: translateY(4px);
+}
+.btn-secondary:hover {
+  background-color: #283840;
+  border-color: #4b5d67;
+}
+
+/* --- CARDS & UI ELEMENTS --- */
+.card-flat {
+  background-color: var(--bg-card);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+}
+
+.input-flat {
+  width: 100%;
+  height: 48px;
+  padding: 0 16px;
+  background-color: var(--bg-main);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: white;
+  font-weight: 500;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.input-flat:focus {
+  border-color: var(--primary);
+}
+
+/* --- BOTTOM NAVIGATION (Mobile) --- */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--bottom-nav-height);
+  background: rgba(32, 47, 54, 0.98);
+  backdrop-filter: blur(12px);
+  border-top: 2px solid var(--border-color);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 0 0.5rem;
+  z-index: 9999;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 12px;
+  color: var(--text-muted);
+  text-decoration: none;
+  flex: 1;
+  max-width: 80px;
+  transition: transform 0.1s, color 0.1s;
+}
+
+.nav-item.active {
+  color: var(--primary);
+  transform: translateY(-2px);
+}
+
+.nav-item span:first-child {
+  font-size: 1.6rem;
+}
+.nav-text {
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* --- MUSIC PLAYER FLOATING --- */
+.music-player {
+  position: fixed;
+  bottom: calc(var(--bottom-nav-height) + 12px);
+  left: 12px;
+  right: 12px;
+  background: #0f172a; 
+  border: 2px solid #1e293b;
+  border-radius: 20px;
+  padding: 12px;
+  z-index: 9998;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+}
+
+.player-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.player-cover {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.player-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin-right: 8px;
+}
+
+.player-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.player-artist {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.player-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.control-btn {
+  background: transparent;
+  border: none;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 1.2rem;
+}
+.control-btn:active { transform: scale(0.9); }
+
+.control-btn:nth-child(2) { /* Play Button */
+  width: 44px;
+  height: 44px;
+  background: var(--primary);
+  box-shadow: 0 4px 0 var(--primary-depth);
+  border-radius: 50%;
+  margin-bottom: 4px; /* offset for shadow */
+}
+.control-btn:nth-child(2):active {
+  box-shadow: none;
+  transform: translateY(4px);
+}
+
+.prog-range {
+  width: 100%;
+  height: 3px;
+  background: rgba(255,255,255,0.1);
+  margin-top: 8px;
+  border-radius: 2px;
+  appearance: none;
+  cursor: pointer;
+}
+.prog-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 10px;
+  height: 10px;
+  background: var(--primary);
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(88, 204, 2, 0.5);
+}
+
+/* --- SONG GRID & LIST --- */
+.songs-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  padding-bottom: 2rem;
+}
+
+.song-card {
+  background: var(--bg-card);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 0.75rem;
+  cursor: pointer;
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.song-card:active {
+  transform: scale(0.96);
+}
+
+.song-card-cover {
+  width: 100%;
+  aspect-ratio: 1/1;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+  position: relative;
+}
+.song-card-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.song-card-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+.song-card-artist {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Like Button on Card */
+.like-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(4px);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  z-index: 5;
+}
+.like-btn.liked {
+  color: #ff4055;
+  background: rgba(255, 64, 85, 0.15);
+}
+
+/* Utilities */
+.mb-1 { margin-bottom: 0.5rem; }
+.mb-2 { margin-bottom: 1rem; }
+.mb-3 { margin-bottom: 1.5rem; }
+.w-full { width: 100%; }
+
+.text-center { text-align: center; }
+
+h1 { /* Page Title */
+  font-size: 1.75rem;
+  color: white;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  margin-bottom: 0.5rem;
+}
+
+h2 {
+  font-size: 1.25rem;
+  color: white;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+/* Horizontal Scroll (Category Chips & Songs) */
+.scroll-container {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  scrollbar-width: none;
+  scroll-snap-type: x mandatory;
+}
+.scroll-container::-webkit-scrollbar { display: none; }
+
+.scroll-item {
+  min-width: 150px;
+  max-width: 150px;
+  scroll-snap-align: start;
+  flex-shrink: 0;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}

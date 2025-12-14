@@ -4,7 +4,6 @@ const storageService = require('../services/storageService');
 const emotionDetector = require('../services/emotionDetector');
 const fs = require('fs');
 const fetch = require('node-fetch');
-const axios = require('axios');
 const { YT_API_KEY, YOUTUBE_COOKIES } = require('../config/env');
 
 // Helper to extract ID (simplified version of what's in service)
@@ -188,12 +187,61 @@ exports.uploadFile = async (req, res) => {
 exports.deleteSong = async (req, res) => {
     try {
         const { id } = req.params;
+        
+        // 1. Fetch song to get file URLs
+        const song = await prisma.song.findUnique({ where: { id } });
+        if (!song) {
+            return res.status(404).json({ error: 'Song not found' });
+        }
+
+        // 2. Delete from Storage
+        // Helper to extract relative path from public URL
+        const extractPath = (fullUrl) => {
+            if (!fullUrl) return null;
+            // Matches everything after /music_assets/
+            const match = fullUrl.match(/\/music_assets\/(.*)$/);
+            return match ? match[1] : null; // returns e.g. "songs/123.mp3"
+        };
+
+        if (song.file_url) {
+            const path = extractPath(song.file_url);
+            if (path) await storageService.deleteFile(path);
+        }
+
+        if (song.cover_url && !song.cover_url.includes('placeholder')) {
+            const path = extractPath(song.cover_url);
+            if (path) await storageService.deleteFile(path);
+        }
+
+        // 3. Delete from DB
         await prisma.song.delete({ where: { id } });
-        // Optionally delete from Storage? (Not strictly required for this task but good practice)
-        // Ignoring storage delete for now to keep it safe.
-        res.json({ message: 'Song deleted successfully' });
+
+        res.json({ message: 'Song and files deleted successfully' });
     } catch(e) {
+        console.error("Delete Error:", e);
         res.status(500).json({ error: 'Failed to delete song' });
+    }
+};
+
+exports.updateSong = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { title, artist, category, emotion } = req.body;
+
+        const updatedSong = await prisma.song.update({
+            where: { id },
+            data: {
+                title,
+                artist,
+                category,
+                emotion
+            }
+        });
+
+        res.json(serialize(updatedSong));
+    } catch (e) {
+        console.error("Update Error:", e);
+        res.status(500).json({ error: 'Failed to update song' });
     }
 };
 
@@ -334,81 +382,5 @@ exports.getHomeSections = async (req, res) => {
     } catch (e) {
          console.error(e);
          res.status(500).json({ error: e.message });
-    }
-};
-
-exports.streamSong = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const song = await prisma.song.findUnique({ where: { id } });
-        
-        if (!song || !song.file_url) {
-            return res.status(404).send("Song not found or missing file URL");
-        }
-
-        const fileUrl = song.file_url;
-        const range = req.headers.range;
-
-        // Headers to force Safari compliance
-        const commonHeaders = {
-            "Accept-Ranges": "bytes",
-            "Cache-Control": "no-transform", // Disable any proxy compression
-            "Content-Type": "audio/mpeg",    // Enforce MP3 MIME type
-            "X-Content-Type-Options": "nosniff"
-        };
-        
-        // Use axios to fetch from Supabase (which supports ranges)
-        const axiosConfig = {
-            method: 'get',
-            url: fileUrl,
-            responseType: 'stream',
-            headers: {}
-        };
-
-        if (range) {
-            axiosConfig.headers['Range'] = range;
-            
-            try {
-                const response = await axios(axiosConfig);
-                
-                // Set explicit 206 status
-                res.status(206);
-                
-                // Forward critical headers from Supabase
-                res.set({
-                    ...commonHeaders,
-                    "Content-Range": response.headers['content-range'],
-                    "Content-Length": response.headers['content-length']
-                });
-                
-                response.data.pipe(res);
-                
-            } catch (err) {
-                // If upstream fails (e.g. 416 Range Not Satisfiable), handle it
-                if (err.response && err.response.status === 416) {
-                     res.status(416).send("Range Not Satisfiable");
-                } else {
-                     throw err;
-                }
-            }
-        } else {
-            // Full download request
-            // Note: Safari usually requests range=0-1 first, then the rest.
-            const response = await axios(axiosConfig);
-            
-            res.status(200);
-            res.set({
-                ...commonHeaders,
-                "Content-Length": response.headers['content-length']
-            });
-            
-            response.data.pipe(res);
-        }
-
-    } catch (e) {
-        console.error("Streaming Error:", e.message);
-        if (!res.headersSent) {
-            res.status(500).json({ error: "Streaming Failed" });
-        }
     }
 };
