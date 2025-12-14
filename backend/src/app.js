@@ -9,11 +9,11 @@ const emotionRoutes = require('./routes/emotionRoutes');
 const app = express();
 
 app.use(cors({ 
-    origin: function (origin, callback) {
-        // Allow requests with no origin (like mobile apps or curl requests)
-        if (!origin) return callback(null, true);
-        return callback(null, true);
-    },
+    origin: [
+        'http://localhost:5173',  // Desktop client
+        'http://localhost:5174',  // Mobile client
+        'https://sangatamizh-music-premium.vercel.app'
+    ],
     credentials: true
 }));
 app.use(express.json());

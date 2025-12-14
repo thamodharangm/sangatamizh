@@ -217,6 +217,7 @@ async function getMetadata(url) {
     // 2. Fallback to yt-dlp
     console.log('[Meta] Fallback to yt-dlp...');
     try {
+        const cookiePath = getCookiePath();
         const cmd = `${ytDlpBinaryPath} "${url}" --dump-json --no-warnings --prefer-free-formats --force-ipv4 --cookies "${cookiePath}"`;
         const { stdout } = await exec(cmd);
         const info = JSON.parse(stdout);
@@ -244,7 +245,48 @@ async function getMetadata(url) {
 
     } catch(e) { console.log('[Meta] yt-dlp failed:', e.message); }
 
-    // 3. Fallback to ytdl-core
+    // 3. Fallback to Invidious Mirrors (Reliable Backup)
+    const mirrors = ["https://inv.tux.pizza", "https://vid.uff.io", "https://invidious.jing.rocks"];
+    for (const mirror of mirrors) {
+        try {
+            console.log(`[Meta] Trying mirror ${mirror}...`);
+            const id = url.match(/(?:v=|youtu\.be\/|embed\/)([\w-]{11})/)?.[1];
+            if (!id) continue;
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 6000);
+            
+            const res = await fetch(`${mirror}/api/v1/videos/${id}`, { signal: controller.signal });
+            clearTimeout(timeoutId);
+            
+            if (res.ok) {
+                const info = await res.json();
+                console.log(`[Meta] Success via ${mirror}`);
+                
+                // Fetch Lyrics
+                const { title: cleanTitle, artist } = cleanMetadata(info.title, info.author);
+                let lyrics = "";
+                try {
+                     lyrics = await lyricsFinder(artist, cleanTitle) || "";
+                } catch(e) {}
+
+                const emotion = detectEmotion(info.title, info.description || '', lyrics);
+                
+                return {
+                    title: info.title,
+                    artist: info.author,
+                    coverUrl: info.videoThumbnails?.find(t => t.quality === 'maxresdefault')?.url || info.videoThumbnails?.[0]?.url,
+                    emotion,
+                    description: info.description,
+                    viewCount: info.viewCount
+                };
+            }
+        } catch(e) {
+            console.log(`[Meta] Mirror ${mirror} failed:`, e.message);
+        }
+    }
+
+    // 4. Fallback to ytdl-core
     try {
          const ytdl = require('@distube/ytdl-core');
          const info = await ytdl.getBasicInfo(url);
