@@ -9,6 +9,7 @@ router.get('/songs', songController.getAllSongs);
 router.delete('/songs/:id', songController.deleteSong); 
 router.put('/songs/:id', songController.updateSong); 
 
+router.get('/stream/:id', songController.streamSong);
 router.get('/debug-network', songController.debugNetwork);
 
 router.post('/yt-metadata', songController.getMetadata);

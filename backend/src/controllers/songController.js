@@ -15,6 +15,58 @@ const serialize = (data) => JSON.parse(JSON.stringify(data, (key, value) =>
         : value 
 ));
 
+// Stream Song with Range Support (Fixes Double Duration)
+exports.streamSong = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const song = await prisma.song.findUnique({ where: { id } });
+        
+        if (!song || !song.file_url) {
+            return res.status(404).send('Song not found');
+        }
+
+        // 1. Fetch from upstream (Storage URL)
+        // Note: If using Supabase, ensure the file is public or signed.
+        const encodedUrl = encodeURI(song.file_url);
+        
+        // Check for range header
+        const range = req.headers.range;
+        if (!range) {
+            // Direct pipe if no range (Browser usually sends range for audio)
+            const response = await fetch(encodedUrl);
+            res.setHeader('Content-Type', 'audio/mpeg');
+            res.setHeader('Content-Length', response.headers.get('content-length'));
+            return response.body.pipe(res);
+        }
+
+        // 2. Handle Range Request
+        const response = await fetch(encodedUrl, {
+            headers: { Range: range }
+        });
+
+        // 3. Propagate Headers
+        res.status(response.status);
+        res.setHeader('Content-Type', 'audio/mpeg');
+        res.setHeader('Accept-Ranges', 'bytes');
+        
+        const contentLength = response.headers.get('content-length');
+        const contentRange = response.headers.get('content-range');
+        
+        if (contentLength) res.setHeader('Content-Length', contentLength);
+        if (contentRange) res.setHeader('Content-Range', contentRange);
+
+        // 4. Pipe Data
+        // If upstream returns 206, we pass it through.
+        // If upstream (e.g. some storage) ignores range and sends 200, we stream it all (browser handles it, though inefficient)
+        
+        response.body.pipe(res);
+
+    } catch (e) {
+        console.error("Streaming Error:", e);
+        if (!res.headersSent) res.status(500).send('Stream Failed');
+    }
+};
+
 exports.getAllSongs = async (req, res) => {
     try {
         const songs = await prisma.song.findMany({
