@@ -73,9 +73,6 @@ function App() {
             
             {/* Bottom Navigation - Fixed at bottom */}
             <BottomNav />
-            
-            {/* Debug Panel - Visual diagnostic */}
-            <DebugPanel />
           </div>
         </Router>
       </MusicProvider>
