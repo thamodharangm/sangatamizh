@@ -60,52 +60,6 @@ export const MusicProvider = ({ children }) => {
     };
   }, [audioUnlocked]);
 
-  // Media Session API for Background Audio Controls
-  useEffect(() => {
-    if (!currentSong || !('mediaSession' in navigator)) return;
-    
-    try {
-      navigator.mediaSession.metadata = new MediaMetadata({
-        title: currentSong.title,
-        artist: currentSong.artist,
-        album: 'Sangatamizh Music',
-        artwork: [
-          { 
-            src: currentSong.coverUrl || currentSong.cover_url || 'https://via.placeholder.com/512', 
-            sizes: '512x512', 
-            type: 'image/png' 
-          }
-        ]
-      });
-      
-      navigator.mediaSession.setActionHandler('play', () => {
-        audioRef.current.play();
-      });
-      
-      navigator.mediaSession.setActionHandler('pause', () => {
-        audioRef.current.pause();
-      });
-      
-      navigator.mediaSession.setActionHandler('previoustrack', () => {
-        prevSong();
-      });
-      
-      navigator.mediaSession.setActionHandler('nexttrack', () => {
-        nextSong();
-      });
-      
-      navigator.mediaSession.setActionHandler('seekto', (details) => {
-        if (details.seekTime) {
-          audioRef.current.currentTime = details.seekTime;
-        }
-      });
-      
-      console.log('[MediaSession] Updated for:', currentSong.title);
-    } catch (error) {
-      console.warn('[MediaSession] Not supported or error:', error);
-    }
-  }, [currentSong]);
-
 
   // PLAY SPECIFIC INDEX
   const playAtIndex = (index, song) => {
@@ -165,6 +119,48 @@ export const MusicProvider = ({ children }) => {
       audioRef.current.currentTime = 0;
     }
   };
+
+  // Media Session API for Background Audio Controls
+  useEffect(() => {
+    if (!currentSong || !('mediaSession' in navigator)) return;
+    
+    try {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: currentSong.title,
+        artist: currentSong.artist,
+        album: 'Sangatamizh Music',
+        artwork: [
+          { 
+            src: currentSong.coverUrl || currentSong.cover_url || 'https://via.placeholder.com/512', 
+            sizes: '512x512', 
+            type: 'image/png' 
+          }
+        ]
+      });
+      
+      navigator.mediaSession.setActionHandler('play', () => {
+        audioRef.current.play();
+      });
+      
+      navigator.mediaSession.setActionHandler('pause', () => {
+        audioRef.current.pause();
+      });
+      
+      navigator.mediaSession.setActionHandler('previoustrack', prevSong);
+      navigator.mediaSession.setActionHandler('nexttrack', nextSong);
+      
+      navigator.mediaSession.setActionHandler('seekto', (details) => {
+        if (details.seekTime) {
+          audioRef.current.currentTime = details.seekTime;
+        }
+      });
+      
+      console.log('[MediaSession] Updated for:', currentSong.title);
+    } catch (error) {
+      console.warn('[MediaSession] Not supported or error:', error);
+    }
+  }, [currentSong, nextSong, prevSong]);
+
   // AUDIO EVENT LISTENERS (Production-Ready)
   useEffect(() => {
     const audio = audioRef.current;
