@@ -352,7 +352,7 @@ exports.deleteSong = async (req, res) => {
         const extractPath = (fullUrl) => {
             if (!fullUrl) return null;
             // Matches everything after /music_assets/
-            const match = fullUrl.match(/\\/music_assets\\/(.*)$/);
+            const match = fullUrl.match(/\/music_assets\/(.*)$/);
             return match ? match[1] : null; // returns e.g. "songs/123.mp3"
         };
 
