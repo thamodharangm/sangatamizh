@@ -40,12 +40,13 @@ const AdminUpload = () => {
     }
   };
 
+  // Handle YouTube Metadata Fetch
   const fetchYoutubeMetadata = async () => {
     if (!youtubeUrl) return;
     setLoading(true);
     try {
       const res = await api.post('/yt-metadata', { url: youtubeUrl });
-      const { title, artist, coverUrl, suggestedEmotion, suggestedCategory } = res.data;
+      const { title, artist, coverUrl, suggestedEmotion, suggestedCategory, emotionConfidence } = res.data;
       setMetadata(prev => ({ 
         ...prev, 
         title, 
@@ -54,7 +55,7 @@ const AdminUpload = () => {
         emotion: suggestedEmotion || 'Feel Good',
         category: suggestedCategory || 'Tamil'
       }));
-      setMessage('Metadata fetched!');
+      setMessage(`Metadata fetched! AI detected: ${suggestedEmotion} (${Math.round(emotionConfidence * 100)}% confidence)`);
     } catch (err) {
       console.error(err);
       setError('Failed to fetch metadata');
@@ -83,6 +84,7 @@ const AdminUpload = () => {
 
     try {
       if (uploadTab === 'youtube') {
+         // Backend Process (YouTube)
          await api.post('/upload-from-yt', {
            url: youtubeUrl,
            category: metadata.category,
@@ -110,6 +112,8 @@ const AdminUpload = () => {
         setMessage('File Upload Successful!');
         setFile(null);
         setCover(null);
+        if(document.getElementById('audio-input')) document.getElementById('audio-input').value = "";
+        if(document.getElementById('cover-input')) document.getElementById('cover-input').value = "";
       }
       
       setMetadata({ title: '', artist: '', album: '', category: 'General', emotion: 'Neutral', coverUrl: '' });
@@ -117,7 +121,13 @@ const AdminUpload = () => {
 
     } catch (err) {
       console.error("Upload Error:", err);
-      setError(err.response?.data?.error || err.message || 'Upload Failed');
+      let errorMsg = 'Upload Failed';
+      if (err.response && err.response.data) {
+        errorMsg += ': ' + (err.response.data.message || JSON.stringify(err.response.data));
+      } else if (err.message) {
+        errorMsg += ': ' + err.message;
+      }
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -266,7 +276,7 @@ const AdminUpload = () => {
                         <input className="input-flat" placeholder="Paste YouTube URL" value={youtubeUrl} onChange={e => setYoutubeUrl(e.target.value)} style={{ flex: 1 }} />
                         <button 
                             type="button" 
-                            onClick={fetchYoutubeMetadata} 
+                            onClick={(e) => { e.preventDefault(); fetchYoutubeMetadata(); }} 
                             className="btn-3d btn-primary" 
                             style={{ fontSize: '0.8rem', minWidth: 'auto', padding: '0 1rem' }} 
                             disabled={loading}
@@ -277,28 +287,40 @@ const AdminUpload = () => {
                  </div>
              )}
 
+             {/* Show Cover Preview if Any (YouTube Mode) */}
+             {uploadTab === 'youtube' && metadata.coverUrl && (
+                <div style={{ marginBottom: '1rem', width: '60px', height: '60px', borderRadius: '4px', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
+                   <img src={metadata.coverUrl} alt="Cover" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
+             )}
+
              {uploadTab === 'file' && (
                  <div className="mb-2">
-                     <input type="file" accept="audio/*" onChange={handleFileChange} className="input-flat mb-1" style={{ padding: '0.5rem' }} required />
-                     <input type="file" accept="image/*" onChange={handleCoverChange} className="input-flat" style={{ padding: '0.5rem' }} />
+                     <label style={{ display: 'block', marginBottom: '0.3rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>Audio File (MP3)*</label>
+                     <input id="audio-input" type="file" accept="audio/*" onChange={handleFileChange} className="input-flat mb-1" style={{ padding: '0.5rem' }} required />
+                     <label style={{ display: 'block', marginBottom: '0.3rem', color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.5rem' }}>Cover Art</label>
+                     <input id="cover-input" type="file" accept="image/*" onChange={handleCoverChange} className="input-flat" style={{ padding: '0.5rem' }} />
                  </div>
              )}
              
-             <div style={{ display: 'grid', gap: '0.5rem', marginBottom: '1.5rem' }}>
-                 <input className="input-flat" placeholder="Title" name="title" value={metadata.title} onChange={handleMetadataChange} />
-                 <input className="input-flat" placeholder="Artist" name="artist" value={metadata.artist} onChange={handleMetadataChange} />
-                 <select className="input-flat" name="emotion" value={metadata.emotion} onChange={handleMetadataChange}>
-                    <option value="Neutral">Neutral</option>
-                    <option value="Feel Good">Feel Good</option>
-                    <option value="Sad">Sad</option>
-                    <option value="Love">Love</option>
-                    <option value="Party">Party</option>
-                    <option value="Motivation">Motivation</option>
-                 </select>
-             </div>
+             {/* Metadata Inputs - Only for FILE UPLOAD */}
+             {uploadTab === 'file' && (
+                 <div style={{ display: 'grid', gap: '0.5rem', marginBottom: '1.5rem' }}>
+                     <input className="input-flat" placeholder="Title" name="title" value={metadata.title} onChange={handleMetadataChange} />
+                     <input className="input-flat" placeholder="Artist" name="artist" value={metadata.artist} onChange={handleMetadataChange} />
+                     <select className="input-flat" name="emotion" value={metadata.emotion} onChange={handleMetadataChange}>
+                        <option value="Neutral">Neutral</option>
+                        <option value="Feel Good">Feel Good</option>
+                        <option value="Sad">Sad</option>
+                        <option value="Love">Love</option>
+                        <option value="Party">Party</option>
+                        <option value="Motivation">Motivation</option>
+                     </select>
+                 </div>
+             )}
 
              <button type="submit" className="btn-3d btn-primary" style={{ width: '100%' }} disabled={loading}>
-                 {loading ? 'Processing...' : 'UPLOAD'}
+                 {loading ? 'Processing...' : (uploadTab === 'youtube' ? 'Import from YouTube' : 'Upload Song')}
              </button>
           </form>
         </div>

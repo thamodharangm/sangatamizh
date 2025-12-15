@@ -178,39 +178,55 @@ async function getMetadata(url) {
     console.log('[Meta Request] URL:', url);
     const cookiePath = getCookiePath();
     
-    // 1. Try YouTube Data API
+    // 1. Try YouTube Data API (with Key Rotation)
     if (YT_API_KEY) {
          const id = url.match(/(?:v=|youtu\.be\/|embed\/)([\w-]{11})/)?.[1];
          if (id) {
-             try {
-                const apiUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${id}&key=${YT_API_KEY}`;
-                const r = await fetch(apiUrl);
-                const d = await r.json();
-                if (d.items && d.items.length > 0) {
-                    const snip = d.items[0].snippet;
-                    console.log('[Meta] ✅ API Success');
+             const keys = YT_API_KEY.split(',').map(k => k.trim()).filter(k => k);
+             
+             for (const key of keys) {
+                 try {
+                    console.log(`[Meta] Trying API Key: ...${key.slice(-4)}`);
+                    const apiUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${id}&key=${key}`;
+                    const r = await fetch(apiUrl);
                     
-                    // Fetch Lyrics
-                    const { title: cleanTitle, artist } = cleanMetadata(snip.title, snip.channelTitle);
-                    let lyrics = "";
-                    try {
-                        lyrics = await lyricsFinder(artist, cleanTitle) || "";
-                        console.log(`[Meta] Lyrics found: ${lyrics.length} chars`);
-                    } catch(e) { console.log('[Meta] Lyrics fetch failed', e.message); }
+                    if (!r.ok) {
+                        console.warn(`[Meta] Key ...${key.slice(-4)} failed: ${r.status} ${r.statusText}`);
+                        if (r.status === 403) continue; // Try next key if quota/forbidden
+                        // For other errors, maybe try next too? Yes.
+                        continue;
+                    }
 
-                    const emotion = detectEmotion(snip.title, snip.description, lyrics);
-                    
-                    fs.appendFileSync('debug_meta.log', `[API] Title: ${snip.title}, Emotion: ${emotion}\n`);
-                    console.log(`[Meta] Detected Emotion for "${snip.title}": ${emotion}`);
-                    return { 
-                        title: snip.title, 
-                        artist: snip.channelTitle, 
-                        coverUrl: snip.thumbnails.high?.url || snip.thumbnails.default?.url,
-                        emotion,
-                        description: snip.description
-                    };
-                }
-             } catch(e) { console.error('[Meta] API Error', e.message); }
+                    const d = await r.json();
+                    if (d.items && d.items.length > 0) {
+                        const snip = d.items[0].snippet;
+                        console.log('[Meta] ✅ API Success');
+                        
+                        // Fetch Lyrics
+                        const { title: cleanTitle, artist } = cleanMetadata(snip.title, snip.channelTitle);
+                        let lyrics = "";
+                        try {
+                            lyrics = await lyricsFinder(artist, cleanTitle) || "";
+                            console.log(`[Meta] Lyrics found: ${lyrics.length} chars`);
+                        } catch(e) { console.log('[Meta] Lyrics fetch failed', e.message); }
+
+                        const emotion = detectEmotion(snip.title, snip.description, lyrics);
+                        
+                        fs.appendFileSync('debug_meta.log', `[API] Title: ${snip.title}, Emotion: ${emotion}\n`);
+                        console.log(`[Meta] Detected Emotion for "${snip.title}": ${emotion}`);
+                        return { 
+                            title: snip.title, 
+                            artist: snip.channelTitle, 
+                            coverUrl: snip.thumbnails.high?.url || snip.thumbnails.default?.url,
+                            emotion,
+                            description: snip.description
+                        };
+                    } else {
+                        console.log(`[Meta] Video not found with key ...${key.slice(-4)}`);
+                    }
+                 } catch(e) { console.error('[Meta] API Error with key', e.message); }
+             }
+             console.log('[Meta] All API keys failed or video not found via API. Switching to fallbacks.');
          }
     }
 
