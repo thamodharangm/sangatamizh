@@ -41,11 +41,18 @@ export const MusicProvider = ({ children }) => {
     setDuration(0);
     setBufferedTime(0);
 
-    if (!song || !song.audioUrl) return;
+    if (!song || !song.id) return;
+
+    // Use Backend Stream Endpoint to fix "Double Duration" bug
+    // If VITE_API_URL is set (Prod), use it. Else use '/api' (Dev Proxy)
+    const baseUrl = import.meta.env.VITE_API_URL || '/api';
+    // Ensure no double slashes
+    const cleanBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+    const streamUrl = `${cleanBase}/stream/${song.id}`;
 
     // Update src only if changed
-    if (audio.src !== song.audioUrl) {
-      audio.src = song.audioUrl;
+    if (audio.src !== streamUrl) {
+      audio.src = streamUrl;
       audio.load();
     } else {
       audio.currentTime = 0;
