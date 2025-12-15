@@ -28,9 +28,12 @@ runMigration().then(() => {
         ensureYtDlp().catch(err => console.error('YTDLP Setup Failed:', err));
         
         // Initialize Proxy Refresh System (non-blocking)
-        initAutoProxyRefresh().catch(err => {
-            console.warn('Proxy Init Failed:', err.message);
-            console.log('Server will use direct connections');
-        });
+        // Initialize Proxy Refresh System (non-blocking, delayed)
+        setTimeout(() => {
+            initAutoProxyRefresh().catch(err => {
+                console.warn('Proxy Init Failed:', err.message);
+                console.log('Server will use direct connections');
+            });
+        }, 5000);
     });
 });
