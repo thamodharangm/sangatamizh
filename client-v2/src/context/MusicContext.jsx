@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useRef, useEffect } from 'react';
+import { createContext, useContext, useState, useRef, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import api from '../config/api';
 
@@ -98,7 +98,7 @@ export const MusicProvider = ({ children }) => {
   };
 
 
-  const nextSong = () => {
+  const nextSong = useCallback(() => {
     const q = queueRef.current;
     const idx = indexRef.current;
     if (!q.length) return;
@@ -108,17 +108,17 @@ export const MusicProvider = ({ children }) => {
     } else {
       setIsPlaying(false);
     }
-  };
+  }, []);
 
 
-  const prevSong = () => {
+  const prevSong = useCallback(() => {
     const idx = indexRef.current;
     if (idx > 0) {
       playAtIndex(idx - 1, queueRef.current[idx - 1]);
     } else {
       audioRef.current.currentTime = 0;
     }
-  };
+  }, []);
 
   // Media Session API for Background Audio Controls
   useEffect(() => {
@@ -159,7 +159,7 @@ export const MusicProvider = ({ children }) => {
     } catch (error) {
       console.warn('[MediaSession] Not supported or error:', error);
     }
-  }, [currentSong, nextSong, prevSong]);
+  }, [currentSong]); // nextSong and prevSong are stable with useCallback
 
   // ========================================
   // MODERN AUDIO EVENT SYSTEM
