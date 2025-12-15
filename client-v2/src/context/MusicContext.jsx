@@ -281,8 +281,42 @@ export const MusicProvider = ({ children }) => {
     };
 
     const handleError = (event) => {
-      console.error('[Audio] Playback error:', event);
+      const audio = audioRef.current;
+      let errorMessage = 'Playback error';
+      
+      if (audio.error) {
+        switch (audio.error.code) {
+          case 1: // MEDIA_ERR_ABORTED
+            errorMessage = 'Audio loading aborted';
+            break;
+          case 2: // MEDIA_ERR_NETWORK
+            errorMessage = 'Network error - Check backend connection';
+            break;
+          case 3: // MEDIA_ERR_DECODE
+            errorMessage = 'Audio decode error';
+            break;
+          case 4: // MEDIA_ERR_SRC_NOT_SUPPORTED
+            errorMessage = 'Audio format not supported';
+            break;
+          default:
+            errorMessage = 'Unknown audio error';
+        }
+      }
+      
+      console.error('[Audio] Playback error:', {
+        code: audio.error?.code,
+        message: audio.error?.message,
+        src: audio.src,
+        errorMessage
+      });
+      
       setIsBuffering(false);
+      
+      // Show user-friendly error notification
+      if (typeof window !== 'undefined' && window.alert) {
+        // In production, you'd use a toast notification instead
+        console.error(`Failed to load audio: ${errorMessage}`);
+      }
     };
 
     // === RESET ON NEW SONG ===
