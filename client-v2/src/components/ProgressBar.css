@@ -1,0 +1,116 @@
+/* ============================================
+   PROGRESS BAR - APPLE MUSIC STYLE
+   ============================================ */
+
+.progress-bar {
+  flex: 1;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.progress-track {
+  position: relative;
+  width: 100%;
+  height: 4px;
+  background: #333;
+  border-radius: 2px;
+  overflow: visible;
+  transition: height 0.2s ease;
+}
+
+.progress-bar:hover .progress-track {
+  height: 6px;
+}
+
+/* Buffer Bar (Gray - Buffered but not played) */
+.progress-buffer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: #555;
+  border-radius: 2px;
+  transition: width 0.1s linear;
+}
+
+/* Play Bar (Green - Currently played) */
+.progress-play {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: linear-gradient(90deg, #58cc02 0%, #46a302 100%);
+  border-radius: 2px;
+  transition: width 0.1s linear;
+  box-shadow: 0 0 8px rgba(88, 204, 2, 0.3);
+}
+
+/* Seek Handle (White Dot) */
+.progress-handle {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 12px;
+  height: 12px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
+}
+
+.progress-bar:hover .progress-handle {
+  opacity: 1;
+}
+
+.progress-bar:active .progress-handle {
+  transform: translate(-50%, -50%) scale(1.2);
+}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+  .progress-bar {
+    height: 44px; /* Larger touch target */
+  }
+  
+  .progress-track {
+    height: 4px;
+  }
+  
+  .progress-bar:active .progress-track {
+    height: 6px;
+  }
+  
+  .progress-handle {
+    width: 14px;
+    height: 14px;
+  }
+  
+  /* Always show handle on mobile for better feedback */
+  .progress-bar:active .progress-handle {
+    opacity: 1;
+  }
+}
+
+/* Touch Feedback */
+@media (hover: none) {
+  .progress-bar:active .progress-play {
+    box-shadow: 0 0 12px rgba(88, 204, 2, 0.5);
+  }
+}
+
+/* Smooth Seeking Animation */
+.progress-play.seeking {
+  transition: none;
+}
+
+.progress-handle.seeking {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1.3);
+}

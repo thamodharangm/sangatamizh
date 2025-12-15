@@ -1,0 +1,114 @@
+/* ============================================
+   PLAYER CONTROLS - APPLE MUSIC STYLE
+   ============================================ */
+
+.player-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.control-btn {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.control-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  transform: scale(1.1);
+}
+
+.control-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.control-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Previous/Next Buttons */
+.prev-btn,
+.next-btn {
+  width: 40px;
+  height: 40px;
+}
+
+/* Play/Pause Button */
+.play-btn {
+  width: 48px;
+  height: 48px;
+  background: #58cc02;
+  color: white;
+  box-shadow: 0 4px 12px rgba(88, 204, 2, 0.3);
+}
+
+.play-btn:hover:not(:disabled) {
+  background: #46a302;
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(88, 204, 2, 0.4);
+}
+
+.play-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+/* Loading Spinner */
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { 
+    transform: rotate(360deg); 
+  }
+}
+
+/* SVG Icons */
+.control-btn svg {
+  display: block;
+}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+  .player-controls {
+    gap: 24px;
+  }
+  
+  .control-btn {
+    padding: 12px;
+  }
+  
+  .prev-btn,
+  .next-btn {
+    width: 44px;
+    height: 44px;
+  }
+  
+  .play-btn {
+    width: 56px;
+    height: 56px;
+  }
+}
+
+/* Touch Feedback */
+@media (hover: none) {
+  .control-btn:active:not(:disabled) {
+    background: rgba(255, 255, 255, 0.2);
+  }
+}

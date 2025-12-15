@@ -12,7 +12,7 @@ import AdminUpload from './pages/AdminUpload';
 import AdminAnalytics from './pages/AdminAnalytics';
 
 // Components
-import MusicPlayer from './components/MusicPlayer';
+import MusicPlayerPro from './components/MusicPlayerPro';
 import BottomNav from './components/BottomNav';
 import ScrollToTop from './components/ScrollToTop';
 import DebugPanel from './components/DebugPanel';
@@ -71,7 +71,7 @@ function App() {
               </div>
               
               {/* Music Player - Fixed above bottom nav */}
-              <MusicPlayer />
+              <MusicPlayerPro />
               
               {/* Bottom Navigation - Fixed at bottom */}
               <BottomNav />

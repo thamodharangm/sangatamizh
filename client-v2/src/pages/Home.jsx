@@ -132,7 +132,7 @@ const Home = () => {
               <div key={song.id} className="scroll-item">
                 <SongCard 
                   song={song} 
-                  onPlay={() => handlePlay(song, sections.recent)}
+                  playlist={sections.recent}
                 />
               </div>
             ))}
@@ -149,7 +149,7 @@ const Home = () => {
               <div key={song.id} className="scroll-item">
                 <SongCard 
                   song={song} 
-                  onPlay={() => handlePlay(song, sections.hits)}
+                  playlist={sections.hits}
                 />
               </div>
             ))}

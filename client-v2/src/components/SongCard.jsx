@@ -1,13 +1,21 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import usePlayerStore from '../stores/usePlayerStore';
 import api from '../config/api';
 import confetti from 'canvas-confetti';
 
 // Mobile-optimized Song Card Component
-const SongCard = ({ song, onPlay }) => {
+const SongCard = ({ song, playlist = [] }) => {
   const { user } = useAuth();
   const [isLiked, setIsLiked] = useState(false);
   const [liking, setLiking] = useState(false);
+  
+  // Get loadTrack from new player store
+  const loadTrack = usePlayerStore(state => state.loadTrack);
+  const currentTrack = usePlayerStore(state => state.currentTrack);
+  
+  // Check if this song is currently playing
+  const isCurrentSong = currentTrack?.id === song.id;
 
   // Fetch initial liked status when component mounts
   useEffect(() => {
@@ -74,13 +82,21 @@ const SongCard = ({ song, onPlay }) => {
       setLiking(false);
     }
   };
+  
+  // Handle song click - load track with playlist
+  const handlePlay = () => {
+    loadTrack(song, playlist);
+  };
 
   const coverUrl = song.coverUrl || song.cover_url || 'https://via.placeholder.com/300';
   const title = song.title || 'Unknown Title';
   const artist = song.artist || 'Unknown Artist';
 
   return (
-    <div className="song-card" onClick={onPlay}>
+    <div 
+      className={`song-card ${isCurrentSong ? 'active' : ''}`} 
+      onClick={handlePlay}
+    >
       <div className="song-card-cover">
         <img 
           src={coverUrl} 
@@ -96,6 +112,15 @@ const SongCard = ({ song, onPlay }) => {
         >
           {isLiked ? '❤️' : '🤍'}
         </button>
+        
+        {/* Playing Indicator */}
+        {isCurrentSong && (
+          <div className="playing-indicator">
+            <div className="bar"></div>
+            <div className="bar"></div>
+            <div className="bar"></div>
+          </div>
+        )}
       </div>
 
       <div className="song-card-title">{title}</div>
