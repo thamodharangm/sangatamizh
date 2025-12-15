@@ -38,9 +38,11 @@ export const MusicProvider = ({ children }) => {
     indexRef.current = currentIndex;
   }, [queue, currentIndex]);
   
-  // Store updateStats in ref
+  // Store updateStats in ref (with safety check)
   useEffect(() => {
-    updateStatsRef.current = updateStats;
+    if (updateStats) {
+      updateStatsRef.current = updateStats;
+    }
   }, [updateStats]);
 
   // iOS Audio Unlock Pattern
