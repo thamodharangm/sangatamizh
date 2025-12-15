@@ -17,14 +17,23 @@ const serialize = (data) => JSON.parse(JSON.stringify(data, (key, value) =>
 
 // Stream Song with Range Support (Fixes Double Duration)
 exports.streamSong = async (req, res) => {
+    console.log(`[Stream] Request for ID: ${req.params.id}`);
     try {
         const { id } = req.params;
         const song = await prisma.song.findUnique({ where: { id } });
         
-        if (!song || !song.file_url) {
-            return res.status(404).send('Song not found');
+        if (!song) {
+             console.log("[Stream] Song not found in DB");
+             return res.status(404).send('Song not found');
+        }
+        if (!song.file_url) {
+             console.log("[Stream] No file_url for song");
+             // Fallback?
+             return res.status(404).send('No Audio Source');
         }
 
+        console.log(`[Stream] Streaming: ${song.file_url}`);
+        
         // 1. Fetch from upstream (Storage URL)
         // Note: If using Supabase, ensure the file is public or signed.
         const encodedUrl = encodeURI(song.file_url);
