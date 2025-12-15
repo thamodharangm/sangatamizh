@@ -23,6 +23,9 @@ export const MusicProvider = ({ children }) => {
   const audioRef = useRef(new Audio());
   const queueRef = useRef([]);
   const indexRef = useRef(-1);
+  
+  // Store corrected duration for buffer calculations
+  const correctedDurationRef = useRef(0);
 
   useEffect(() => {
     queueRef.current = queue;
@@ -106,6 +109,16 @@ export const MusicProvider = ({ children }) => {
     const handleTimeUpdate = () => {
       if (!isNaN(audio.currentTime)) {
         setCurrentTime(audio.currentTime);
+        
+        // If we have a corrected duration (M4A fix), end song when reaching it
+        // Prevents playing past 303s when actual file is 607s
+        if (correctedDurationRef.current > 0 && 
+            audio.currentTime >= correctedDurationRef.current) {
+          audio.pause();
+          setIsPlaying(false);
+          if (updateStats) updateStats("song_played");
+          nextSong();
+        }
       }
     };
 
@@ -116,23 +129,26 @@ export const MusicProvider = ({ children }) => {
       if (!isNaN(audio.duration) && audio.duration > 0) {
         // Sanity check: Most songs under 10 minutes
         // M4A metadata corruption often doubles duration
+        let finalDuration = audio.duration;
+        
         if (audio.duration > 600) {
           // Estimate as half (common M4A corruption pattern)
-          const correctedDuration = audio.duration / 2;
-          setDuration(correctedDuration);
-        } else {
-          setDuration(audio.duration);
+          finalDuration = audio.duration / 2;
         }
+        
+        // Store corrected duration for buffer calculations
+        correctedDurationRef.current = finalDuration;
+        setDuration(finalDuration);
       }
     };
 
     // Buffer progress tracking
     const handleProgress = () => {
       try {
-        if (audio.buffered.length > 0 && audio.duration) {
+        if (audio.buffered.length > 0 && correctedDurationRef.current > 0) {
           const bufferedEnd = audio.buffered.end(audio.buffered.length - 1);
-          // Clamp to duration to prevent overflow
-          const safeBuffered = Math.min(bufferedEnd, audio.duration);
+          // Use CORRECTED duration, not audio.duration (which is corrupted)
+          const safeBuffered = Math.min(bufferedEnd, correctedDurationRef.current);
           setBufferedTime(safeBuffered);
         }
       } catch (e) {
