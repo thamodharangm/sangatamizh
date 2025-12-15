@@ -15,6 +15,7 @@ import AdminAnalytics from './pages/AdminAnalytics';
 import MusicPlayer from './components/MusicPlayer';
 import BottomNav from './components/BottomNav';
 import ScrollToTop from './components/ScrollToTop';
+import DebugPanel from './components/DebugPanel';
 
 import './App.css';
 
@@ -72,6 +73,9 @@ function App() {
             
             {/* Bottom Navigation - Fixed at bottom */}
             <BottomNav />
+            
+            {/* Debug Panel - Visual diagnostic */}
+            <DebugPanel />
           </div>
         </Router>
       </MusicProvider>
