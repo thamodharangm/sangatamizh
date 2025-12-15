@@ -1,116 +1,306 @@
 /* ============================================
-   MUSIC PLAYER PRO - APPLE MUSIC STYLE
+   MUSIC PLAYER PRO - REDESIGNED
+   Attractive Spotify/Apple Music Style
    ============================================ */
 
-.music-player-pro {
+.music-player-pro-redesign {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  background: linear-gradient(180deg, #1a1a1a 0%, #111 100%);
-  border-top: 1px solid #333;
-  padding: 16px 24px;
+  background: linear-gradient(180deg, #1e1e2e 0%, #16161f 100%);
+  border-top: 1px solid rgba(88, 204, 2, 0.2);
+  padding: 12px 20px;
   z-index: 1000;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(20px);
 }
 
-.player-container {
-  max-width: 1200px;
+.player-content {
+  max-width: 1400px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 1fr 2fr 1fr;
-  gap: 24px;
+  grid-template-columns: 300px 1fr 200px;
+  gap: 32px;
   align-items: center;
 }
 
-/* Track Info */
-.track-info {
+/* ============================================
+   LEFT: TRACK INFO SECTION
+   ============================================ */
+
+.player-track-section {
   display: flex;
-  gap: 12px;
+  gap: 16px;
   align-items: center;
   min-width: 0;
 }
 
-.track-cover {
-  width: 56px;
-  height: 56px;
-  border-radius: 8px;
-  object-fit: cover;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+.track-cover-wrapper {
+  position: relative;
   flex-shrink: 0;
 }
 
-.track-details {
+.track-cover-image {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  object-fit: cover;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  border: 2px solid rgba(88, 204, 2, 0.3);
+}
+
+.cover-loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinner-ring {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(88, 204, 2, 0.2);
+  border-top-color: #58cc02;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.track-info-text {
   flex: 1;
   min-width: 0;
 }
 
-.track-title {
-  font-size: 14px;
-  font-weight: 600;
+.track-title-main {
+  font-size: 16px;
+  font-weight: 700;
   color: white;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: -0.3px;
 }
 
-.track-artist {
-  font-size: 12px;
-  color: #999;
+.track-artist-main {
+  font-size: 13px;
+  color: #a0a0a0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* Progress Section */
-.progress-section {
+/* ============================================
+   CENTER: CONTROLS & PROGRESS SECTION
+   ============================================ */
+
+.player-controls-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+
+.playback-controls {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.control-button {
+  background: none;
+  border: none;
+  color: #b3b3b3;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.control-button:hover:not(:disabled) {
+  color: white;
+  background: rgba(255, 255, 255, 0.08);
+  transform: scale(1.05);
+}
+
+.control-button:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.control-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.prev-button,
+.next-button {
+  width: 36px;
+  height: 36px;
+}
+
+.play-button-main {
+  width: 52px;
+  height: 52px;
+  background: linear-gradient(135deg, #58cc02 0%, #46a302 100%);
+  color: white;
+  box-shadow: 0 4px 16px rgba(88, 204, 2, 0.4);
+}
+
+.play-button-main:hover:not(:disabled) {
+  background: linear-gradient(135deg, #46a302 0%, #3a8602 100%);
+  box-shadow: 0 6px 20px rgba(88, 204, 2, 0.6);
+  transform: scale(1.08);
+}
+
+.button-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* ============================================
+   PROGRESS BAR
+   ============================================ */
+
+.progress-container {
   display: flex;
   align-items: center;
   gap: 12px;
+  width: 100%;
+  max-width: 600px;
 }
 
-.time-current,
-.time-total {
+.time-display {
   font-size: 12px;
-  color: #999;
+  color: #a0a0a0;
   min-width: 40px;
   text-align: center;
   font-variant-numeric: tabular-nums;
+  font-weight: 500;
 }
 
-/* Volume Control */
-.volume-control {
+.progress-bar-wrapper {
+  flex: 1;
+  height: 32px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  cursor: pointer;
+  padding: 12px 0;
+}
+
+.progress-bar-track {
+  position: relative;
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: visible;
+  transition: height 0.2s;
+}
+
+.progress-bar-wrapper:hover .progress-bar-track {
+  height: 6px;
+}
+
+.progress-bar-buffer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  transition: width 0.1s linear;
+}
+
+.progress-bar-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: linear-gradient(90deg, #58cc02 0%, #46a302 100%);
+  border-radius: 2px;
+  box-shadow: 0 0 8px rgba(88, 204, 2, 0.4);
+  transition: width 0.1s linear;
+}
+
+.progress-bar-thumb {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 14px;
+  height: 14px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.progress-bar-wrapper:hover .progress-bar-thumb {
+  opacity: 1;
+}
+
+/* ============================================
+   RIGHT: VOLUME SECTION
+   ============================================ */
+
+.player-volume-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   justify-content: flex-end;
 }
 
-.volume-btn {
+.volume-icon-button {
   background: none;
   border: none;
-  font-size: 20px;
+  color: #b3b3b3;
   cursor: pointer;
-  padding: 4px;
-  transition: transform 0.2s;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.volume-btn:hover {
-  transform: scale(1.1);
+.volume-icon-button:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.08);
 }
 
-.volume-slider {
+.volume-slider-container {
   width: 100px;
+}
+
+.volume-slider-input {
+  width: 100%;
   height: 4px;
   -webkit-appearance: none;
   appearance: none;
-  background: #333;
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 2px;
   outline: none;
+  cursor: pointer;
 }
 
-.volume-slider::-webkit-slider-thumb {
+.volume-slider-input::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   width: 12px;
@@ -118,45 +308,61 @@
   background: white;
   border-radius: 50%;
   cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-.volume-slider::-moz-range-thumb {
+.volume-slider-input::-moz-range-thumb {
   width: 12px;
   height: 12px;
   background: white;
   border-radius: 50%;
   cursor: pointer;
   border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-/* Error Toast */
-.player-error {
+.volume-slider-input:hover::-webkit-slider-thumb {
+  transform: scale(1.2);
+}
+
+/* ============================================
+   ERROR TOAST
+   ============================================ */
+
+.player-error-toast {
   position: fixed;
   top: 20px;
   right: 20px;
-  background: #ff4444;
+  background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
   color: white;
-  padding: 12px 16px;
-  border-radius: 8px;
+  padding: 14px 20px;
+  border-radius: 12px;
   display: flex;
-  gap: 12px;
+  gap: 16px;
   align-items: center;
   z-index: 2000;
-  box-shadow: 0 4px 12px rgba(255, 68, 68, 0.4);
-  animation: slideIn 0.3s ease-out;
+  box-shadow: 0 8px 24px rgba(255, 68, 68, 0.5);
+  animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 500;
 }
 
-.player-error button {
+.player-error-toast button {
   background: none;
   border: none;
   color: white;
-  font-size: 20px;
+  font-size: 24px;
   cursor: pointer;
   padding: 0;
   line-height: 1;
+  opacity: 0.8;
+  transition: opacity 0.2s;
 }
 
-@keyframes slideIn {
+.player-error-toast button:hover {
+  opacity: 1;
+}
+
+@keyframes slideInRight {
   from {
     transform: translateX(400px);
     opacity: 0;
@@ -167,36 +373,80 @@
   }
 }
 
-/* Mobile Responsive */
-@media (max-width: 768px) {
-  .music-player-pro {
-    padding: 12px 16px;
-    padding-bottom: calc(12px + env(safe-area-inset-bottom));
+/* ============================================
+   MOBILE RESPONSIVE
+   ============================================ */
+
+@media (max-width: 1024px) {
+  .player-volume-section {
+    display: none;
   }
   
-  .player-container {
+  .player-content {
+    grid-template-columns: 1fr 2fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .music-player-pro-redesign {
+    padding: 10px 16px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));
+  }
+  
+  .player-content {
     grid-template-columns: 1fr;
     gap: 12px;
   }
   
-  .track-info {
+  .player-track-section {
     order: 1;
   }
   
-  .progress-section {
-    order: 3;
-  }
-  
-  .player-controls {
+  .player-controls-section {
     order: 2;
   }
   
-  .desktop-only {
-    display: none;
+  .track-cover-image {
+    width: 52px;
+    height: 52px;
   }
   
-  .track-cover {
-    width: 48px;
-    height: 48px;
+  .track-title-main {
+    font-size: 14px;
+  }
+  
+  .track-artist-main {
+    font-size: 12px;
+  }
+  
+  .playback-controls {
+    gap: 16px;
+  }
+  
+  .play-button-main {
+    width: 56px;
+    height: 56px;
+  }
+  
+  .progress-container {
+    max-width: 100%;
+  }
+}
+
+/* ============================================
+   TOUCH OPTIMIZATIONS
+   ============================================ */
+
+@media (hover: none) {
+  .control-button:active:not(:disabled) {
+    background: rgba(255, 255, 255, 0.15);
+  }
+  
+  .progress-bar-thumb {
+    opacity: 0;
+  }
+  
+  .progress-bar-wrapper:active .progress-bar-thumb {
+    opacity: 1;
   }
 }
