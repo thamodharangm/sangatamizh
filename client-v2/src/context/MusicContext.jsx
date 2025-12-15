@@ -28,11 +28,20 @@ export const MusicProvider = ({ children }) => {
   
   // Store corrected duration for buffer calculations
   const correctedDurationRef = useRef(0);
+  
+  // Store function refs to avoid dependency issues
+  const nextSongRef = useRef(null);
+  const updateStatsRef = useRef(null);
 
   useEffect(() => {
     queueRef.current = queue;
     indexRef.current = currentIndex;
   }, [queue, currentIndex]);
+  
+  // Store updateStats in ref
+  useEffect(() => {
+    updateStatsRef.current = updateStats;
+  }, [updateStats]);
 
   // iOS Audio Unlock Pattern
   useEffect(() => {
@@ -109,6 +118,11 @@ export const MusicProvider = ({ children }) => {
       setIsPlaying(false);
     }
   }, [playAtIndex]);
+  
+  // Store nextSong in ref
+  useEffect(() => {
+    nextSongRef.current = nextSong;
+  }, [nextSong]);
 
 
   const prevSong = useCallback(() => {
@@ -183,8 +197,8 @@ export const MusicProvider = ({ children }) => {
     const handleEnded = () => {
       console.log('[Audio] Ended');
       setIsPlaying(false);
-      if (updateStats) updateStats("song_played");
-      nextSong();
+      if (updateStatsRef.current) updateStatsRef.current("song_played");
+      if (nextSongRef.current) nextSongRef.current();
     };
 
     // === PROGRESS TRACKING (Real-time) ===
@@ -200,8 +214,8 @@ export const MusicProvider = ({ children }) => {
         if (correctedDuration > 0 && currentTime >= correctedDuration) {
           audio.pause();
           setIsPlaying(false);
-          if (updateStats) updateStats("song_played");
-          nextSong();
+          if (updateStatsRef.current) updateStatsRef.current("song_played");
+          if (nextSongRef.current) nextSongRef.current();
         }
       }
     };
@@ -305,7 +319,7 @@ export const MusicProvider = ({ children }) => {
       audio.removeEventListener("error", handleError);
       audio.removeEventListener("loadstart", handleLoadStart);
     };
-  }, [nextSong]); // nextSong is stable (useCallback with stable deps)
+  }, []); // Empty deps - all functions accessed via refs
 
 
   // When currentSong changes
