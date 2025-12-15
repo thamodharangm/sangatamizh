@@ -7,7 +7,7 @@ const fetch = require('node-fetch');
 const { YT_API_KEY, YOUTUBE_COOKIES } = require('../config/env');
 
 // Helper to extract ID (simplified version of what's in service)
-const extractVideoId = (url) => url.match(/(?:v=|youtu\.be\/|embed\/)([\w-]{11})/)?.[1];
+const extractVideoId = (url) => url.match(/(?:v=|youtu\.be\/|embed\/)([\\w-]{11})/)?.[1];
 
 const serialize = (data) => JSON.parse(JSON.stringify(data, (key, value) =>
     typeof value === 'bigint'
@@ -15,20 +15,22 @@ const serialize = (data) => JSON.parse(JSON.stringify(data, (key, value) =>
         : value 
 ));
 
-// Stream Song with FULL Mobile Safari Support (RFC 7233)
+// Stream Song with FULL Mobile Safari Support + Mobile Optimization
 exports.streamSong = async (req, res) => {
+    const startTime = Date.now();
     console.log(`[Stream] Request for ID: ${req.params.id}`);
+    
     try {
         const { id } = req.params;
         const song = await prisma.song.findUnique({ where: { id } });
         
         if (!song) {
-             console.log("[Stream] Song not found in DB");
-             return res.status(404).send('Song not found');
+            console.log("[Stream] Song not found in DB");
+            return res.status(404).send('Song not found');
         }
         if (!song.file_url) {
-             console.log("[Stream] No file_url for song");
-             return res.status(404).send('No Audio Source');
+            console.log("[Stream] No file_url for song");
+            return res.status(404).send('No Audio Source');
         }
 
         console.log(`[Stream] Streaming: ${song.file_url}`);
@@ -41,8 +43,17 @@ exports.streamSong = async (req, res) => {
         else if (url.includes('.webm')) contentType = 'audio/webm';
         else if (url.includes('.ogg')) contentType = 'audio/ogg';
         
+        // Detect mobile device
+        const userAgent = req.headers['user-agent'] || '';
+        const isMobile = /Mobile|Android|iPhone|iPad/i.test(userAgent);
+        
         // Step 1: HEAD request to get file size (critical for iOS)
-        const headResponse = await fetch(song.file_url, { method: 'HEAD' });
+        const headResponse = await fetch(song.file_url, { 
+            method: 'HEAD',
+            headers: {
+                'User-Agent': userAgent // Forward user agent
+            }
+        });
         const fileSize = parseInt(headResponse.headers.get('content-length') || '0');
         
         if (!fileSize) {
@@ -50,7 +61,7 @@ exports.streamSong = async (req, res) => {
             return res.status(500).send('Unable to stream: file size unknown');
         }
 
-        console.log(`[Stream] File size: ${fileSize} bytes`);
+        console.log(`[Stream] File size: ${fileSize} bytes, Mobile: ${isMobile}, UA: ${userAgent.substring(0, 50)}`);
 
         // Step 2: Check if Range request
         const range = req.headers.range;
@@ -62,22 +73,42 @@ exports.streamSong = async (req, res) => {
             res.setHeader('Content-Type', contentType);
             res.setHeader('Content-Length', fileSize);
             res.setHeader('Accept-Ranges', 'bytes'); // CRITICAL for iOS
-            res.setHeader('Cache-Control', 'public, max-age=3600');
+            res.setHeader('Cache-Control', 'public, max-age=86400'); // 24 hours
+            res.setHeader('X-Content-Type-Options', 'nosniff');
             
             // Stream entire file
-            const response = await fetch(song.file_url);
+            const response = await fetch(song.file_url, {
+                headers: { 'User-Agent': userAgent }
+            });
+            
+            // Log performance
+            const duration = Date.now() - startTime;
+            console.log(`[Stream] Full file stream started in ${duration}ms`);
+            
             return response.body.pipe(res);
         }
 
         // Step 3: Parse Range Header (e.g., "bytes=0-1023" or "bytes=0-")
         const parts = range.replace(/bytes=/, '').split('-');
         const start = parseInt(parts[0], 10);
-        const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+        let end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+        
+        // Mobile Optimization: Limit chunk size to prevent buffering delays
+        if (isMobile) {
+            const MOBILE_MAX_CHUNK = 512 * 1024; // 512KB chunks for mobile
+            const requestedChunk = end - start + 1;
+            if (requestedChunk > MOBILE_MAX_CHUNK) {
+                end = start + MOBILE_MAX_CHUNK - 1;
+                console.log(`[Stream] Mobile chunk limited to ${MOBILE_MAX_CHUNK} bytes`);
+            }
+        }
         
         // Validate range
         if (start >= fileSize || end >= fileSize || start > end) {
             console.error(`[Stream] Invalid range: ${range}`);
-            return res.status(416).send('Range Not Satisfiable');
+            return res.status(416)
+                .setHeader('Content-Range', `bytes */${fileSize}`)
+                .send('Range Not Satisfiable');
         }
 
         const chunkSize = (end - start) + 1;
@@ -86,8 +117,17 @@ exports.streamSong = async (req, res) => {
 
         // Step 4: Fetch with Range header
         const response = await fetch(song.file_url, {
-            headers: { 'Range': `bytes=${start}-${end}` }
+            headers: { 
+                'Range': `bytes=${start}-${end}`,
+                'User-Agent': userAgent
+            }
         });
+
+        // Verify response
+        if (!response.ok && response.status !== 206) {
+            console.error(`[Stream] Upstream error: ${response.status}`);
+            return res.status(502).send('Upstream streaming error');
+        }
 
         // Step 5: Send 206 Partial Content with EXACT headers iOS needs
         res.status(206);
@@ -95,25 +135,47 @@ exports.streamSong = async (req, res) => {
         res.setHeader('Content-Length', chunkSize);
         res.setHeader('Content-Range', `bytes ${start}-${end}/${fileSize}`);
         res.setHeader('Accept-Ranges', 'bytes');
-        res.setHeader('Cache-Control', 'public, max-age=3600');
+        res.setHeader('Cache-Control', 'public, max-age=86400');
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+        
+        // Performance logging
+        const duration = Date.now() - startTime;
+        console.log(`[Stream] 206 response prepared in ${duration}ms`);
         
         // Stream the chunk
         response.body.pipe(res);
 
     } catch (e) {
-        console.error("Streaming Error:", e);
-        if (!res.headersSent) res.status(500).send('Stream Failed');
+        console.error("[Streaming Error]:", {
+            message: e.message,
+            stack: e.stack,
+            songId: req.params.id
+        });
+        if (!res.headersSent) {
+            res.status(500).send('Stream Failed');
+        }
     }
 };
 
 exports.getAllSongs = async (req, res) => {
     try {
+        console.log('[getAllSongs] Fetching songs from database...');
         const songs = await prisma.song.findMany({
             orderBy: { created_at: "desc" },
         });
+        console.log(`[getAllSongs] Found ${songs.length} songs`);
         res.json(serialize(songs));
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        console.error('[getAllSongs] ERROR:', {
+            message: e.message,
+            stack: e.stack,
+            code: e.code,
+            name: e.name
+        });
+        res.status(500).json({ 
+            error: 'Failed to fetch songs',
+            details: process.env.NODE_ENV === 'development' ? e.message : undefined
+        });
     }
 };
 
@@ -136,7 +198,7 @@ exports.getMetadata = async (req, res) => {
             emotionConfidence: emotionAnalysis.confidence
         });
     } catch (e) {
-        console.error(e);
+        console.error('[getMetadata] ERROR:', e);
         res.status(500).json({ error: 'Failed to fetch metadata' });
     }
 };
@@ -145,7 +207,7 @@ exports.uploadFromYoutube = async (req, res) => {
     const { url, category, emotion, customMetadata } = req.body;
     let tempFile = null;
     const fs = require('fs');
-    fs.appendFileSync('debug_upload.log', `[${new Date().toISOString()}] Body: ${JSON.stringify(req.body)}\n`);
+    fs.appendFileSync('debug_upload.log', `[${new Date().toISOString()}] Body: ${JSON.stringify(req.body)}\\n`);
     console.log("[UploadFromYouTube] Body:", req.body);
     try {
         // 1. Get Metadata to get ID and basic info
@@ -223,7 +285,7 @@ exports.uploadFile = async (req, res) => {
         let { title, artist, category, coverUrl } = req.body;
         
         // Defaults if body parsing fails or fields missing
-        title = title || audioFile.originalname.replace(/\.[^/.]+$/, "") || "Untitled Song";
+        title = title || audioFile.originalname.replace(/\\.[^/.]+$/, "") || "Untitled Song";
         artist = artist || "Unknown Artist";
         category = category || "General";
         const emotion = req.body.emotion || "Neutral";
@@ -268,7 +330,7 @@ exports.uploadFile = async (req, res) => {
         res.json(serialize(song));
 
     } catch(e) {
-        console.error(e);
+        console.error('[uploadFile] ERROR:', e);
         if (req.files?.audio?.[0] && fs.existsSync(req.files.audio[0].path)) fs.unlinkSync(req.files.audio[0].path);
         if (req.files?.cover?.[0] && fs.existsSync(req.files.cover[0].path)) fs.unlinkSync(req.files.cover[0].path);
         res.status(500).json({ error: e.message });
@@ -290,7 +352,7 @@ exports.deleteSong = async (req, res) => {
         const extractPath = (fullUrl) => {
             if (!fullUrl) return null;
             // Matches everything after /music_assets/
-            const match = fullUrl.match(/\/music_assets\/(.*)$/);
+            const match = fullUrl.match(/\\/music_assets\\/(.*)$/);
             return match ? match[1] : null; // returns e.g. "songs/123.mp3"
         };
 
@@ -394,6 +456,7 @@ exports.logPlay = async (req, res) => {
 exports.getHomeSections = async (req, res) => {
     try {
         const userId = req.query.userId;
+        console.log('[getHomeSections] Fetching sections for userId:', userId);
         
         // 1. Trending Now: Sort by youtube_views desc (Top 10)
         // Note: Using BigInt, which JSON.stringify fails on unless serialized.
@@ -464,6 +527,8 @@ exports.getHomeSections = async (req, res) => {
                 : value // return everything else unchanged
         ));
 
+        console.log(`[getHomeSections] Returning ${trending.length} trending, ${hits.length} hits, ${recent.length} recent`);
+
         res.json({
             trending: serialize(trending),
             hits: serialize(hits),
@@ -471,7 +536,11 @@ exports.getHomeSections = async (req, res) => {
         });
 
     } catch (e) {
-         console.error(e);
+         console.error('[getHomeSections] ERROR:', {
+             message: e.message,
+             stack: e.stack,
+             code: e.code
+         });
          res.status(500).json({ error: e.message });
     }
 };

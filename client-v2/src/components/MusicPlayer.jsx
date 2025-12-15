@@ -11,7 +11,8 @@ const MusicPlayer = () => {
     prevSong,
     currentTime,
     duration,
-    bufferedTime, // Import bufferedTime
+    bufferedTime,
+    isBuffering, // Import buffering state
     seek
   } = useMusic();
 
@@ -92,8 +93,8 @@ const MusicPlayer = () => {
             <span>⏮</span>
           </button>
           
-          <button className="control-btn" onClick={togglePlay}>
-            <span>{isPlaying ? '⏸' : '▶'}</span>
+          <button className="control-btn" onClick={togglePlay} disabled={isBuffering}>
+            <span>{isBuffering ? '⏳' : (isPlaying ? '⏸' : '▶')}</span>
           </button>
           
           <button className="control-btn secondary" onClick={nextSong}>

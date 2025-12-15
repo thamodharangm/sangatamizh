@@ -17,8 +17,9 @@ export const MusicProvider = ({ children }) => {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
 
-  // Optional buffer bar (if UI needs later)
+  // Buffer State
   const [bufferedTime, setBufferedTime] = useState(0);
+  const [isBuffering, setIsBuffering] = useState(false);
 
   const audioRef = useRef(new Audio());
   const queueRef = useRef([]);
@@ -156,6 +157,27 @@ export const MusicProvider = ({ children }) => {
       }
     };
 
+    // Buffering state tracking (Mobile Critical)
+    const handleWaiting = () => {
+      console.log('[Audio] Buffering...');
+      setIsBuffering(true);
+    };
+
+    const handleCanPlay = () => {
+      console.log('[Audio] Can play');
+      setIsBuffering(false);
+    };
+
+    const handleStalled = () => {
+      console.error('[Audio] Stalled - network issue');
+      setIsBuffering(true);
+    };
+
+    const handleError = (e) => {
+      console.error('[Audio] Error:', e);
+      setIsBuffering(false);
+    };
+
     // Reset state when new audio starts loading
     const handleLoadStart = () => {
       setCurrentTime(0);
@@ -171,6 +193,10 @@ export const MusicProvider = ({ children }) => {
     audio.addEventListener("loadedmetadata", handleLoadedMetadata);
     audio.addEventListener("progress", handleProgress);
     audio.addEventListener("loadstart", handleLoadStart);
+    audio.addEventListener("waiting", handleWaiting);
+    audio.addEventListener("canplay", handleCanPlay);
+    audio.addEventListener("stalled", handleStalled);
+    audio.addEventListener("error", handleError);
 
     // Cleanup
     return () => {
@@ -181,6 +207,10 @@ export const MusicProvider = ({ children }) => {
       audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
       audio.removeEventListener("progress", handleProgress);
       audio.removeEventListener("loadstart", handleLoadStart);
+      audio.removeEventListener("waiting", handleWaiting);
+      audio.removeEventListener("canplay", handleCanPlay);
+      audio.removeEventListener("stalled", handleStalled);
+      audio.removeEventListener("error", handleError);
     };
   }, []);
 
@@ -247,7 +277,8 @@ export const MusicProvider = ({ children }) => {
       prevSong,
       currentTime,
       duration,
-      bufferedTime, // <-- UI can use this if needed
+      bufferedTime,
+      isBuffering, // <-- NEW: Buffering state for UI
       seek
     }}>
       {children}

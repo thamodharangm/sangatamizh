@@ -11,12 +11,20 @@ export default defineConfig(({ mode }) => {
       port: 5174,
       proxy: {
         '/api': {
-          target: env.VITE_API_TARGET || 'http://localhost:3002',
+          target: env.VITE_API_TARGET || 'http://127.0.0.1:3002',
           changeOrigin: true,
           secure: false,
+          configure: (proxy, _options) => {
+            proxy.on('error', (err, _req, _res) => {
+              console.log('[Proxy Error]', err);
+            });
+            proxy.on('proxyReq', (proxyReq, req, _res) => {
+              console.log('[Proxy Request]', req.method, req.url);
+            });
+          },
         },
         '/uploads': {
-           target: env.VITE_API_TARGET || 'http://localhost:3002',
+           target: env.VITE_API_TARGET || 'http://127.0.0.1:3002',
            changeOrigin: true,
            secure: false,
         }
