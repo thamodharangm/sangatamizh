@@ -1,8 +1,8 @@
 const fetch = require('node-fetch');
 
 const urls = [
-    'https://youtu.be/2hGEiQg9X_g?si=llddec78ipi74_4L',
-    'https://youtu.be/izbydia9jz4?si=GAYErVmN-7n4CKmo',
+    // 'https://youtu.be/2hGEiQg9X_g?si=llddec78ipi74_4L', // Skipped (Likely Done)
+    // 'https://youtu.be/izbydia9jz4?si=GAYErVmN-7n4CKmo', // Skipped (Likely Done)
     'https://youtu.be/RPTfXa_4jPg?si=62YqLgsby2r6AQZg',
     'https://youtu.be/MwtKJG_87fw?si=vi2Vu_qvKuYekpQ_',
     'https://youtu.be/PAhTLB1LBR0?si=WUHJzKs3Ig3bw3rk',
@@ -29,41 +29,41 @@ const urls = [
     'https://youtu.be/rlXZROSltGk?si=Zz1TELw7rc5n32XI'
 ];
 
-async function seed() {
-    console.log(`🚀 Starting bulk upload of ${urls.length} songs...`);
-    
-    for (let i = 0; i < urls.length; i++) {
-        const url = urls[i];
-        console.log(`\n[${i + 1}/${urls.length}] Processing: ${url}`);
+async function upload(url) {
+    try {
+        const start = Date.now();
+        console.log(`⏳ Starting: ${url.slice(-11)}`);
         
-        try {
-            const start = Date.now();
-            const res = await fetch('http://localhost:3002/api/upload-from-yt', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ url }) // Auto-detect emotion/category
-            });
+        const res = await fetch('http://localhost:3002/api/upload-from-yt', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url })
+        });
 
-            const data = await res.json();
-            
-            if (res.ok) {
-                console.log(`✅ Success: "${data.title}" by ${data.artist}`);
-                console.log(`   category: ${data.category}, emotion: ${data.emotion}`);
-            } else {
-                console.error(`❌ Failed: ${data.error || 'Unknown Error'}`);
-                if (data.details) console.error('   Details:', data.details);
-            }
-            console.log(`   Time: ${((Date.now() - start) / 1000).toFixed(1)}s`);
+        const data = await res.json();
+        const duration = ((Date.now() - start) / 1000).toFixed(1);
 
-        } catch (err) {
-            console.error(`❌ Network/Script Error: ${err.message}`);
+        if (res.ok) {
+            console.log(`✅ DONE (${duration}s): "${data.title}"`);
+        } else {
+            console.error(`❌ FAIL (${duration}s): ${url.slice(-11)} - ${data.error || 'Error'}`);
         }
-        
-        // Wait a bit to avoid overwhelming rate limits
-        await new Promise(r => setTimeout(r, 2000));
+    } catch (err) {
+        console.error(`❌ ERR: ${url.slice(-11)} - ${err.message}`);
+    }
+}
+
+async function seed() {
+    console.log(`🚀 TURBO MODE: Uploading ${urls.length} songs with concurrency=5...`);
+    
+    const BATCH_SIZE = 5;
+    for (let i = 0; i < urls.length; i += BATCH_SIZE) {
+        const batch = urls.slice(i, i + BATCH_SIZE);
+        console.log(`\n--- Batch ${Math.floor(i/BATCH_SIZE) + 1}/${Math.ceil(urls.length/BATCH_SIZE)} ---`);
+        await Promise.all(batch.map(url => upload(url)));
     }
     
-    console.log('\n✨ Bucket Upload Complete!');
+    console.log('\n✨ Bulk Upload Complete!');
 }
 
 seed();
