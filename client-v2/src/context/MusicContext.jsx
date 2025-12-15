@@ -60,7 +60,18 @@ export const MusicProvider = ({ children }) => {
       audio.currentTime = 0;
     }
 
-    audio.play().catch(err => console.warn("Play blocked:", err));
+    // Try to play (may be blocked by autoplay policy)
+    audio.play().catch(err => {
+      console.warn('[MusicContext] Play attempt blocked:', err.name);
+      
+      if (err.name === 'AbortError' || err.name === 'NotAllowedError') {
+        // Normal - browser autoplay policy
+        console.log('[MusicContext] Autoplay blocked. Waiting for user interaction...');
+        // The next user tap will trigger play via togglePlay()
+      } else {
+        console.error('[MusicContext] Playback error:', err);
+      }
+    });
   };
 
 
