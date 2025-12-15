@@ -11,6 +11,7 @@ const MusicPlayer = () => {
     prevSong,
     currentTime,
     duration,
+    bufferedTime, // Import bufferedTime
     seek
   } = useMusic();
 
@@ -29,11 +30,21 @@ const MusicPlayer = () => {
 
   // Calculate percentage for gradient background
   const currentProgress = isScrubbing ? scrubTime : currentTime;
-  const percent = duration ? (currentProgress / duration) * 100 : 0;
+  const playPercent = duration ? (currentProgress / duration) * 100 : 0;
+  const bufferPercent = duration ? (bufferedTime / duration) * 100 : 0;
 
-  // iPhone Neon Green styling
+  // iPhone Neon Green styling + Buffer visual
+  // Green (#58cc02) -> Played
+  // Gray (#71717a) -> Buffered
+  // Dark (#27272a) -> Unloaded
   const trackStyle = {
-    background: `linear-gradient(to right, #58cc02 ${percent}%, #27272a ${percent}%)`
+    background: `linear-gradient(to right, 
+      #58cc02 0%, 
+      #58cc02 ${playPercent}%, 
+      #71717a ${playPercent}%, 
+      #71717a ${bufferPercent}%, 
+      #27272a ${bufferPercent}%, 
+      #27272a 100%)`
   };
 
   const handleScrubChange = (e) => {
@@ -50,7 +61,8 @@ const MusicPlayer = () => {
     setIsScrubbing(false);
     seek(Number(e.target.value));
   };
-
+ 
+  // ... rest of file
   const formatTime = (seconds) => {
     if (!seconds || isNaN(seconds)) return '0:00';
     const mins = Math.floor(seconds / 60);
