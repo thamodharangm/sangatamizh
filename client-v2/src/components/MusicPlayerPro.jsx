@@ -1,9 +1,9 @@
 // ============================================
-// MUSIC PLAYER PRO - REDESIGNED
-// Spotify/Apple Music Style - Attractive Layout
+// MODERN MUSIC PLAYER - COMPLETE REDESIGN
+// Beautiful, Functional, Production-Ready
 // ============================================
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import usePlayerStore from '../stores/usePlayerStore';
 import './MusicPlayerPro.css';
 
@@ -29,6 +29,9 @@ const MusicPlayerPro = () => {
     clearError
   } = usePlayerStore();
   
+  const [isSeeking, setIsSeeking] = useState(false);
+  const [seekTime, setSeekTime] = useState(0);
+  
   // Initialize audio on mount
   useEffect(() => {
     initializeAudio();
@@ -46,72 +49,122 @@ const MusicPlayerPro = () => {
   };
   
   // Calculate percentages
-  const playPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
+  const displayTime = isSeeking ? seekTime : currentTime;
+  const playPercent = duration > 0 ? (displayTime / duration) * 100 : 0;
   const bufferPercent = duration > 0 ? (bufferedTime / duration) * 100 : 0;
   
   // Handle seek
-  const handleSeek = (e) => {
+  const handleSeekStart = (e) => {
+    setIsSeeking(true);
+    handleSeekMove(e);
+  };
+  
+  const handleSeekMove = (e) => {
+    if (!isSeeking && e.type !== 'click') return;
+    
     const rect = e.currentTarget.getBoundingClientRect();
-    const percent = (e.clientX - rect.left) / rect.width;
+    const x = e.type.includes('mouse') ? e.clientX : e.touches?.[0]?.clientX || e.clientX;
+    const percent = Math.max(0, Math.min(1, (x - rect.left) / rect.width));
     const time = percent * duration;
-    seek(time);
+    
+    if (e.type === 'click') {
+      seek(time);
+    } else {
+      setSeekTime(time);
+    }
+  };
+  
+  const handleSeekEnd = () => {
+    if (isSeeking) {
+      seek(seekTime);
+      setIsSeeking(false);
+    }
   };
   
   return (
     <>
       {/* Error Toast */}
       {error && (
-        <div className="player-error-toast">
-          <span>⚠️ {error}</span>
-          <button onClick={clearError}>×</button>
+        <div className="modern-error-toast">
+          <div className="error-icon">⚠️</div>
+          <span className="error-text">{error}</span>
+          <button className="error-close" onClick={clearError}>×</button>
         </div>
       )}
       
-      {/* Main Player */}
-      <div className="music-player-pro-redesign">
-        <div className="player-content">
-          {/* Left: Track Info with Cover */}
-          <div className="player-track-section">
-            <div className="track-cover-wrapper">
+      {/* Modern Music Player */}
+      <div className="modern-music-player">
+        {/* Progress Bar (Top - Full Width) */}
+        <div 
+          className="modern-progress-wrapper"
+          onClick={handleSeekMove}
+          onMouseDown={handleSeekStart}
+          onMouseMove={isSeeking ? handleSeekMove : undefined}
+          onMouseUp={handleSeekEnd}
+          onMouseLeave={handleSeekEnd}
+          onTouchStart={handleSeekStart}
+          onTouchMove={isSeeking ? handleSeekMove : undefined}
+          onTouchEnd={handleSeekEnd}
+        >
+          <div className="modern-progress-track">
+            <div 
+              className="modern-progress-buffer"
+              style={{ width: `${bufferPercent}%` }}
+            />
+            <div 
+              className="modern-progress-fill"
+              style={{ width: `${playPercent}%` }}
+            />
+            <div 
+              className="modern-progress-handle"
+              style={{ left: `${playPercent}%` }}
+            />
+          </div>
+        </div>
+        
+        {/* Main Player Content */}
+        <div className="modern-player-content">
+          {/* Left Section: Track Info */}
+          <div className="modern-track-section">
+            <div className="modern-track-cover">
               <img 
                 src={currentTrack.coverUrl || currentTrack.cover_url || '/placeholder.png'} 
                 alt={currentTrack.title}
-                className="track-cover-image"
+                className="modern-cover-image"
               />
-              {isBuffering && (
-                <div className="cover-loading-overlay">
-                  <div className="spinner-ring"></div>
+              {(isLoading || isBuffering) && (
+                <div className="modern-cover-overlay">
+                  <div className="modern-spinner"></div>
                 </div>
               )}
             </div>
-            <div className="track-info-text">
-              <div className="track-title-main">{currentTrack.title}</div>
-              <div className="track-artist-main">{currentTrack.artist}</div>
+            <div className="modern-track-info">
+              <div className="modern-track-title">{currentTrack.title}</div>
+              <div className="modern-track-artist">{currentTrack.artist}</div>
             </div>
           </div>
           
-          {/* Center: Controls & Progress */}
-          <div className="player-controls-section">
-            {/* Playback Controls */}
-            <div className="playback-controls">
+          {/* Center Section: Controls */}
+          <div className="modern-controls-section">
+            <div className="modern-playback-buttons">
               <button 
-                className="control-button prev-button"
+                className="modern-control-btn"
                 onClick={playPrevious}
                 aria-label="Previous"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
                 </svg>
               </button>
               
               <button 
-                className="control-button play-button-main"
+                className="modern-play-btn"
                 onClick={togglePlay}
                 disabled={isLoading}
                 aria-label={isPlaying ? 'Pause' : 'Play'}
               >
                 {isLoading || isBuffering ? (
-                  <div className="button-spinner"></div>
+                  <div className="modern-btn-spinner"></div>
                 ) : isPlaying ? (
                   <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
@@ -124,43 +177,27 @@ const MusicPlayerPro = () => {
               </button>
               
               <button 
-                className="control-button next-button"
+                className="modern-control-btn"
                 onClick={playNext}
                 aria-label="Next"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M16 18h2V6h-2zm-11-6l8.5-6v12z"/>
                 </svg>
               </button>
             </div>
             
-            {/* Progress Bar */}
-            <div className="progress-container">
-              <span className="time-display">{formatTime(currentTime)}</span>
-              <div className="progress-bar-wrapper" onClick={handleSeek}>
-                <div className="progress-bar-track">
-                  <div 
-                    className="progress-bar-buffer"
-                    style={{ width: `${bufferPercent}%` }}
-                  />
-                  <div 
-                    className="progress-bar-fill"
-                    style={{ width: `${playPercent}%` }}
-                  />
-                  <div 
-                    className="progress-bar-thumb"
-                    style={{ left: `${playPercent}%` }}
-                  />
-                </div>
-              </div>
-              <span className="time-display">{formatTime(duration)}</span>
+            <div className="modern-time-display">
+              <span className="modern-time-current">{formatTime(displayTime)}</span>
+              <span className="modern-time-separator">/</span>
+              <span className="modern-time-total">{formatTime(duration)}</span>
             </div>
           </div>
           
-          {/* Right: Volume Control */}
-          <div className="player-volume-section">
+          {/* Right Section: Volume */}
+          <div className="modern-volume-section">
             <button 
-              className="volume-icon-button"
+              className="modern-volume-btn"
               onClick={toggleMute}
               aria-label={isMuted ? 'Unmute' : 'Mute'}
             >
@@ -178,14 +215,14 @@ const MusicPlayerPro = () => {
                 </svg>
               )}
             </button>
-            <div className="volume-slider-container">
+            <div className="modern-volume-slider-wrapper">
               <input
                 type="range"
                 min="0"
                 max="100"
                 value={isMuted ? 0 : volume * 100}
                 onChange={(e) => setVolume(e.target.value / 100)}
-                className="volume-slider-input"
+                className="modern-volume-slider"
               />
             </div>
           </div>
