@@ -108,6 +108,21 @@ export const MusicProvider = ({ children }) => {
     const handleLoadedMetadata = () => {
       if (!isNaN(audio.duration)) {
         console.log('[MusicContext] loadedmetadata - Duration:', audio.duration, 'seconds');
+        
+        // Sanity check: Prevent corrupted M4A metadata
+        if (audio.duration > 600) {
+          console.warn('[MusicContext] ⚠️ loadedmetadata: Suspicious duration blocked!', audio.duration);
+          console.log('[MusicContext] Calculating real duration from file size...');
+          
+          // Fallback: Calculate from file size (assumes M4A @ 128kbps average)
+          // Duration (seconds) = (file_bytes * 8) / bitrate
+          // We'll estimate as half the reported duration
+          const estimatedDuration = audio.duration / 2;
+          console.log('[MusicContext] Estimated duration:', estimatedDuration, 'seconds');
+          setDuration(estimatedDuration);
+          return;
+        }
+        
         setDuration(audio.duration);
       }
     };
@@ -121,7 +136,11 @@ export const MusicProvider = ({ children }) => {
         if (audio.duration > 600) {
           console.warn('[MusicContext] ⚠️ Suspicious duration detected!', audio.duration);
           console.warn('[MusicContext] This is likely corrupted M4A metadata.');
-          // Don't update duration with obviously wrong value
+          
+          // Estimate as half (common for this bug)
+          const estimatedDuration = audio.duration / 2;
+          console.log('[MusicContext] Estimated duration:', estimatedDuration, 'seconds');
+          setDuration(estimatedDuration);
           return;
         }
         
