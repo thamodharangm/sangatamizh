@@ -341,11 +341,6 @@ export const MusicProvider = ({ children }) => {
 
   // PLAY SONG ENTRY
   const playSong = useCallback((song, songList = []) => {
-    if (!user) {
-      window.location.href = "/login";
-      return;
-    }
-
     let newQueue = songList.length ? songList : [song];
     let index = newQueue.findIndex(s => s.id === song.id);
     if (index === -1) index = 0;
@@ -353,7 +348,7 @@ export const MusicProvider = ({ children }) => {
     setQueue(newQueue);
     playAtIndex(index, song);
 
-    // Log play
+    // Log play (if user is authenticated)
     if (user?.uid && song?.id) {
       api.post("/log-play", { userId: user.uid, songId: song.id })
         .catch(err => console.error("History Log Failed", err));
