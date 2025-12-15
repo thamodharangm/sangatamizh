@@ -427,13 +427,15 @@
 
 @media (max-width: 768px) {
   .modern-music-player {
-    padding-bottom: env(safe-area-inset-bottom);
+    /* Add bottom spacing for bottom navigation (60px nav + safe area) */
+    bottom: 60px;
+    padding-bottom: calc(8px + env(safe-area-inset-bottom));
   }
   
   .modern-player-content {
     grid-template-columns: 1fr;
-    gap: 16px;
-    padding: 12px 16px;
+    gap: 12px;
+    padding: 10px 16px;
   }
   
   .modern-track-section {
@@ -445,8 +447,8 @@
   }
   
   .modern-cover-image {
-    width: 52px;
-    height: 52px;
+    width: 48px;
+    height: 48px;
   }
   
   .modern-track-title {
@@ -458,12 +460,24 @@
   }
   
   .modern-play-btn {
-    width: 60px;
-    height: 60px;
+    width: 56px;
+    height: 56px;
   }
   
   .modern-playback-buttons {
-    gap: 20px;
+    gap: 16px;
+  }
+  
+  .modern-control-btn {
+    padding: 10px;
+  }
+  
+  .modern-progress-wrapper {
+    height: 4px;
+  }
+  
+  .modern-progress-wrapper:active {
+    height: 6px;
   }
 }
 
