@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import usePlayerStore from '../stores/usePlayerStore';
 import api from '../config/api';
 import confetti from 'canvas-confetti';
+import './SongCardExtras.css';
 
 // Mobile-optimized Song Card Component
 const SongCard = ({ song, playlist = [] }) => {
