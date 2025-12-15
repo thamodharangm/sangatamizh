@@ -15,7 +15,7 @@ const serialize = (data) => JSON.parse(JSON.stringify(data, (key, value) =>
         : value 
 ));
 
-// Stream Song with Range Support (Fixes Double Duration)
+// Stream Song with FULL Mobile Safari Support (RFC 7233)
 exports.streamSong = async (req, res) => {
     console.log(`[Stream] Request for ID: ${req.params.id}`);
     try {
@@ -28,46 +28,76 @@ exports.streamSong = async (req, res) => {
         }
         if (!song.file_url) {
              console.log("[Stream] No file_url for song");
-             // Fallback?
              return res.status(404).send('No Audio Source');
         }
 
         console.log(`[Stream] Streaming: ${song.file_url}`);
         
-        // 1. Fetch from upstream (Storage URL)
-        // Note: If using Supabase, ensure the file is public or signed.
-        const encodedUrl = encodeURI(song.file_url);
+        // Detect Content-Type from file extension
+        const url = song.file_url.toLowerCase();
+        let contentType = 'audio/mpeg';
+        if (url.includes('.m4a')) contentType = 'audio/mp4';
+        else if (url.includes('.opus')) contentType = 'audio/opus';
+        else if (url.includes('.webm')) contentType = 'audio/webm';
+        else if (url.includes('.ogg')) contentType = 'audio/ogg';
         
-        // Check for range header
+        // Step 1: HEAD request to get file size (critical for iOS)
+        const headResponse = await fetch(song.file_url, { method: 'HEAD' });
+        const fileSize = parseInt(headResponse.headers.get('content-length') || '0');
+        
+        if (!fileSize) {
+            console.error('[Stream] Could not determine file size');
+            return res.status(500).send('Unable to stream: file size unknown');
+        }
+
+        console.log(`[Stream] File size: ${fileSize} bytes`);
+
+        // Step 2: Check if Range request
         const range = req.headers.range;
+        
         if (!range) {
-            // Direct pipe if no range (Browser usually sends range for audio)
-            const response = await fetch(encodedUrl);
-            res.setHeader('Content-Type', 'audio/mpeg');
-            res.setHeader('Content-Length', response.headers.get('content-length'));
+            // NO Range Header: Return 200 OK with full file info (iOS initial probe)
+            console.log('[Stream] No Range header, sending 200 OK');
+            res.status(200);
+            res.setHeader('Content-Type', contentType);
+            res.setHeader('Content-Length', fileSize);
+            res.setHeader('Accept-Ranges', 'bytes'); // CRITICAL for iOS
+            res.setHeader('Cache-Control', 'public, max-age=3600');
+            
+            // Stream entire file
+            const response = await fetch(song.file_url);
             return response.body.pipe(res);
         }
 
-        // 2. Handle Range Request
-        const response = await fetch(encodedUrl, {
-            headers: { Range: range }
+        // Step 3: Parse Range Header (e.g., "bytes=0-1023" or "bytes=0-")
+        const parts = range.replace(/bytes=/, '').split('-');
+        const start = parseInt(parts[0], 10);
+        const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+        
+        // Validate range
+        if (start >= fileSize || end >= fileSize || start > end) {
+            console.error(`[Stream] Invalid range: ${range}`);
+            return res.status(416).send('Range Not Satisfiable');
+        }
+
+        const chunkSize = (end - start) + 1;
+        
+        console.log(`[Stream] Range request: ${start}-${end} (${chunkSize} bytes)`);
+
+        // Step 4: Fetch with Range header
+        const response = await fetch(song.file_url, {
+            headers: { 'Range': `bytes=${start}-${end}` }
         });
 
-        // 3. Propagate Headers
-        res.status(response.status);
-        res.setHeader('Content-Type', 'audio/mpeg');
+        // Step 5: Send 206 Partial Content with EXACT headers iOS needs
+        res.status(206);
+        res.setHeader('Content-Type', contentType);
+        res.setHeader('Content-Length', chunkSize);
+        res.setHeader('Content-Range', `bytes ${start}-${end}/${fileSize}`);
         res.setHeader('Accept-Ranges', 'bytes');
+        res.setHeader('Cache-Control', 'public, max-age=3600');
         
-        const contentLength = response.headers.get('content-length');
-        const contentRange = response.headers.get('content-range');
-        
-        if (contentLength) res.setHeader('Content-Length', contentLength);
-        if (contentRange) res.setHeader('Content-Range', contentRange);
-
-        // 4. Pipe Data
-        // If upstream returns 206, we pass it through.
-        // If upstream (e.g. some storage) ignores range and sends 200, we stream it all (browser handles it, though inefficient)
-        
+        // Stream the chunk
         response.body.pipe(res);
 
     } catch (e) {
