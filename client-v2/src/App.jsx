@@ -16,6 +16,7 @@ import MusicPlayer from './components/MusicPlayer';
 import BottomNav from './components/BottomNav';
 import ScrollToTop from './components/ScrollToTop';
 import DebugPanel from './components/DebugPanel';
+import ErrorBoundary from './components/ErrorBoundary';
 
 import './App.css';
 
@@ -32,53 +33,54 @@ const PrivateRoute = ({ children, adminOnly = false }) => {
 
 function App() {
   return (
-    <AuthProvider>
-      <MusicProvider>
-        <Router>
-          <ScrollToTop />
-          <div className="app-shell">
-            <div className="main-content">
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/library" element={<Library />} />
-                <Route path="/playlist" element={<Playlist />} />
-                <Route path="/login" element={<Login />} />
-                
-                {/* Test Route */}
-                <Route path="/test-db" element={<TestDB />} />
-                
-                {/* Admin Routes - DESKTOP FEATURE */}
-                <Route path="/admin" element={
-                  <PrivateRoute adminOnly={true}>
-                    <AdminUpload />
-                  </PrivateRoute>
-                } />
-                <Route path="/admin/upload" element={
-                  <PrivateRoute adminOnly={true}>
-                    <AdminUpload />
-                  </PrivateRoute>
-                } />
-                <Route path="/admin/analytics" element={
-                  <PrivateRoute adminOnly={true}>
-                    <AdminAnalytics />
-                  </PrivateRoute>
-                } />
-                
-                <Route path="*" element={<Navigate to="/" />} />
-              </Routes>
+    <ErrorBoundary>
+      <AuthProvider>
+        <MusicProvider>
+          <Router>
+            <ScrollToTop />
+            <div className="app-shell">
+              <div className="main-content">
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/library" element={<Library />} />
+                  <Route path="/playlist" element={<Playlist />} />
+                  <Route path="/login" element={<Login />} />
+                  
+                  {/* Test Route */}
+                  <Route path="/test-db" element={<TestDB />} />
+                  
+                  {/* Admin Routes - DESKTOP FEATURE */}
+                  <Route path="/admin" element={
+                    <PrivateRoute adminOnly={true}>
+                      <AdminUpload />
+                    </PrivateRoute>
+                  } />
+                  <Route path="/admin/upload" element={
+                    <PrivateRoute adminOnly={true}>
+                      <AdminUpload />
+                    </PrivateRoute>
+                  } />
+                  <Route path="/admin/analytics" element={
+                    <PrivateRoute adminOnly={true}>
+                      <AdminAnalytics />
+                    </PrivateRoute>
+                  } />
+                  
+                  <Route path="*" element={<Navigate to="/" />} />
+                </Routes>
+              </div>
+              
+              {/* Music Player - Fixed above bottom nav */}
+              <MusicPlayer />
+              
+              {/* Bottom Navigation - Fixed at bottom */}
+              <BottomNav />
             </div>
-            
-            {/* Music Player - Fixed above bottom nav */}
-            <MusicPlayer />
-            
-            {/* Bottom Navigation - Fixed at bottom */}
-            <BottomNav />
-          </div>
-        </Router>
-      </MusicProvider>
-    </AuthProvider>
+          </Router>
+        </MusicProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 
 export default App;
-
