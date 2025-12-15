@@ -62,7 +62,7 @@ export const MusicProvider = ({ children }) => {
 
 
   // PLAY SPECIFIC INDEX
-  const playAtIndex = (index, song) => {
+  const playAtIndex = useCallback((index, song) => {
     setCurrentIndex(index);
     setCurrentSong(song);
 
@@ -95,7 +95,7 @@ export const MusicProvider = ({ children }) => {
         // Normal - browser autoplay policy, will play on next user interaction
       }
     });
-  };
+  }, []);
 
 
   const nextSong = useCallback(() => {
@@ -108,7 +108,7 @@ export const MusicProvider = ({ children }) => {
     } else {
       setIsPlaying(false);
     }
-  }, []);
+  }, [playAtIndex]);
 
 
   const prevSong = useCallback(() => {
@@ -118,7 +118,7 @@ export const MusicProvider = ({ children }) => {
     } else {
       audioRef.current.currentTime = 0;
     }
-  }, []);
+  }, [playAtIndex]);
 
   // Media Session API for Background Audio Controls
   useEffect(() => {
@@ -340,7 +340,7 @@ export const MusicProvider = ({ children }) => {
   };
 
   // PLAY SONG ENTRY
-  const playSong = (song, songList = []) => {
+  const playSong = useCallback((song, songList = []) => {
     if (!user) {
       window.location.href = "/login";
       return;
@@ -358,7 +358,7 @@ export const MusicProvider = ({ children }) => {
       api.post("/log-play", { userId: user.uid, songId: song.id })
         .catch(err => console.error("History Log Failed", err));
     }
-  };
+  }, [user, playAtIndex]);
 
   return (
     <MusicContext.Provider value={{
