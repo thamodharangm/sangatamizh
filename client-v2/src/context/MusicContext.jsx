@@ -107,12 +107,24 @@ export const MusicProvider = ({ children }) => {
 
     const handleLoadedMetadata = () => {
       if (!isNaN(audio.duration)) {
+        console.log('[MusicContext] loadedmetadata - Duration:', audio.duration, 'seconds');
         setDuration(audio.duration);
       }
     };
 
     const handleDurationChange = () => {
       if (!isNaN(audio.duration)) {
+        console.log('[MusicContext] durationchange - Duration:', audio.duration, 'seconds');
+        
+        // Sanity check: Most songs are under 10 minutes (600 seconds)
+        // If duration > 600s, it's likely corrupted metadata
+        if (audio.duration > 600) {
+          console.warn('[MusicContext] ⚠️ Suspicious duration detected!', audio.duration);
+          console.warn('[MusicContext] This is likely corrupted M4A metadata.');
+          // Don't update duration with obviously wrong value
+          return;
+        }
+        
         setDuration(audio.duration);
       }
     };
