@@ -41,18 +41,21 @@ export const MusicProvider = ({ children }) => {
     setDuration(0);
     setBufferedTime(0);
 
-    if (!song || !song.id) return;
+    if (!song) return;
 
-    // Use Backend Stream Endpoint to fix "Double Duration" bug
-    // If VITE_API_URL is set (Prod), use it. Else use '/api' (Dev Proxy)
-    const baseUrl = import.meta.env.VITE_API_URL || '/api';
-    // Ensure no double slashes
-    const cleanBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
-    const streamUrl = `${cleanBase}/stream/${song.id}`;
+    // Direct Supabase URL Streaming (Best Practice)
+    // Uses song.audioUrl (normalized from file_url in Home.jsx)
+    // Benefits: Supabase CDN, perfect mobile Safari support, zero backend load
+    const audioUrl = song.audioUrl || song.file_url;
+    
+    if (!audioUrl) {
+      console.error('[MusicContext] No audio URL for song:', song);
+      return;
+    }
 
     // Update src only if changed
-    if (audio.src !== streamUrl) {
-      audio.src = streamUrl;
+    if (audio.src !== audioUrl) {
+      audio.src = audioUrl;
       audio.load();
     } else {
       audio.currentTime = 0;
