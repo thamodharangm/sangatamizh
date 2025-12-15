@@ -204,10 +204,16 @@ export const MusicProvider = ({ children }) => {
   useEffect(() => {
     const audio = audioRef.current;
 
-    if (!currentSong) return;
+    if (!currentSong || !currentSong.id) return;
 
-    if (audio.src !== currentSong.audioUrl) {
-      audio.src = currentSong.audioUrl;
+    // IMPORTANT: Use same stream URL logic as playAtIndex!
+    // Don't use currentSong.audioUrl (has corrupted M4A metadata)
+    const baseUrl = import.meta.env.VITE_API_URL || '/api';
+    const cleanBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+    const streamUrl = `${cleanBase}/stream/${currentSong.id}`;
+
+    if (audio.src !== streamUrl) {
+      audio.src = streamUrl;
       audio.load();
     }
 
