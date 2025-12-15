@@ -13,6 +13,7 @@ const Home = () => {
     recent: []
   });
   const [loading, setLoading] = useState(true);
+  const [debugError, setDebugError] = useState(null); // Debug state
   const { playSong } = useMusic();
   const navigate = useNavigate();
 
@@ -56,6 +57,7 @@ const Home = () => {
 
       } catch (error) {
         console.error('Error fetching home sections:', error);
+        setDebugError(`Main Fetch Failed: ${error.message} (API: ${import.meta.env.VITE_API_URL})`);
         // Fallback
         try {
           const allSongs = await api.get('/songs');
@@ -175,6 +177,12 @@ const Home = () => {
       {songs.length === 0 && (
         <div className="card-flat text-center empty-state">
            <p style={{ color: 'var(--text-muted)' }}>No songs available currently.</p>
+           {debugError && (
+             <div style={{ color: 'red', marginTop: '10px', fontSize: '0.8rem', wordBreak: 'break-all' }}>
+               <p><strong>Debug Info:</strong></p>
+               {debugError}
+             </div>
+           )}
         </div>
       )}
     </div>
