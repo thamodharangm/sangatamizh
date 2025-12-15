@@ -29,15 +29,24 @@ const MusicPlayer = () => {
 
   if (!currentSong) return null;
 
-  // Calculate percentage for gradient background
-  const currentProgress = isScrubbing ? scrubTime : currentTime;
-  const playPercent = duration ? (currentProgress / duration) * 100 : 0;
-  const bufferPercent = duration ? (bufferedTime / duration) * 100 : 0;
+  // ========================================
+  // PROGRESS & BUFFER CALCULATION
+  // ========================================
+  
+  // Current playback position (use scrubTime while dragging)
+  const displayTime = isScrubbing ? scrubTime : currentTime;
+  
+  // Calculate percentages for visual progress bar
+  const playPercent = duration > 0 ? (displayTime / duration) * 100 : 0;
+  const bufferPercent = duration > 0 ? (bufferedTime / duration) * 100 : 0;
 
-  // iPhone Neon Green styling + Buffer visual
-  // Green (#58cc02) -> Played
-  // Gray (#71717a) -> Buffered
-  // Dark (#27272a) -> Unloaded
+  // ========================================
+  // VISUAL PROGRESS BAR STYLING
+  // Three-color gradient system:
+  // 1. Green (#58cc02) - Played portion
+  // 2. Gray (#71717a) - Buffered but not played
+  // 3. Dark (#27272a) - Not buffered yet
+  // ========================================
   const trackStyle = {
     background: `linear-gradient(to right, 
       #58cc02 0%, 
