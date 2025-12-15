@@ -96,9 +96,20 @@ const usePlayerStore = create((set, get) => ({
     });
     
     audio.addEventListener('error', (e) => {
-      console.error('[AudioPlayer] Error:', e);
+      let errorMessage = 'Failed to load audio';
+      const errorCode = audio.error ? audio.error.code : 0;
+      
+      switch (errorCode) {
+        case 1: errorMessage = 'Audio loading aborted'; break;
+        case 2: errorMessage = 'Network connection failed'; break;
+        case 3: errorMessage = 'Audio decode failed'; break;
+        case 4: errorMessage = 'Audio format not supported'; break;
+      }
+      
+      console.error(`[AudioPlayer] Error ${errorCode}:`, e);
+      
       set({ 
-        error: 'Failed to load audio',
+        error: errorMessage,
         isLoading: false,
         isBuffering: false,
         isPlaying: false
@@ -133,7 +144,10 @@ const usePlayerStore = create((set, get) => ({
     });
     
     // Load audio
-    const streamUrl = `/api/stream/${track.id}`;
+    const baseUrl = import.meta.env.VITE_API_URL || '/api';
+    const cleanBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+    const streamUrl = `${cleanBase}/stream/${track.id}`;
+    
     audio.src = streamUrl;
     audio.load();
     
