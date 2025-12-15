@@ -50,8 +50,6 @@ export const MusicProvider = ({ children }) => {
     const cleanBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
     const streamUrl = `${cleanBase}/stream/${song.id}`;
 
-    console.log('[MusicContext] Streaming via:', streamUrl);
-
     // Update src only if changed
     if (audio.src !== streamUrl) {
       audio.src = streamUrl;
@@ -62,14 +60,8 @@ export const MusicProvider = ({ children }) => {
 
     // Try to play (may be blocked by autoplay policy)
     audio.play().catch(err => {
-      console.warn('[MusicContext] Play attempt blocked:', err.name);
-      
       if (err.name === 'AbortError' || err.name === 'NotAllowedError') {
-        // Normal - browser autoplay policy
-        console.log('[MusicContext] Autoplay blocked. Waiting for user interaction...');
-        // The next user tap will trigger play via togglePlay()
-      } else {
-        console.error('[MusicContext] Playback error:', err);
+        // Normal - browser autoplay policy, will play on next user interaction
       }
     });
   };
@@ -96,11 +88,11 @@ export const MusicProvider = ({ children }) => {
       audioRef.current.currentTime = 0;
     }
   };
-
-
+  // AUDIO EVENT LISTENERS (Production-Ready)
   useEffect(() => {
     const audio = audioRef.current;
 
+    // Playback state
     const handlePlay = () => setIsPlaying(true);
     const handlePause = () => setIsPlaying(false);
 
@@ -110,90 +102,67 @@ export const MusicProvider = ({ children }) => {
       nextSong();
     };
 
+    // Current time update
     const handleTimeUpdate = () => {
       if (!isNaN(audio.currentTime)) {
         setCurrentTime(audio.currentTime);
       }
     };
 
+    // CRITICAL: Use ONLY loadedmetadata for duration (mobile-safe)
+    // loadedmetadata fires ONCE when metadata is first available
+    // durationchange fires MULTIPLE times and causes double duration bug on mobile Safari
     const handleLoadedMetadata = () => {
-      if (!isNaN(audio.duration)) {
-        console.log('[MusicContext] loadedmetadata - Duration:', audio.duration, 'seconds');
-        
-        // Sanity check: Prevent corrupted M4A metadata
+      if (!isNaN(audio.duration) && audio.duration > 0) {
+        // Sanity check: Most songs under 10 minutes
+        // M4A metadata corruption often doubles duration
         if (audio.duration > 600) {
-          console.warn('[MusicContext] ⚠️ loadedmetadata: Suspicious duration blocked!', audio.duration);
-          console.log('[MusicContext] Calculating real duration from file size...');
-          
-          // Fallback: Calculate from file size (assumes M4A @ 128kbps average)
-          // Duration (seconds) = (file_bytes * 8) / bitrate
-          // We'll estimate as half the reported duration
-          const estimatedDuration = audio.duration / 2;
-          console.log('[MusicContext] Estimated duration:', estimatedDuration, 'seconds');
-          setDuration(estimatedDuration);
-          return;
+          // Estimate as half (common M4A corruption pattern)
+          const correctedDuration = audio.duration / 2;
+          setDuration(correctedDuration);
+        } else {
+          setDuration(audio.duration);
         }
-        
-        setDuration(audio.duration);
       }
     };
 
-    const handleDurationChange = () => {
-      if (!isNaN(audio.duration)) {
-        console.log('[MusicContext] durationchange - Duration:', audio.duration, 'seconds');
-        
-        // Sanity check: Most songs are under 10 minutes (600 seconds)
-        // If duration > 600s, it's likely corrupted metadata
-        if (audio.duration > 600) {
-          console.warn('[MusicContext] ⚠️ Suspicious duration detected!', audio.duration);
-          console.warn('[MusicContext] This is likely corrupted M4A metadata.');
-          
-          // Estimate as half (common for this bug)
-          const estimatedDuration = audio.duration / 2;
-          console.log('[MusicContext] Estimated duration:', estimatedDuration, 'seconds');
-          setDuration(estimatedDuration);
-          return;
-        }
-        
-        setDuration(audio.duration);
-      }
-    };
-
-    // 🔥 BUFFER FIX — prevents double duration
+    // Buffer progress tracking
     const handleProgress = () => {
       try {
-        if (audio.buffered.length > 0) {
-          const end = audio.buffered.end(audio.buffered.length - 1);
-          const safeEnd = Math.min(end, audio.duration || 0);
-          setBufferedTime(safeEnd);
+        if (audio.buffered.length > 0 && audio.duration) {
+          const bufferedEnd = audio.buffered.end(audio.buffered.length - 1);
+          // Clamp to duration to prevent overflow
+          const safeBuffered = Math.min(bufferedEnd, audio.duration);
+          setBufferedTime(safeBuffered);
         }
       } catch (e) {
-        console.warn("Buffer error:", e);
+        // Silently handle buffer errors
       }
     };
 
+    // Reset state when new audio starts loading
     const handleLoadStart = () => {
       setCurrentTime(0);
       setDuration(0);
       setBufferedTime(0);
     };
 
+    // Attach listeners
     audio.addEventListener("play", handlePlay);
     audio.addEventListener("pause", handlePause);
     audio.addEventListener("ended", handleEnded);
     audio.addEventListener("timeupdate", handleTimeUpdate);
     audio.addEventListener("loadedmetadata", handleLoadedMetadata);
-    audio.addEventListener("durationchange", handleDurationChange);
-    audio.addEventListener("progress", handleProgress); // ✅ Added
+    audio.addEventListener("progress", handleProgress);
     audio.addEventListener("loadstart", handleLoadStart);
 
+    // Cleanup
     return () => {
       audio.removeEventListener("play", handlePlay);
       audio.removeEventListener("pause", handlePause);
       audio.removeEventListener("ended", handleEnded);
       audio.removeEventListener("timeupdate", handleTimeUpdate);
       audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
-      audio.removeEventListener("durationchange", handleDurationChange);
       audio.removeEventListener("progress", handleProgress);
       audio.removeEventListener("loadstart", handleLoadStart);
     };
