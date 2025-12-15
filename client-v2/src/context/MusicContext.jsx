@@ -20,6 +20,7 @@ export const MusicProvider = ({ children }) => {
   // Buffer State
   const [bufferedTime, setBufferedTime] = useState(0);
   const [isBuffering, setIsBuffering] = useState(false);
+  const [audioUnlocked, setAudioUnlocked] = useState(false);
 
   const audioRef = useRef(new Audio());
   const queueRef = useRef([]);
@@ -32,6 +33,78 @@ export const MusicProvider = ({ children }) => {
     queueRef.current = queue;
     indexRef.current = currentIndex;
   }, [queue, currentIndex]);
+
+  // iOS Audio Unlock Pattern
+  useEffect(() => {
+    const unlockAudio = () => {
+      if (audioUnlocked) return;
+      
+      const audio = audioRef.current;
+      audio.play().then(() => {
+        audio.pause();
+        audio.currentTime = 0;
+        setAudioUnlocked(true);
+        console.log('[iOS] Audio unlocked successfully');
+      }).catch(() => {
+        console.log('[iOS] Audio unlock failed, will retry on next interaction');
+      });
+    };
+
+    // Unlock on first touch (iOS requirement)
+    document.addEventListener('touchstart', unlockAudio, { once: true });
+    document.addEventListener('click', unlockAudio, { once: true });
+    
+    return () => {
+      document.removeEventListener('touchstart', unlockAudio);
+      document.removeEventListener('click', unlockAudio);
+    };
+  }, [audioUnlocked]);
+
+  // Media Session API for Background Audio Controls
+  useEffect(() => {
+    if (!currentSong || !('mediaSession' in navigator)) return;
+    
+    try {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: currentSong.title,
+        artist: currentSong.artist,
+        album: 'Sangatamizh Music',
+        artwork: [
+          { 
+            src: currentSong.coverUrl || currentSong.cover_url || 'https://via.placeholder.com/512', 
+            sizes: '512x512', 
+            type: 'image/png' 
+          }
+        ]
+      });
+      
+      navigator.mediaSession.setActionHandler('play', () => {
+        audioRef.current.play();
+      });
+      
+      navigator.mediaSession.setActionHandler('pause', () => {
+        audioRef.current.pause();
+      });
+      
+      navigator.mediaSession.setActionHandler('previoustrack', () => {
+        prevSong();
+      });
+      
+      navigator.mediaSession.setActionHandler('nexttrack', () => {
+        nextSong();
+      });
+      
+      navigator.mediaSession.setActionHandler('seekto', (details) => {
+        if (details.seekTime) {
+          audioRef.current.currentTime = details.seekTime;
+        }
+      });
+      
+      console.log('[MediaSession] Updated for:', currentSong.title);
+    } catch (error) {
+      console.warn('[MediaSession] Not supported or error:', error);
+    }
+  }, [currentSong]);
 
 
   // PLAY SPECIFIC INDEX

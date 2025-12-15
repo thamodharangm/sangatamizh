@@ -2,12 +2,12 @@
 
 :root {
   /* Core Colors (Tactile/Flat) */
-  --bg-main: #111b21;       /* Deep Gunmetal */
-  --bg-card: #202f36;       /* Lighter Gunmetal */
-  --border-color: #37464f;  /* Border/Divider */
+  --bg-main: #111b21; /* Deep Gunmetal */
+  --bg-card: #202f36; /* Lighter Gunmetal */
+  --border-color: #37464f; /* Border/Divider */
 
   /* Primary Brand (Green) */
-  --primary: #58cc02;       
+  --primary: #58cc02;
   --primary-depth: #46a302; /* 3D Edge */
   --primary-text: #ffffff;
 
@@ -30,6 +30,14 @@
   --bounce: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Mobile-Specific Optimizations */
+@supports (padding: env(safe-area-inset-bottom)) {
+  :root {
+    --safe-area-bottom: env(safe-area-inset-bottom);
+    --safe-area-top: env(safe-area-inset-top);
+  }
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -38,13 +46,15 @@
 }
 
 body {
-  font-family: "Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: "Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    sans-serif;
   background-color: var(--bg-main);
   color: var(--text-main);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
-  overscroll-behavior-y: none; /* Prevent pull-to-refresh on mobile if needed */
+  overscroll-behavior-y: contain; /* Prevent pull-to-refresh on Chrome Android */
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
 /* Custom Scrollbar - mobile friendly */
@@ -70,9 +80,21 @@ body {
 .main-content {
   flex: 1;
   padding: 1rem;
+  padding-top: max(1rem, var(--safe-area-top, 0px)); /* iOS notch */
   width: 100%;
   max-width: 100vw;
   overflow-x: hidden;
+}
+
+/* Prevent iOS Zoom on Input Focus */
+input,
+button,
+select,
+textarea {
+  font-size: 16px !important; /* Prevents iOS zoom */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
 }
 
 /* --- TACTILE BUTTONS (3D) --- */
@@ -160,6 +182,10 @@ body {
   justify-content: space-around;
   align-items: center;
   padding: 0 0.5rem;
+  padding-bottom: max(
+    0.5rem,
+    var(--safe-area-bottom, 0px)
+  ); /* iOS home indicator */
   z-index: 9999;
 }
 
@@ -196,7 +222,7 @@ body {
   bottom: calc(var(--bottom-nav-height) + 12px);
   left: 12px;
   right: 12px;
-  background: #0f172a; 
+  background: #0f172a;
   border: 2px solid #1e293b;
   border-radius: 20px;
   padding: 12px;
@@ -204,6 +230,8 @@ body {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
   display: flex;
   flex-direction: column;
+  /* Add safe area for iOS */
+  margin-bottom: var(--safe-area-bottom, 0px);
 }
 
 .player-content {
@@ -261,9 +289,12 @@ body {
   border-radius: 50%;
   font-size: 1.2rem;
 }
-.control-btn:active { transform: scale(0.9); }
+.control-btn:active {
+  transform: scale(0.9);
+}
 
-.control-btn:nth-child(2) { /* Play Button */
+.control-btn:nth-child(2) {
+  /* Play Button */
   width: 44px;
   height: 44px;
   background: var(--primary);
@@ -279,7 +310,7 @@ body {
 .prog-range {
   width: 100%;
   height: 3px;
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.1);
   margin-top: 8px;
   border-radius: 2px;
   appearance: none;
@@ -354,7 +385,7 @@ body {
   height: 32px;
   border-radius: 50%;
   border: none;
-  background: rgba(0,0,0,0.4);
+  background: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(4px);
   color: white;
   display: flex;
@@ -369,14 +400,25 @@ body {
 }
 
 /* Utilities */
-.mb-1 { margin-bottom: 0.5rem; }
-.mb-2 { margin-bottom: 1rem; }
-.mb-3 { margin-bottom: 1.5rem; }
-.w-full { width: 100%; }
+.mb-1 {
+  margin-bottom: 0.5rem;
+}
+.mb-2 {
+  margin-bottom: 1rem;
+}
+.mb-3 {
+  margin-bottom: 1.5rem;
+}
+.w-full {
+  width: 100%;
+}
 
-.text-center { text-align: center; }
+.text-center {
+  text-align: center;
+}
 
-h1 { /* Page Title */
+h1 {
+  /* Page Title */
   font-size: 1.75rem;
   color: white;
   font-weight: 800;
@@ -400,7 +442,9 @@ h2 {
   scrollbar-width: none;
   scroll-snap-type: x mandatory;
 }
-.scroll-container::-webkit-scrollbar { display: none; }
+.scroll-container::-webkit-scrollbar {
+  display: none;
+}
 
 .scroll-item {
   min-width: 150px;
