@@ -305,7 +305,7 @@ export const MusicProvider = ({ children }) => {
       audio.removeEventListener("error", handleError);
       audio.removeEventListener("loadstart", handleLoadStart);
     };
-  }, [nextSong, updateStats]);
+  }, [nextSong]); // nextSong is stable (useCallback with stable deps)
 
 
   // When currentSong changes
