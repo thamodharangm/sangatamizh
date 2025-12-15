@@ -418,11 +418,11 @@ async function downloadAudio(videoId) {
             // Build args array for runYtDlp
             const args = [
                 ytDlpBinaryPath,
-                '-f', 'bestaudio[ext=m4a]',
-                '-o', m4aFile,
+                '--ffmpeg-location', require('ffmpeg-static'),
+                '-x', '--audio-format', 'mp3',
+                '-o', tempFile, // Output as mp3
                 `https://www.youtube.com/watch?v=${videoId}`,
                 '--force-ipv4',
-                // '--js-runtimes', 'node' // Removed as it might cause errors
             ];
 
             // Add cookies if they exist
@@ -438,14 +438,14 @@ async function downloadAudio(videoId) {
             // Execute using wrapper
             await runYtDlp(args, { timeout: 60000 });
             
-            if (fs.existsSync(m4aFile)) {
-                 const stats = fs.statSync(m4aFile);
+            if (fs.existsSync(tempFile)) {
+                 const stats = fs.statSync(tempFile);
                  if (stats.size > 0) {
-                     console.log(`[Download] ✅ SUCCESS via yt-dlp (m4a) - Size: ${stats.size} bytes`);
-                     return m4aFile;
+                     console.log(`[Download] ✅ SUCCESS via yt-dlp (mp3) - Size: ${stats.size} bytes`);
+                     return tempFile;
                  } else {
                      console.log('[Download] yt-dlp created empty file.');
-                     fs.unlinkSync(m4aFile);
+                     fs.unlinkSync(tempFile);
                  }
             }
         } catch(e) {
