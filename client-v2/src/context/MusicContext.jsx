@@ -41,21 +41,20 @@ export const MusicProvider = ({ children }) => {
     setDuration(0);
     setBufferedTime(0);
 
-    if (!song) return;
+    if (!song || !song.id) return;
 
-    // Direct Supabase URL Streaming (Best Practice)
-    // Uses song.audioUrl (normalized from file_url in Home.jsx)
-    // Benefits: Supabase CDN, perfect mobile Safari support, zero backend load
-    const audioUrl = song.audioUrl || song.file_url;
-    
-    if (!audioUrl) {
-      console.error('[MusicContext] No audio URL for song:', song);
-      return;
-    }
+    // Use Backend Streaming (Required for M4A metadata fix)
+    // M4A files from YouTube have corrupted duration metadata
+    // Backend /stream endpoint rewrites headers correctly
+    const baseUrl = import.meta.env.VITE_API_URL || '/api';
+    const cleanBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+    const streamUrl = `${cleanBase}/stream/${song.id}`;
+
+    console.log('[MusicContext] Streaming via:', streamUrl);
 
     // Update src only if changed
-    if (audio.src !== audioUrl) {
-      audio.src = audioUrl;
+    if (audio.src !== streamUrl) {
+      audio.src = streamUrl;
       audio.load();
     } else {
       audio.currentTime = 0;
