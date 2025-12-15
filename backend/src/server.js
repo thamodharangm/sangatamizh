@@ -20,7 +20,7 @@ const runMigration = () => new Promise((resolve) => {
 });
 
 runMigration().then(() => {
-    app.listen(PORT, () => {
+    app.listen(PORT, '0.0.0.0', () => {
         console.log(`✅ Server running on port ${PORT}`);
         console.log(`🎵 Sangatamizh Music Backend Ready!`);
         
