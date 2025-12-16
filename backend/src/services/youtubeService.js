@@ -319,7 +319,7 @@ async function getMetadata(url) {
 
 async function downloadAudio(videoId) {
     console.log(`Downloading ${videoId}...`);
-    const tempFile = path.join(os.tmpdir(), `song_${Date.now()}.mp3`);
+    const tempFile = path.join(os.tmpdir(), `song_${Date.now()}.mp3`); // Always MP3
     
     // 1. Try @distube/ytdl-core (Node Native - Often fastest)
     try {
@@ -395,7 +395,6 @@ async function downloadAudio(videoId) {
     while (attempts <= maxRetries) {
         try {
             const cookiePath = getCookiePath();
-            const m4aFile = tempFile.replace('.mp3', '.m4a');
            
             // Proxy selection: Use env var first, but if it fails, switch to pool
             const envProxy = process.env.PROXY_URL;

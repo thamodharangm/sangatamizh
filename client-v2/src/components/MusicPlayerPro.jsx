@@ -143,7 +143,7 @@ const MusicPlayerPro = () => {
               aria-label="Previous"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
+                <path d="M6 6h2v12H6V6zm3.5 6l8.5 6V6l-8.5 6z"/>
               </svg>
             </button>
             
@@ -172,7 +172,7 @@ const MusicPlayerPro = () => {
               aria-label="Next"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M16 18h2V6h-2zm-11-6l8.5-6v12z"/>
+                <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
               </svg>
             </button>
           </div>

@@ -102,11 +102,32 @@ const usePlayerStore = create((set, get) => ({
       switch (errorCode) {
         case 1: errorMessage = 'Audio loading aborted'; break;
         case 2: errorMessage = 'Network connection failed'; break;
-        case 3: errorMessage = 'Audio decode failed'; break;
+        case 3: 
+          errorMessage = 'Audio format not supported by your browser';
+          console.error('[AudioPlayer] DECODE ERROR - File may be corrupted or in unsupported format');
+          break;
         case 4: errorMessage = 'Audio format not supported'; break;
       }
       
-      console.error(`[AudioPlayer] Error ${errorCode}:`, e);
+      // Detailed error logging
+      const currentTrack = get().currentTrack;
+      console.error(`[AudioPlayer] Error ${errorCode}:`, {
+        error: e,
+        message: errorMessage,
+        src: audio.src,
+        trackId: currentTrack?.id,
+        trackTitle: currentTrack?.title,
+        fileUrl: currentTrack?.file_url || currentTrack?.audioUrl,
+        networkState: audio.networkState,
+        readyState: audio.readyState
+      });
+      
+      // Log file extension
+      const url = audio.src || '';
+      if (url.includes('.m4a')) {
+        console.error('[AudioPlayer] ⚠️ M4A file detected - this format may not be supported by your browser');
+        console.error('[AudioPlayer] Solution: Re-upload this song to convert it to MP3');
+      }
       
       set({ 
         error: errorMessage,

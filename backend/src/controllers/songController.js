@@ -1,5 +1,6 @@
 const prisma = require('../config/prisma');
 const youtubeService = require('../services/youtubeService');
+const youtubeStreamService = require('../services/youtubeStreamService');
 const storageService = require('../services/storageService');
 const emotionDetector = require('../services/emotionDetector');
 const fs = require('fs');
@@ -35,23 +36,37 @@ exports.streamSong = async (req, res) => {
 
         console.log(`[Stream] Streaming: ${song.file_url}`);
         
-        // Detect Content-Type from file extension
-        const url = song.file_url.toLowerCase();
+        // Check if it's a YouTube URL and route to YouTube stream service
+        const isYouTubeUrl = song.file_url.includes('youtube.com') || song.file_url.includes('youtu.be');
+        if (isYouTubeUrl) {
+            console.log('[Stream] Detected YouTube URL, using YouTube stream service');
+            return youtubeStreamService.streamYouTubeAudio(song.file_url, req, res);
+        }
+        
+        // Detect Content-Type from file extension with proper codec info
+        const urlLower = song.file_url.toLowerCase();
         let contentType = 'audio/mpeg';
-        if (url.includes('.m4a')) contentType = 'audio/mp4';
-        else if (url.includes('.opus')) contentType = 'audio/opus';
-        else if (url.includes('.webm')) contentType = 'audio/webm';
-        else if (url.includes('.ogg')) contentType = 'audio/ogg';
+        
+        // M4A files need specific MIME type for proper decoding
+        if (urlLower.includes('.m4a')) {
+            contentType = 'audio/mp4'; // Standard MIME for M4A/AAC
+        }
+        else if (urlLower.includes('.opus')) contentType = 'audio/opus';
+        else if (urlLower.includes('.webm')) contentType = 'audio/webm';
+        else if (urlLower.includes('.ogg')) contentType = 'audio/ogg';
         
         // Detect mobile device
-        const userAgent = req.headers['user-agent'] || '';
+        const userAgent = req.headers['user-agent'] || 'Sangatamizh-Backend/1.0';
         const isMobile = /Mobile|Android|iPhone|iPad/i.test(userAgent);
         
+        // Encode URL to safe string (handles spaces in filenames)
+        const safeUrl = encodeURI(song.file_url);
+
         // Step 1: HEAD request to get file size (critical for iOS)
-        const headResponse = await fetch(song.file_url, { 
+        const headResponse = await fetch(safeUrl, { 
             method: 'HEAD',
             headers: {
-                'User-Agent': userAgent // Forward user agent
+                'User-Agent': userAgent 
             }
         });
         const fileSize = parseInt(headResponse.headers.get('content-length') || '0');
@@ -77,7 +92,7 @@ exports.streamSong = async (req, res) => {
             res.setHeader('X-Content-Type-Options', 'nosniff');
             
             // Stream entire file
-            const response = await fetch(song.file_url, {
+            const response = await fetch(safeUrl, {
                 headers: { 'User-Agent': userAgent }
             });
             
@@ -116,16 +131,17 @@ exports.streamSong = async (req, res) => {
         console.log(`[Stream] Range request: ${start}-${end} (${chunkSize} bytes)`);
 
         // Step 4: Fetch with Range header
-        const response = await fetch(song.file_url, {
+        const response = await fetch(safeUrl, {
             headers: { 
                 'Range': `bytes=${start}-${end}`,
-                'User-Agent': userAgent
+                'User-Agent': userAgent // Forward user agent
             }
         });
 
         // Verify response
         if (!response.ok && response.status !== 206) {
-            console.error(`[Stream] Upstream error: ${response.status}`);
+            const errText = await response.text();
+            console.error(`[Stream] Upstream error: ${response.status} - ${errText.substring(0, 200)}`);
             return res.status(502).send('Upstream streaming error');
         }
 
@@ -229,13 +245,12 @@ exports.uploadFromYoutube = async (req, res) => {
             finalCategory = emotionDetector.getSuggestedCategory(finalEmotion);
         }
         
-        // 2. Download Audio
+        // 2. Download Audio (always MP3 now)
         tempFile = await youtubeService.downloadAudio(videoId);
         
-        // 3. Upload to Storage
-        const isM4a = tempFile.endsWith('.m4a');
-        const ext = isM4a ? 'm4a' : 'mp3';
-        const contentType = isM4a ? 'audio/x-m4a' : 'audio/mpeg';
+        // 3. Upload to Storage (always MP3 for universal compatibility)
+        const ext = 'mp3'; // Force MP3 for browser compatibility
+        const contentType = 'audio/mpeg';
 
         const fname = `songs/${Date.now()}_${videoId}.${ext}`;
         const publicUrl = await storageService.uploadFile(tempFile, fname, contentType);

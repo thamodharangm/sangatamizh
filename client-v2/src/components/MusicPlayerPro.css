@@ -5,7 +5,7 @@
 
 .compact-music-player {
   position: fixed;
-  bottom: 60px; /* Above bottom nav */
+  bottom: 72px; /* Above bottom nav with spacing */
   left: 0;
   right: 0;
   background: linear-gradient(135deg, 
@@ -143,38 +143,32 @@
 }
 
 /* ============================================
-   RIGHT: CONTROLS
+   RIGHT: CONTROLS - 3D TACTILE DESIGN
+   Matching Start Listening / My Library style
    ============================================ */
 
 .compact-controls {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   flex-shrink: 0;
 }
 
+/* 3D Tactile button base - matching btn-3d */
 .compact-btn {
-  background: rgba(255, 255, 255, 0.1);
   border: none;
-  color: rgba(255, 255, 255, 0.8);
   cursor: pointer;
-  padding: 10px;
-  border-radius: 8px;
-  transition: all 0.2s ease;
+  border-radius: 50%;
+  transition: transform 0.1s, box-shadow 0.1s;
   display: flex;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(10px);
-}
-
-.compact-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.15);
-  color: white;
-  transform: scale(1.05);
+  user-select: none;
+  font-weight: 700;
 }
 
 .compact-btn:active:not(:disabled) {
-  transform: scale(0.95);
+  transform: translateY(4px);
 }
 
 .compact-btn:disabled {
@@ -182,31 +176,64 @@
   cursor: not-allowed;
 }
 
+/* Previous/Next buttons - Dark 3D style */
 .compact-prev,
 .compact-next {
-  width: 40px;
-  height: 40px;
+  width: 50px;
+  height: 50px;
+  background-color: var(--bg-card);
+  color: white;
+  border: 2px solid var(--border-color);
+  box-shadow: 0px 4px 0px var(--border-color);
+  margin-bottom: 4px;
 }
 
+.compact-prev:active:not(:disabled),
+.compact-next:active:not(:disabled) {
+  box-shadow: 0px 0px 0px var(--border-color);
+}
+
+.compact-prev:hover:not(:disabled),
+.compact-next:hover:not(:disabled) {
+  background-color: #283840;
+  border-color: #4b5d67;
+}
+
+.compact-prev svg,
+.compact-next svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Play button - Green 3D style (matching btn-primary) */
 .compact-play {
-  width: 56px;
-  height: 56px;
-  background: white;
-  color: #2d3741;
-  border-radius: 50%;
-  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+  width: 66px;
+  height: 66px;
+  background-color: var(--primary);
+  color: var(--primary-text);
+  box-shadow: 0px 5px 0px var(--primary-depth);
+  margin-bottom: 5px;
+}
+
+.compact-play:active:not(:disabled) {
+  box-shadow: 0px 0px 0px var(--primary-depth);
+  transform: translateY(5px);
 }
 
 .compact-play:hover:not(:disabled) {
-  background: #f0f0f0;
-  box-shadow: 0 6px 16px rgba(255, 255, 255, 0.3);
+  filter: brightness(1.05);
+}
+
+.compact-play svg {
+  width: 28px;
+  height: 28px;
 }
 
 .compact-play-spinner {
-  width: 20px;
-  height: 20px;
-  border: 2px solid rgba(45, 55, 65, 0.2);
-  border-top-color: #2d3741;
+  width: 24px;
+  height: 24px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
   border-radius: 50%;
   animation: compactSpin 0.8s linear infinite;
 }
@@ -258,7 +285,7 @@
 
 @media (max-width: 768px) {
   .compact-music-player {
-    bottom: 60px; /* Above bottom nav */
+    bottom: 72px; /* Above bottom nav with spacing */
     border-radius: 12px 12px 0 0;
   }
   
@@ -281,18 +308,44 @@
   }
   
   .compact-play {
-    width: 52px;
-    height: 52px;
+    width: 60px;
+    height: 60px;
+    box-shadow: 0px 4px 0px var(--primary-depth);
+    margin-bottom: 4px;
+  }
+  
+  .compact-play:active:not(:disabled) {
+    box-shadow: 0px 0px 0px var(--primary-depth);
+    transform: translateY(4px);
+  }
+  
+  .compact-play svg {
+    width: 26px;
+    height: 26px;
   }
   
   .compact-prev,
   .compact-next {
-    width: 36px;
-    height: 36px;
+    width: 46px;
+    height: 46px;
+    box-shadow: 0px 3px 0px var(--border-color);
+    margin-bottom: 3px;
+  }
+  
+  .compact-prev:active:not(:disabled),
+  .compact-next:active:not(:disabled) {
+    box-shadow: 0px 0px 0px var(--border-color);
+    transform: translateY(3px);
+  }
+  
+  .compact-prev svg,
+  .compact-next svg {
+    width: 18px;
+    height: 18px;
   }
   
   .compact-controls {
-    gap: 10px;
+    gap: 8px;
   }
 }
 
@@ -308,18 +361,44 @@
   }
   
   .compact-play {
-    width: 48px;
-    height: 48px;
+    width: 56px;
+    height: 56px;
+    box-shadow: 0px 4px 0px var(--primary-depth);
+    margin-bottom: 4px;
+  }
+  
+  .compact-play:active:not(:disabled) {
+    box-shadow: 0px 0px 0px var(--primary-depth);
+    transform: translateY(4px);
+  }
+  
+  .compact-play svg {
+    width: 24px;
+    height: 24px;
   }
   
   .compact-prev,
   .compact-next {
-    width: 32px;
-    height: 32px;
+    width: 42px;
+    height: 42px;
+    box-shadow: 0px 3px 0px var(--border-color);
+    margin-bottom: 3px;
+  }
+  
+  .compact-prev:active:not(:disabled),
+  .compact-next:active:not(:disabled) {
+    box-shadow: 0px 0px 0px var(--border-color);
+    transform: translateY(3px);
+  }
+  
+  .compact-prev svg,
+  .compact-next svg {
+    width: 16px;
+    height: 16px;
   }
   
   .compact-controls {
-    gap: 8px;
+    gap: 7px;
   }
 }
 
@@ -329,10 +408,18 @@
 
 @media (hover: none) {
   .compact-btn:active:not(:disabled) {
-    background: rgba(255, 255, 255, 0.2);
+    /* 3D press effect on touch */
+    transform: translateY(4px);
   }
   
   .compact-play:active:not(:disabled) {
-    background: #e0e0e0;
+    box-shadow: 0px 0px 0px var(--primary-depth);
+    transform: translateY(5px);
+  }
+  
+  .compact-prev:active:not(:disabled),
+  .compact-next:active:not(:disabled) {
+    box-shadow: 0px 0px 0px var(--border-color);
+    transform: translateY(4px);
   }
 }
