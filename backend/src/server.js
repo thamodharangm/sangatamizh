@@ -8,7 +8,7 @@ console.log('🚀 Starting Backend...');
 // Start Server Immediately
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`✅ Server running on port ${PORT}`);
-    console.log(`🎵 Sangatamizh Music Backend Ready!`);
+    console.log(`🎵 Sangatamizh Music Backend v2.1 (Debug Enabled) Ready!`);
     
     // Async setup (non-blocking)
     ensureYtDlp().catch(err => console.error('YTDLP Setup Failed:', err));
