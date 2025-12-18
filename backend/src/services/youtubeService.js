@@ -174,12 +174,17 @@ async function getMetadata(url) {
                  try {
                     console.log(`[Meta] Trying API Key: ...${key.slice(-4)}`);
                     const apiUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${id}&key=${key}`;
-                    const r = await fetch(apiUrl);
+                    
+                    // Add timeout to API request
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+                    
+                    const r = await fetch(apiUrl, { signal: controller.signal });
+                    clearTimeout(timeoutId);
                     
                     if (!r.ok) {
                         console.warn(`[Meta] Key ...${key.slice(-4)} failed: ${r.status} ${r.statusText}`);
-                        if (r.status === 403) continue; // Try next key if quota/forbidden
-                        // For other errors, maybe try next too? Yes.
+                        if (r.status === 403) continue;
                         continue;
                     }
 
@@ -188,67 +193,33 @@ async function getMetadata(url) {
                         const snip = d.items[0].snippet;
                         console.log('[Meta] ✅ API Success');
                         
-                        // Fetch Lyrics
-                        const { title: cleanTitle, artist } = cleanMetadata(snip.title, snip.channelTitle);
-                        let lyrics = "";
-                        try {
-                            lyrics = await lyricsFinder(artist, cleanTitle) || "";
-                            console.log(`[Meta] Lyrics found: ${lyrics.length} chars`);
-                        } catch(e) { console.log('[Meta] Lyrics fetch failed', e.message); }
-
-                        const emotion = detectEmotion(snip.title, snip.description, lyrics);
+                        // Fast emotion detection (no lyrics - too slow)
+                        const emotion = detectEmotion(snip.title, snip.description || '', '');
                         
-                        fs.appendFileSync('debug_meta.log', `[API] Title: ${snip.title}, Emotion: ${emotion}\n`);
-                        console.log(`[Meta] Detected Emotion for "${snip.title}": ${emotion}`);
+                        console.log(`[Meta] Detected Emotion: ${emotion}`);
                         return { 
                             title: snip.title, 
                             artist: snip.channelTitle, 
                             coverUrl: snip.thumbnails.high?.url || snip.thumbnails.default?.url,
                             emotion,
-                            description: snip.description
+                            description: snip.description,
+                            viewCount: 0
                         };
                     } else {
                         console.log(`[Meta] Video not found with key ...${key.slice(-4)}`);
                     }
-                 } catch(e) { console.error('[Meta] API Error with key', e.message); }
+                 } catch(e) { 
+                     console.error('[Meta] API Error with key', e.message); 
+                 }
              }
-             console.log('[Meta] All API keys failed or video not found via API. Switching to fallbacks.');
+             console.log('[Meta] All API keys failed. Trying fast fallbacks...');
          }
     }
 
-    // 2. Fallback to yt-dlp
-    console.log('[Meta] Fallback to yt-dlp...');
-    try {
-        const cookiePath = getCookiePath();
-        const cmd = `${ytDlpBinaryPath} "${url}" --dump-json --no-warnings --prefer-free-formats --force-ipv4 --cookies "${cookiePath}"`;
-        const { stdout } = await exec(cmd);
-        const info = JSON.parse(stdout);
-        
-        // Fetch Lyrics
-        const { title: cleanTitle, artist } = cleanMetadata(info.title, info.uploader);
-        let lyrics = "";
-        try {
-            lyrics = await lyricsFinder(artist, cleanTitle) || "";
-             console.log(`[Meta] Lyrics found: ${lyrics.length} chars`);
-        } catch(e) { console.log('[Meta] Lyrics fetch failed', e.message); }
+    // 2. Skip yt-dlp for speed (too slow for upload UI)
 
-        const emotion = detectEmotion(info.title, info.description || '', lyrics);
-        const views = info.view_count || 0;
-        
-        console.log(`[Meta][yt-dlp] Detected Emotion: ${emotion}, Views: ${views}`);
-        return { 
-            title: info.title, 
-            artist: info.uploader || 'Unknown', 
-            coverUrl: info.thumbnail,
-            emotion,
-            description: info.description,
-            viewCount: views
-        };
-
-    } catch(e) { console.log('[Meta] yt-dlp failed:', e.message); }
-
-    // 3. Fallback to Invidious Mirrors (Reliable Backup)
-    const mirrors = ["https://inv.tux.pizza", "https://vid.uff.io", "https://invidious.jing.rocks"];
+    // 3. Fast Fallback: Invidious Mirrors
+    const mirrors = ["https://inv.tux.pizza", "https://vid.uff.io"];
     for (const mirror of mirrors) {
         try {
             console.log(`[Meta] Trying mirror ${mirror}...`);
@@ -256,7 +227,7 @@ async function getMetadata(url) {
             if (!id) continue;
 
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 6000);
+            const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 sec timeout
             
             const res = await fetch(`${mirror}/api/v1/videos/${id}`, { signal: controller.signal });
             clearTimeout(timeoutId);
@@ -265,14 +236,8 @@ async function getMetadata(url) {
                 const info = await res.json();
                 console.log(`[Meta] Success via ${mirror}`);
                 
-                // Fetch Lyrics
-                const { title: cleanTitle, artist } = cleanMetadata(info.title, info.author);
-                let lyrics = "";
-                try {
-                     lyrics = await lyricsFinder(artist, cleanTitle) || "";
-                } catch(e) {}
-
-                const emotion = detectEmotion(info.title, info.description || '', lyrics);
+                // Fast emotion detection (no lyrics)
+                const emotion = detectEmotion(info.title, info.description || '', '');
                 
                 return {
                     title: info.title,
@@ -280,7 +245,7 @@ async function getMetadata(url) {
                     coverUrl: info.videoThumbnails?.find(t => t.quality === 'maxresdefault')?.url || info.videoThumbnails?.[0]?.url,
                     emotion,
                     description: info.description,
-                    viewCount: info.viewCount
+                    viewCount: info.viewCount || 0
                 };
             }
         } catch(e) {
