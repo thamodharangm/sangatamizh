@@ -9,6 +9,9 @@ const emotionRoutes = require('./routes/emotionRoutes');
 
 const app = express();
 
+// Trust proxy for Render/Vercel (deployment)
+app.set('trust proxy', 1); // Trust the first proxy
+
 const allowedOrigins = [
   'http://localhost:5175',
   'http://localhost:5174',
