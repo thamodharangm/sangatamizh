@@ -16,45 +16,31 @@ const { YT_API_KEY, YOUTUBE_COOKIES } = require('../config/env');
 const { runYtDlp } = require('../utils/runYtDlp');
 const lyricsFinder = require('lyrics-finder'); // New import
 
-let ytDlpBinaryPath = process.platform === 'win32' 
-    ? path.join(__dirname, '../../yt-dlp.exe') 
-    : path.join(os.tmpdir(), "yt-dlp");
-
-
-
-
+// Binary Management
+const YTDLPInteractive = require('yt-dlp-wrap').default;
+let ytDlpBinaryPath = path.join(__dirname, '../../temp', process.platform === 'win32' ? 'yt-dlp.exe' : 'yt-dlp');
 
 async function ensureYtDlp() {
   if (fs.existsSync(ytDlpBinaryPath)) {
-      console.log(`Using yt-dlp at: ${ytDlpBinaryPath}`);
-      return;
+      // Check for zero-byte corruption
+      const stats = fs.statSync(ytDlpBinaryPath);
+      if (stats.size > 1000) return;
   }
   
-  // Fallback to temp if local not found
-  const tempPath = path.join(os.tmpdir(), process.platform === 'win32' ? "yt-dlp.exe" : "yt-dlp");
-  ytDlpBinaryPath = tempPath;
+  // Download if missing or corrupt
+  const tempDir = path.dirname(ytDlpBinaryPath);
+  if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
 
-  if (!fs.existsSync(tempPath)) {
-    console.log("Downloading yt-dlp...");
-    let url = "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp";
-    if (process.platform === "win32") url += ".exe";
-    else if (process.platform === "linux") url += "_linux";
-    
-    try {
-      const res = await fetch(url);
-      const dest = fs.createWriteStream(tempPath);
-      res.body.pipe(dest);
-      await new Promise((r) => dest.on("finish", r));
-      if (process.platform !== 'win32') fs.chmodSync(tempPath, "755");
-      console.log("yt-dlp ready at temp.");
-    } catch (e) {
-      console.error("yt-dlp download failed:", e);
-    }
+  console.log("[Meta Service] Downloading yt-dlp...");
+  try {
+     await YTDLPInteractive.downloadFromGithub(ytDlpBinaryPath);
+     if (process.platform !== 'win32') fs.chmodSync(ytDlpBinaryPath, "755");
+     console.log("[Meta Service] yt-dlp ready.");
+  } catch(e) {
+      console.error("[Meta Service] Failed to download binary", e);
   }
 }
 
-
-// Initialize on load
 ensureYtDlp();
 
 const getCookiePath = () => {
