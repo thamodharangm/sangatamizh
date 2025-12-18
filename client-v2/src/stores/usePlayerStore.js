@@ -173,7 +173,32 @@ const usePlayerStore = create((set, get) => ({
     audio.load();
     
     // Auto-play
-    audio.play().catch(err => {
+    audio.play().then(() => {
+       // Log Play History
+       try {
+          const user = JSON.parse(localStorage.getItem('user'));
+          let userId = user?.id;
+          if (!userId) {
+              userId = localStorage.getItem('guestId');
+              // Create guest ID if not exists (sync with Home logic)
+              if (!userId) {
+                  userId = 'guest_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+                  localStorage.setItem('guestId', userId);
+              }
+          }
+
+          if (userId) {
+             const baseUrl = import.meta.env.VITE_API_URL || '';
+             // Use fetch directly to avoid circular dependency if api module was used
+             fetch(`${baseUrl}/api/log-play`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId, songId: track.id })
+             }).catch(err => console.error('[AudioPlayer] Failed to log play:', err));
+          }
+       } catch(e) { console.error('[AudioPlayer] Log error:', e); }
+
+    }).catch(err => {
       console.warn('[AudioPlayer] Autoplay blocked:', err);
       set({ isPlaying: false });
     });
