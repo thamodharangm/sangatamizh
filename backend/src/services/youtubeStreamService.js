@@ -10,6 +10,8 @@ const fetch = require('node-fetch');
 const fs = require('fs');
 const { YOUTUBE_COOKIES } = require('../config/env');
 const { getCurrentProxyUrl, rotateProxy } = require('../utils/proxyManager');
+const https = require('https');
+const http = require('http');
 // Properly load HttpsProxyAgent
 const HttpsProxyAgentModule = require('https-proxy-agent');
 const HttpsProxyAgent = HttpsProxyAgentModule.HttpsProxyAgent || HttpsProxyAgentModule;
@@ -151,9 +153,19 @@ async function streamYouTubeAudio(youtubeUrl, req, res) {
             };
 
             // If we're using a proxy for the fetch
+            let agent = null;
+            if (proxyUrl && proxyUrl !== 'DIRECT') {
+                agent = new HttpsProxyAgent(proxyUrl);
+            } else {
+                 // Force IPv4 for direct connection to match yt-dlp's --force-ipv4
+                 // This is CRITICAL to avoid 403 Forbidden due to IP mismatch
+                 const Agent = audioUrl.startsWith('https') ? https.Agent : http.Agent;
+                 agent = new Agent({ family: 4, keepAlive: true });
+            }
+
             const fetchOptions = {
                 headers: fetchHeaders,
-                agent: (proxyUrl && proxyUrl !== 'DIRECT') ? new HttpsProxyAgent(proxyUrl) : null
+                agent: agent
             };
 
             console.log(`[YouTubeStream] Attempting Raw Proxy with Range: ${fetchHeaders.Range}`);
