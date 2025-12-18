@@ -19,9 +19,18 @@ const HttpsProxyAgent = HttpsProxyAgentModule.HttpsProxyAgent || HttpsProxyAgent
 // Set ffmpeg path
 ffmpeg.setFfmpegPath(ffmpegStatic);
 
-const ytDlpBinaryPath = process.platform === 'win32' 
-    ? path.join(__dirname, '../../yt-dlp.exe') 
-    : path.join(os.tmpdir(), "yt-dlp");
+// Ensure yt-dlp binary is available and up-to-date
+const YTDLPInteractive = require('yt-dlp-wrap').default;
+const ytDlpDir = path.join(__dirname, '../../temp');
+if (!fs.existsSync(ytDlpDir)) fs.mkdirSync(ytDlpDir, { recursive: true });
+const ytDlpBinaryPath = path.join(ytDlpDir, process.platform === 'win32' ? 'yt-dlp.exe' : 'yt-dlp');
+
+(async () => {
+    if (!fs.existsSync(ytDlpBinaryPath)) {
+        console.log('Downloading yt-dlp to:', ytDlpBinaryPath);
+        await YTDLPInteractive.downloadFromGithub(ytDlpBinaryPath);
+    }
+})();
 
 const getCookiePath = () => {
     const cookiePath = path.join(os.tmpdir(), "sangatamizh_cookies.txt");
