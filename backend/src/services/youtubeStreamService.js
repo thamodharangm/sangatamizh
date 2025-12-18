@@ -25,10 +25,15 @@ const ytDlpDir = path.join(__dirname, '../../temp');
 if (!fs.existsSync(ytDlpDir)) fs.mkdirSync(ytDlpDir, { recursive: true });
 const ytDlpBinaryPath = path.join(ytDlpDir, process.platform === 'win32' ? 'yt-dlp.exe' : 'yt-dlp');
 
+// Async IIFE for download check with error handling
 (async () => {
-    if (!fs.existsSync(ytDlpBinaryPath)) {
-        console.log('Downloading yt-dlp to:', ytDlpBinaryPath);
-        await YTDLPInteractive.downloadFromGithub(ytDlpBinaryPath);
+    try {
+        if (!fs.existsSync(ytDlpBinaryPath)) {
+            console.log('Downloading yt-dlp to:', ytDlpBinaryPath);
+            await YTDLPInteractive.downloadFromGithub(ytDlpBinaryPath);
+        }
+    } catch (e) {
+        console.error("Failed to download yt-dlp binary:", e);
     }
 })();
 
