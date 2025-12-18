@@ -28,17 +28,35 @@ const ytDlpBinaryPath = path.join(ytDlpDir, process.platform === 'win32' ? 'yt-d
 // Async IIFE for download check with error handling
 (async () => {
     try {
+        console.log(`[YouTubeStream] Checking yt-dlp at: ${ytDlpBinaryPath}`);
+        
+        // Check if file exists but is empty or corrupt (optional safety)
+        if (fs.existsSync(ytDlpBinaryPath)) {
+            const stats = fs.statSync(ytDlpBinaryPath);
+            if (stats.size < 1000) { // If less than 1KB, it's likely corrupt/empty
+                console.log('[YouTubeStream] yt-dlp binary is too small, deleting...');
+                fs.unlinkSync(ytDlpBinaryPath);
+            }
+        }
+
         if (!fs.existsSync(ytDlpBinaryPath)) {
-            console.log('Downloading yt-dlp to:', ytDlpBinaryPath);
+            console.log(`[YouTubeStream] Downloading yt-dlp to: ${ytDlpBinaryPath}`);
             await YTDLPInteractive.downloadFromGithub(ytDlpBinaryPath);
+            
             // Ensure executable permissions on Linux/Mac
             if (process.platform !== 'win32') {
                 fs.chmodSync(ytDlpBinaryPath, '755');
             }
-            console.log('yt-dlp downloaded and executable permissions set.');
+            console.log('[YouTubeStream] yt-dlp downloaded and executable permissions set.');
+        } else {
+             console.log('[YouTubeStream] yt-dlp already exists.');
+             // Ensure permissions even if it exists
+             if (process.platform !== 'win32') {
+                fs.chmodSync(ytDlpBinaryPath, '755');
+            }
         }
     } catch (e) {
-        console.error("Failed to download yt-dlp binary:", e);
+        console.error("[YouTubeStream] Failed to download or set permissions for yt-dlp:", e);
     }
 })();
 
