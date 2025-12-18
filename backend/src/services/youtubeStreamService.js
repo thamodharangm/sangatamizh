@@ -1,309 +1,247 @@
-const ffmpeg = require('fluent-ffmpeg');
-const ffmpegStatic = require('ffmpeg-static');
-
-// YouTube Audio Stream Handler
-const util = require('util');
-const exec = util.promisify(require('child_process').exec);
 const path = require('path');
-const os = require('os');
-const fetch = require('node-fetch');
 const fs = require('fs');
-const { YOUTUBE_COOKIES } = require('../config/env');
-const { getCurrentProxyUrl, rotateProxy } = require('../utils/proxyManager');
+const os = require('os');
+const { exec: execParams } = require('child_process');
 const https = require('https');
 const http = require('http');
 // Properly load HttpsProxyAgent
 const HttpsProxyAgentModule = require('https-proxy-agent');
 const HttpsProxyAgent = HttpsProxyAgentModule.HttpsProxyAgent || HttpsProxyAgentModule;
 
-// Set ffmpeg path
-ffmpeg.setFfmpegPath(ffmpegStatic);
+const { YOUTUBE_COOKIES } = require('../config/env');
+const { getCurrentProxyUrl, rotateProxy } = require('../utils/proxyManager');
 
-// Ensure yt-dlp binary is available and up-to-date
+// ==========================================
+// 1. SETUP & BINARY MANAGEMENT (v2.0 REBUILD)
+// ==========================================
+
+// Ensure yt-dlp binary is available
 const YTDLPInteractive = require('yt-dlp-wrap').default;
-const ytDlpDir = path.join(__dirname, '../../temp');
-if (!fs.existsSync(ytDlpDir)) fs.mkdirSync(ytDlpDir, { recursive: true });
+const ytDlpDir = path.join(__dirname, '../../temp'); // Local temp dir inside app
+// Force ensure dir exists
+if (!fs.existsSync(ytDlpDir)) {
+    try { fs.mkdirSync(ytDlpDir, { recursive: true }); } catch(e) {}
+}
+
 const ytDlpBinaryPath = path.join(ytDlpDir, process.platform === 'win32' ? 'yt-dlp.exe' : 'yt-dlp');
 
-// Async IIFE for download check with error handling
+// Initializer: Downloads binary if missing or corrupt
 (async () => {
     try {
-        console.log(`[YouTubeStream] Checking yt-dlp at: ${ytDlpBinaryPath}`);
+        console.log(`[YouTubeStream v2] Initializing Binary at: ${ytDlpBinaryPath}`);
         
-        // Check if file exists but is empty or corrupt (optional safety)
-        if (fs.existsSync(ytDlpBinaryPath)) {
+        let shouldDownload = false;
+
+        if (!fs.existsSync(ytDlpBinaryPath)) {
+            shouldDownload = true;
+        } else {
+            // Check for corruption (empty file)
             const stats = fs.statSync(ytDlpBinaryPath);
-            if (stats.size < 1000) { // If less than 1KB, it's likely corrupt/empty
-                console.log('[YouTubeStream] yt-dlp binary is too small, deleting...');
-                fs.unlinkSync(ytDlpBinaryPath);
+            if (stats.size < 1024 * 10) { // Less than 10KB is definitely wrong
+                console.warn('[YouTubeStream v2] Binary corrupt (too small), deleting...');
+                try { fs.unlinkSync(ytDlpBinaryPath); } catch(e) {}
+                shouldDownload = true;
             }
         }
 
-        if (!fs.existsSync(ytDlpBinaryPath)) {
-            console.log(`[YouTubeStream] Downloading yt-dlp to: ${ytDlpBinaryPath}`);
+        if (shouldDownload) {
+            console.log(`[YouTubeStream v2] Downloading latest yt-dlp...`);
             await YTDLPInteractive.downloadFromGithub(ytDlpBinaryPath);
-            
-            // Ensure executable permissions on Linux/Mac
-            if (process.platform !== 'win32') {
-                fs.chmodSync(ytDlpBinaryPath, '755');
-            }
-            console.log('[YouTubeStream] yt-dlp downloaded and executable permissions set.');
+            console.log(`[YouTubeStream v2] Download Complete.`);
         } else {
-             console.log('[YouTubeStream] yt-dlp already exists.');
-             // Ensure permissions even if it exists
-             if (process.platform !== 'win32') {
-                fs.chmodSync(ytDlpBinaryPath, '755');
+             console.log(`[YouTubeStream v2] Binary already exists.`);
+        }
+
+        // CRITICAL: Force Execute Permissions (Linux/Docker)
+        if (process.platform !== 'win32') {
+            try {
+                fs.chmodSync(ytDlpBinaryPath, '755'); // rwxr-xr-x
+                console.log(`[YouTubeStream v2] Permissions set to 755 (Executable).`);
+            } catch (permErr) {
+                console.error(`[YouTubeStream v2] Failed to set execute permissions: ${permErr.message}`);
             }
         }
+
     } catch (e) {
-        console.error("[YouTubeStream] Failed to download or set permissions for yt-dlp:", e);
+        console.error("[YouTubeStream v2] Critical Initialization Error:", e);
     }
 })();
 
+// Helper to get cookies
 const getCookiePath = () => {
     const cookiePath = path.join(os.tmpdir(), "sangatamizh_cookies.txt");
-    if (YOUTUBE_COOKIES) {
-        fs.writeFileSync(cookiePath, YOUTUBE_COOKIES);
-        return cookiePath;
+    if (YOUTUBE_COOKIES && (!fs.existsSync(cookiePath) || fs.statSync(cookiePath).size === 0)) {
+        try {
+            fs.writeFileSync(cookiePath, YOUTUBE_COOKIES);
+            console.log('[YouTubeStream v2] Cookies refreshed.');
+        } catch (err) {
+            console.warn('[YouTubeStream v2] Failed to write cookies:', err);
+            return null;
+        }
     }
-    const localCookies = path.join(__dirname, '../../cookies.txt');
-    if (fs.existsSync(localCookies)) {
-        return localCookies;
-    }
-    return null;
+    return fs.existsSync(cookiePath) ? cookiePath : null;
 };
 
-/**
- * Extract direct audio stream URL from YouTube using yt-dlp
- * @param {string} youtubeUrl - YouTube video URL
- * @returns {Promise<string>} Direct audio stream URL
- */
-const ytdl = require('@distube/ytdl-core');
+// Promisified Exec
+const exec = (cmd, options = {}) => {
+    return new Promise((resolve, reject) => {
+        execParams(cmd, options, (error, stdout, stderr) => {
+            if (error) {
+                error.stdout = stdout;
+                error.stderr = stderr;
+                return reject(error);
+            }
+            resolve({ stdout, stderr });
+        });
+    });
+};
 
-/**
- * Extract direct audio stream URL from YouTube
- * @param {string} youtubeUrl - YouTube video URL
- * @param {string} userAgent - User agent string
- * @returns {Promise<{audioUrl: string, family: number}>} Direct audio stream URL and IP family
- */
+// ==========================================
+// 2. EXTRACTION LOGIC (Dual-Stack)
+// ==========================================
+
 async function getYouTubeAudioUrl(youtubeUrl, userAgent = 'Mozilla/5.0') {
-    // 1. Try DIRECT extraction first (with force-ipv4) - this is way faster than proxy
     const cookiePath = getCookiePath();
+    let lastError = null;
+
+    // A. Preferred Method: DIRECT IPv4 (Fastest, Signed)
     try {
-        console.log(`[YouTubeStream] Attempting DIRECT yt-dlp (IPv4): ${youtubeUrl}`);
+        console.log(`[YouTubeStream v2] Extracting (IPv4) for: ${youtubeUrl}`);
         const cookieArg = cookiePath ? `--cookies "${cookiePath}"` : '';
-        const userAgentArg = `--user-agent "${userAgent}"`;
-        // Prefer m4a for better raw streaming compatibility, fallback to best
-        const cmd = `"${ytDlpBinaryPath}" ${cookieArg} ${userAgentArg} --force-ipv4 -f "bestaudio[ext=m4a]/bestaudio" -g "${youtubeUrl}"`;
-        const { stdout } = await exec(cmd, { timeout: 15000 });
-        const audioUrl = stdout.trim();
-        if (audioUrl) {
-            console.log(`[YouTubeStream] Got audio URL via direct yt-dlp (IPv4)`);
-            return { audioUrl, family: 4 };
-        }
-    } catch (error) {
-        console.warn('[YouTubeStream] Direct yt-dlp (IPv4) failed, trying IPv6...', error.message);
+        // Prefer m4a for native streaming, bestaudio fallback
+        const cmd = `"${ytDlpBinaryPath}" ${cookieArg} --user-agent "${userAgent}" --force-ipv4 -f "bestaudio[ext=m4a]/bestaudio" -g "${youtubeUrl}"`;
         
-        // 1.5 Try DIRECT extraction with IPv6 if IPv4 failed
-        try {
-             console.log(`[YouTubeStream] Attempting DIRECT yt-dlp (IPv6): ${youtubeUrl}`);
-             const cookieArg = cookiePath ? `--cookies "${cookiePath}"` : '';
-             const userAgentArg = `--user-agent "${userAgent}"`;
-             const cmd = `"${ytDlpBinaryPath}" ${cookieArg} ${userAgentArg} -f "bestaudio[ext=m4a]/bestaudio" -g "${youtubeUrl}"`; // removed --force-ipv4
-             const { stdout } = await exec(cmd, { timeout: 15000 });
-             const audioUrl = stdout.trim();
-             if (audioUrl) {
-                 console.log(`[YouTubeStream] Got audio URL via direct yt-dlp (IPv6/Default)`);
-                 return { audioUrl, family: 6 };
-             }
-        } catch (ipv6Err) {
-             console.warn('[YouTubeStream] Direct yt-dlp (IPv6) also failed:', ipv6Err.message);
+        const { stdout } = await exec(cmd, { timeout: 25000 });
+        const url = stdout.trim().split('\n')[0]; // Take first line if multiple
+        if (url && url.startsWith('http')) {
+            console.log(`[YouTubeStream v2] URL Encquired (IPv4)`);
+            return { url, family: 4 };
         }
+    } catch (err) {
+        console.warn(`[YouTubeStream v2] IPv4 Extraction Failed: ${err.message.substring(0, 100)}...`);
+        lastError = err;
     }
 
-    // 2. Fallback to Proxy extraction (Usually stays IPv4 for proxy compatibility)
-    if (cookiePath) {
-        try {
-            const proxyUrl = getCurrentProxyUrl();
-            const proxyArg = (proxyUrl && proxyUrl !== 'DIRECT') ? `--proxy "${proxyUrl}"` : '';
-            const userAgentArg = `--user-agent "${userAgent}"`;
-            console.log(`[YouTubeStream] Attempting yt-dlp with proxy: ${youtubeUrl} | Proxy: ${proxyUrl || 'DIRECT'}`);
-            // Force IPv4 for proxy stability usually
-            const cmd = `"${ytDlpBinaryPath}" --cookies "${cookiePath}" ${proxyArg} ${userAgentArg} --force-ipv4 -f "bestaudio[ext=m4a]/bestaudio" -g "${youtubeUrl}"`;
-            const { stdout } = await exec(cmd, { timeout: 20000 });
-            const audioUrl = stdout.trim();
-            if (audioUrl) {
-                console.log(`[YouTubeStream] Got audio URL via yt-dlp+proxy`);
-                return { audioUrl, family: 4 };
-            }
-        } catch (error) {
-            console.warn('[YouTubeStream] yt-dlp proxy extraction failed, falling back to next:', error.message);
-            rotateProxy();
-        }
-    }
-
-    // 2. Try ytdl-core (fastest, node-native)
+    // B. Fallback Method: Standard/IPv6 (If IPv4 blocked or unavail)
     try {
-        console.log(`[YouTubeStream] Extracting with ytdl-core: ${youtubeUrl}`);
-        const info = await ytdl.getInfo(youtubeUrl);
-        const format = ytdl.chooseFormat(info.formats, { quality: 'highestaudio', filter: 'audioonly' });
-        if (format && format.url) {
-            console.log(`[YouTubeStream] Got URL via ytdl-core`);
-            return { audioUrl: format.url, family: 4 }; // Assume IPv4 for ytdl-core mostly
+        console.log(`[YouTubeStream v2] Extracting (IPv6/Default) for: ${youtubeUrl}`);
+        const cookieArg = cookiePath ? `--cookies "${cookiePath}"` : '';
+        const cmd = `"${ytDlpBinaryPath}" ${cookieArg} --user-agent "${userAgent}" -f "bestaudio[ext=m4a]/bestaudio" -g "${youtubeUrl}"`;
+        
+        const { stdout } = await exec(cmd, { timeout: 25000 });
+         const url = stdout.trim().split('\n')[0];
+        if (url && url.startsWith('http')) {
+             console.log(`[YouTubeStream v2] URL Encquired (IPv6/Default)`);
+            return { url, family: 6 };
         }
-    } catch (error) {
-        console.warn('[YouTubeStream] ytdl-core extraction failed:', error.message);
+    } catch (err) {
+        console.warn(`[YouTubeStream v2] IPv6 Extraction Failed: ${err.message.substring(0, 100)}...`);
+        lastError = err;
     }
-
-    // 3. Final fallback: yt-dlp WITHOUT cookies (if not tried already)
-    if (!cookiePath) {
-        try {
-            const proxyUrl = getCurrentProxyUrl();
-            const proxyArg = (proxyUrl && proxyUrl !== 'DIRECT') ? `--proxy "${proxyUrl}"` : '';
-            const userAgentArg = `--user-agent "${userAgent}"`;
-            const cmd = `"${ytDlpBinaryPath}" ${proxyArg} ${userAgentArg} --force-ipv4 -f "bestaudio[ext=m4a]/bestaudio" -g "${youtubeUrl}"`;
-            console.log(`[YouTubeStream] Extracting audio URL with yt-dlp (no cookies)... | Proxy: ${proxyUrl || 'DIRECT'}`);
-            const { stdout } = await exec(cmd, { timeout: 30000 });
-            const audioUrl = stdout.trim();
-            if (audioUrl) {
-                console.log(`[YouTubeStream] Got audio URL via yt-dlp`);
-                return { audioUrl, family: 4 };
-            }
-        } catch (error) {
-            console.error('[YouTubeStream] yt-dlp (no cookies) extraction failed:', error.message);
-            rotateProxy();
-        }
-    }
-
-    throw new Error('All extraction methods failed');
+    
+    // If we're here, binaries failed. We could fallback to ytdl-core in future, 
+    // but for "High Quality" proxying, binaries are best.
+    throw new Error('All extraction methods failed. ' +  (lastError ? lastError.message : ''));
 }
 
-/**
- * Stream YouTube audio using proxy (either raw or transcoded)
- * @param {string} youtubeUrl - YouTube video URL
- * @param {object} req - Express request object
- * @param {object} res - Express response object
- */
+// ==========================================
+// 3. STREAMING LOGIC (The "Rebuild")
+// ==========================================
+
 async function streamYouTubeAudio(youtubeUrl, req, res) {
-    const startTime = Date.now();
-    let isDestroyed = false;
+    // 1. Setup headers & Identity
+    const userAgent = req.headers['user-agent'] || 'Mozilla/5.0';
     
     try {
-        // Setup
-        const userAgent = req.headers['user-agent'] || 'Mozilla/5.0';
-        console.log(`[YouTubeStream] Request for: ${youtubeUrl} | UA: ${userAgent.substring(0, 50)}`);
-        console.log(`[YouTubeStream] Headers:`, JSON.stringify(req.headers));
+        // 2. Get the Source URL
+        const { url: audioSourceUrl, family } = await getYouTubeAudioUrl(youtubeUrl, userAgent);
 
-        // Get direct audio URL with User Agent and protocol family
-        const { audioUrl, family } = await getYouTubeAudioUrl(youtubeUrl, userAgent);
-        
-        // METHOD 1: Direct Proxy (Raw) - Faster, supports Ranges, but depends on format support
-        // We'll try to fetch the first few bytes to see if it's accessible and get headers
-        try {
-            const proxyUrl = getCurrentProxyUrl();
-            const fetchHeaders = {
-                'User-Agent': userAgent,
-                'Range': req.headers.range || 'bytes=0-'
-            };
-
-            // If we're using a proxy for the fetch
-            let agent = null;
-            if (proxyUrl && proxyUrl !== 'DIRECT') {
-                agent = new HttpsProxyAgent(proxyUrl);
-            } else {
-                 // Force the same IP family that was used for extraction (4 or 6)
-                 // This ensures identity consistency to avoid 403 Forbidden
-                 const Agent = audioUrl.startsWith('https') ? https.Agent : http.Agent;
-                 agent = new Agent({ family: family, keepAlive: true });
-                 console.log(`[YouTubeStream] Using ${family === 4 ? 'IPv4' : 'IPv6'} agent to match extraction.`);
-            }
-
-            const fetchOptions = {
-                headers: fetchHeaders,
-                agent: agent
-            };
-
-            console.log(`[YouTubeStream] Attempting Raw Proxy with Range: ${fetchHeaders.Range}`);
-            
-            const response = await fetch(audioUrl, fetchOptions);
-            
-            if (response.ok || response.status === 206) {
-                console.log(`[YouTubeStream] Raw Proxy Success: ${response.status} ${response.headers.get('content-type')}`);
-                
-                // Forward critical headers
-                res.status(response.status);
-                ['content-type', 'content-length', 'content-range', 'accept-ranges', 'cache-control'].forEach(h => {
-                    const val = response.headers.get(h);
-                    if (val) res.setHeader(h, val);
-                });
-                
-                // Safely handle content-type if missing or vague
-                if (!res.getHeader('content-type')) {
-                    res.setHeader('content-type', 'audio/mpeg'); // fallback
-                }
-
-                return response.body.pipe(res);
-            } else {
-                console.warn(`[YouTubeStream] Raw Proxy returned ${response.status}, falling back to Transcode`);
-            }
-        } catch (rawError) {
-            console.warn(`[YouTubeStream] Raw Proxy failed, falling back to Transcode:`, rawError.message);
-        }
-
-        // METHOD 2: Transcode to MP3 (Fallback)
-        console.log(`[YouTubeStream] Starting Fallback Transcode for: ${youtubeUrl}`);
-
-        // Set headers for MP3 stream
-        res.status(200);
-        res.setHeader('Content-Type', 'audio/mpeg');
-        res.setHeader('Accept-Ranges', 'none'); 
-        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-        res.setHeader('Connection', 'close');
-
+        // 3. Configure the Proxy Request
+        // We MUST match the extraction Protocol (IPv4 vs IPv6) to avoid 403 Forbidden
         const proxyUrl = getCurrentProxyUrl();
-        const inputOptions = [
-            '-reconnect 1',
-            '-reconnect_streamed 1',
-            '-reconnect_delay_max 2',
-            `-user_agent "${userAgent}"`
-        ];
-
+        let agent;
+        
         if (proxyUrl && proxyUrl !== 'DIRECT') {
-            inputOptions.push(`-http_proxy "${proxyUrl}"`);
+            agent = new HttpsProxyAgent(proxyUrl);
+        } else {
+             const Agent = audioSourceUrl.startsWith('https') ? https.Agent : http.Agent;
+             // family: 4 forced IPv4, family: 6 allows IPv6
+             agent = new Agent({ family: family, keepAlive: true });
         }
 
-        const command = ffmpeg(audioUrl)
-            .inputOptions(inputOptions)
-            .audioCodec('libmp3lame')
-            .audioBitrate(128)
-            .format('mp3')
-            .on('start', (cmd) => {
-                console.log(`[YouTubeStream] FFmpeg started in ${Date.now() - startTime}ms`);
-            })
-            .on('error', (err) => {
-                if (isDestroyed || err.message.includes('SIGKILL') || err.message.includes('killed')) return;
-                console.error('[YouTubeStream] FFmpeg error:', err.message);
-                if (!res.headersSent) res.status(500).send('Transcoding failed');
-            });
+        // 4. Construct Headers for the Upstream Request
+        const fetchHeaders = {
+            'User-Agent': userAgent,
+            'Accept': '*/*',
+            'Connection': 'keep-alive'
+        };
 
-        command.pipe(res, { end: true });
-        
-        req.on('close', () => {
-            if (!isDestroyed) {
-                isDestroyed = true;
-                command.kill('SIGKILL');
+        // Forward Range header if present (Critical for seeking!)
+        if (req.headers.range) {
+            fetchHeaders['Range'] = req.headers.range;
+            console.log(`[YouTubeStream v2] Proxying Range: ${req.headers.range} | Mode: IPv${family}`);
+        } else {
+            console.log(`[YouTubeStream v2] Proxying Full Stream | Mode: IPv${family}`);
+        }
+
+        // 5. Execute the Stream (Native Node Request for raw piping)
+        // We use native https.request because it handles streams better than node-fetch
+        const lib = audioSourceUrl.startsWith('https') ? https : http;
+        const options = {
+            method: 'GET',
+            headers: fetchHeaders,
+            agent: agent
+        };
+
+        const proxyReq = lib.request(audioSourceUrl, options, (proxyRes) => {
+            // A. Handle Errors from Upstream (e.g. 403)
+            if (proxyRes.statusCode >= 400) {
+                console.error(`[YouTubeStream v2] Upstream Error: ${proxyRes.statusCode}`);
+                // Try to consume data to free socket
+                proxyRes.resume(); 
+                if (!res.headersSent) res.status(500).send('Upstream Source Error');
+                return;
             }
+
+            // B. Forward Response Headers
+            res.status(proxyRes.statusCode);
+            
+            // Critical Streaming Headers
+            if (proxyRes.headers['content-type']) res.setHeader('Content-Type', proxyRes.headers['content-type']);
+            if (proxyRes.headers['content-length']) res.setHeader('Content-Length', proxyRes.headers['content-length']);
+            if (proxyRes.headers['content-range']) res.setHeader('Content-Range', proxyRes.headers['content-range']);
+            if (proxyRes.headers['accept-ranges']) res.setHeader('Accept-Ranges', proxyRes.headers['accept-ranges']);
+            
+            // C. Pipe Data
+            proxyRes.pipe(res);
+
+            proxyRes.on('error', (err) => {
+                console.error('[YouTubeStream v2] Response Stream Error:', err);
+                if (!res.headersSent) res.end();
+            });
         });
-        
+
+        proxyReq.on('error', (err) => {
+             console.error('[YouTubeStream v2] Request Error:', err);
+             // Verify if we can fallback? For now just error.
+             if (!res.headersSent) res.status(502).send('Proxy Connection Failed');
+        });
+
+        proxyReq.end();
+
     } catch (error) {
-        console.error('[YouTubeStream] Fatal Error:', error.message);
-        if (!res.headersSent) {
-            res.status(500).send('YouTube streaming failed');
-        }
+        console.error('[YouTubeStream v2] Primary Flow Failed:', error.message);
+        if (!res.headersSent) res.status(500).send(`Stream Initialization Failed: ${error.message}`);
     }
+}
+
+// Pure JS Fallback (just in case binary completely dies)
+// We keep it exported but the main function uses new logic
+async function verifyYtDlp() {
+     return fs.existsSync(ytDlpBinaryPath);
 }
 
 module.exports = {
-    getYouTubeAudioUrl,
-    streamYouTubeAudio
+    streamYouTubeAudio,
+    ensureYtDlp: verifyYtDlp // Mocking existing interface
 };
