@@ -223,46 +223,32 @@ exports.getMetadata = async (req, res) => {
 
 exports.uploadFromYoutube = async (req, res) => {
     const { url, category, emotion, customMetadata } = req.body;
-    let tempFile = null;
-    const fs = require('fs');
-    fs.appendFileSync('debug_upload.log', `[${new Date().toISOString()}] Body: ${JSON.stringify(req.body)}\\n`);
-    console.log("[UploadFromYouTube] Body:", req.body);
+    console.log("[UploadFromYouTube] Processing:", { url, category, emotion });
+
     try {
-        // 1. Get Metadata to get ID and basic info
+        // 1. Get Metadata (Validate Link & Details)
         const metadata = await youtubeService.getMetadata(url);
-        // We need the ID for filename
-        const videoId = extractVideoId(url) || Date.now().toString();
         
-        // 1.5. Auto-detect emotion if not provided
+        // 2. Auto-detect logic (AI Simulation)
         let finalEmotion = emotion;
         let finalCategory = category;
         
-        if (!emotion) {
+        if (!emotion || emotion === 'Neutral') {
             const emotionAnalysis = emotionDetector.analyzeMetadata(metadata);
             finalEmotion = emotionAnalysis.emotion;
-            console.log(`[EmotionDetector] Auto-detected: ${finalEmotion} (confidence: ${emotionAnalysis.confidence})`);
         }
         
-        if (!category) {
-            finalCategory = emotionDetector.getSuggestedCategory(finalEmotion);
+        if (!category || category === 'General') {
+             finalCategory = emotionDetector.getSuggestedCategory(finalEmotion);
         }
         
-        // 2. Download Audio (always MP3 now)
-        tempFile = await youtubeService.downloadAudio(videoId);
-        
-        // 3. Upload to Storage (always MP3 for universal compatibility)
-        const ext = 'mp3'; // Force MP3 for browser compatibility
-        const contentType = 'audio/mpeg';
-
-        const fname = `songs/${Date.now()}_${videoId}.${ext}`;
-        const publicUrl = await storageService.uploadFile(tempFile, fname, contentType);
-        
-        // 4. Create DB Record with auto-detected emotion
+        // 3. Create DB Record (ZERO STORAGE - Direct Link Only)
+        // We use the YouTube URL as the 'file_url' so the Streamer knows to proxy it.
         const song = await prisma.song.create({
             data: {
                 title: customMetadata?.title || metadata.title,
                 artist: customMetadata?.artist || metadata.artist || "Unknown",
-                file_url: publicUrl,
+                file_url: url, // <--- DIRECT LINK (No Storage)
                 cover_url: customMetadata?.coverUrl || metadata.coverUrl || "https://via.placeholder.com/150",
                 category: finalCategory || "Tamil",
                 emotion: finalEmotion || "Feel Good",
@@ -270,22 +256,16 @@ exports.uploadFromYoutube = async (req, res) => {
                 youtube_views: BigInt(metadata.viewCount || 0)
             },
         });
+        
+        console.log(`[UploadFromYouTube] Success: ${song.title} (ID: ${song.id})`);
         res.json(serialize(song));
 
     } catch (e) {
         console.error("Youtube Upload Logic Failed:", e);
-        // Clean up temp file if it exists and error occurred (handled in finally for success case too, but explicit here for clarity if needed or remove duplicate)
-        
-        // Return 500 with a structured error object
         res.status(500).json({ 
-            error: "YouTube Process Failed", 
-            message: e.message || "Unknown error occurred",
-            details: process.env.NODE_ENV === 'development' ? e.stack : undefined
+            error: "YouTube Import Failed", 
+            message: e.message 
         });
-    } finally {
-        if (tempFile && fs.existsSync(tempFile)) {
-             try { fs.unlinkSync(tempFile); } catch(err) { console.error("Cleanup failed:", err); }
-        }
     }
 };
 
@@ -475,12 +455,38 @@ exports.getHomeSections = async (req, res) => {
         const userId = req.query.userId;
         console.log('[getHomeSections] Fetching sections for userId:', userId);
         
-        // 1. Trending Now: Sort by youtube_views desc (Top 10)
-        // Note: Using BigInt, which JSON.stringify fails on unless serialized.
-        const trending = await prisma.song.findMany({
-            orderBy: { youtube_views: 'desc' },
+        // 1. Trending Now: Based on actual APP PLAYS (Last 7 Days)
+        // Check local play history instead of static youtube views
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        
+        const trendingPlays = await prisma.playHistory.groupBy({
+            by: ['songId'],
+            where: { playedAt: { gte: sevenDaysAgo } },
+            _count: { songId: true },
+            orderBy: { _count: { songId: 'desc' } },
             take: 10
         });
+
+        let trendingIds = trendingPlays.map(t => t.songId);
+        
+        // Fallback: If no history, use YouTube Views (Cold Start)
+        if (trendingIds.length === 0) {
+             const fallback = await prisma.song.findMany({
+                 orderBy: { youtube_views: 'desc' },
+                 take: 10,
+                 select: { id: true }
+             });
+             trendingIds = fallback.map(s => s.id);
+        }
+
+        // Fetch full song objects (preserve order)
+        const trending = await prisma.song.findMany({
+            where: { id: { in: trendingIds } }
+        });
+        
+        // Re-sort in memory because 'in' clause kills order
+        trending.sort((a, b) => trendingIds.indexOf(a.id) - trendingIds.indexOf(b.id));
 
         // 2. Tamil Hits: Sort by youtube_views desc where category='Tamil'
         const hits = await prisma.song.findMany({
