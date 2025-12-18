@@ -31,6 +31,11 @@ const ytDlpBinaryPath = path.join(ytDlpDir, process.platform === 'win32' ? 'yt-d
         if (!fs.existsSync(ytDlpBinaryPath)) {
             console.log('Downloading yt-dlp to:', ytDlpBinaryPath);
             await YTDLPInteractive.downloadFromGithub(ytDlpBinaryPath);
+            // Ensure executable permissions on Linux/Mac
+            if (process.platform !== 'win32') {
+                fs.chmodSync(ytDlpBinaryPath, '755');
+            }
+            console.log('yt-dlp downloaded and executable permissions set.');
         }
     } catch (e) {
         console.error("Failed to download yt-dlp binary:", e);
