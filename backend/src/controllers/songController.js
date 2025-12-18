@@ -1,5 +1,6 @@
 const prisma = require('../config/prisma');
 const youtubeService = require('../services/youtubeService');
+const youtubeFastMeta = require('../services/youtubeFastMeta'); // Fast metadata
 const youtubeStreamService = require('../services/youtubeStreamService');
 const storageService = require('../services/storageService');
 const emotionDetector = require('../services/emotionDetector');
@@ -202,18 +203,15 @@ exports.getMetadata = async (req, res) => {
         const { url } = req.body;
         if (!url) return res.status(400).json({ error: 'URL is required' });
         
-        const metadata = await youtubeService.getMetadata(url);
+        // Use fast metadata service (5 sec max)
+        const metadata = await youtubeFastMeta.getMetadataFast(url);
         
-        // Analyze emotion from metadata
-        const emotionAnalysis = emotionDetector.analyzeMetadata(metadata);
-        const suggestedCategory = emotionDetector.getSuggestedCategory(emotionAnalysis.emotion);
-        
-        // Return metadata with emotion suggestions
+        // Return metadata with default emotion
         res.json({
             ...metadata,
-            suggestedEmotion: emotionAnalysis.emotion,
-            suggestedCategory: suggestedCategory,
-            emotionConfidence: emotionAnalysis.confidence
+            suggestedEmotion: metadata.emotion,
+            suggestedCategory: 'Tamil',
+            emotionConfidence: 0.5
         });
     } catch (e) {
         console.error('[getMetadata] ERROR:', e);
@@ -226,32 +224,26 @@ exports.uploadFromYoutube = async (req, res) => {
     console.log("[UploadFromYouTube] Processing:", { url, category, emotion });
 
     try {
-        // 1. Get Metadata (Validate Link & Details)
-        const metadata = await youtubeService.getMetadata(url);
+        // 1. Get Metadata FAST (5 sec max, or instant fallback)
+        console.log('  → Fetching metadata (fast mode)...');
+        const metadata = await youtubeFastMeta.getMetadataFast(url);
         
-        // 2. Auto-detect logic (AI Simulation)
-        let finalEmotion = emotion;
-        let finalCategory = category;
+        // 2. Use provided emotion or default
+        const finalEmotion = emotion || metadata.emotion || 'Feel Good';
+        const finalCategory = category || 'Tamil';
         
-        if (!emotion || emotion === 'Neutral') {
-            const emotionAnalysis = emotionDetector.analyzeMetadata(metadata);
-            finalEmotion = emotionAnalysis.emotion;
-        }
+        console.log(`  → Title: ${metadata.title}`);
+        console.log(`  → Emotion: ${finalEmotion}`);
         
-        if (!category || category === 'General') {
-             finalCategory = emotionDetector.getSuggestedCategory(finalEmotion);
-        }
-        
-        // 3. Create DB Record (ZERO STORAGE - Direct Link Only)
-        // We use the YouTube URL as the 'file_url' so the Streamer knows to proxy it.
+        // 3. Create DB Record (Zero Storage - Direct Link)
         const song = await prisma.song.create({
             data: {
                 title: customMetadata?.title || metadata.title,
                 artist: customMetadata?.artist || metadata.artist || "Unknown",
-                file_url: url, // <--- DIRECT LINK (No Storage)
+                file_url: url, // Direct YouTube link
                 cover_url: customMetadata?.coverUrl || metadata.coverUrl || "https://via.placeholder.com/150",
-                category: finalCategory || "Tamil",
-                emotion: finalEmotion || "Feel Good",
+                category: finalCategory,
+                emotion: finalEmotion,
                 source_url: url,
                 youtube_views: BigInt(metadata.viewCount || 0)
             },
