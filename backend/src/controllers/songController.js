@@ -25,6 +25,7 @@ exports.streamSong = async (req, res) => {
         const { id } = req.params;
         const song = await prisma.song.findUnique({ where: { id } });
         
+        fs.appendFileSync('stream_debug.log', `[${new Date().toISOString()}] Stream request for ID: ${id}\n`);
         if (!song) {
             console.log("[Stream] Song not found in DB");
             return res.status(404).send('Song not found');
@@ -38,6 +39,7 @@ exports.streamSong = async (req, res) => {
         
         // Check if it's a YouTube URL and route to YouTube stream service
         const isYouTubeUrl = song.file_url.includes('youtube.com') || song.file_url.includes('youtu.be');
+        fs.appendFileSync('stream_debug.log', `[${new Date().toISOString()}] URL: ${song.file_url}, isYouTube: ${isYouTubeUrl}\n`);
         if (isYouTubeUrl) {
             console.log('[Stream] Detected YouTube URL, using YouTube stream service');
             return youtubeStreamService.streamYouTubeAudio(song.file_url, req, res);
