@@ -52,3 +52,12 @@ tmp/
 .npm
 .eslintcache
 .stylelintcache
+
+# Sangatamizh Specific
+server/uploads/
+server/temp/
+server/src/songs.json
+.firebase/
+.env
+secret.js
+

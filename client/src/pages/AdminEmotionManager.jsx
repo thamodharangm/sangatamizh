@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../api/axios';
+import api from '../config/api';
 import { useAuth } from '../context/AuthContext';
 import './AdminEmotionManager.css';
 
@@ -124,12 +124,6 @@ const AdminEmotionManager = () => {
       console.log('✅ Save complete! Changes cleared.');
     } catch (error) {
       console.error('❌ Failed to save changes:', error);
-      console.error('Error details:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status
-      });
-      
       let errorMessage = 'Failed to save changes.';
       if (error.response) {
         errorMessage += `\nStatus: ${error.response.status}`;
@@ -139,6 +133,7 @@ const AdminEmotionManager = () => {
       } else {
         errorMessage += `\n${error.message}`;
       }
+
       
       alert(errorMessage);
     } finally {

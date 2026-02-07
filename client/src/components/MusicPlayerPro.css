@@ -1,0 +1,462 @@
+ /* ============================================
+   COMPACT MUSIC PLAYER - MODERN DESIGN
+   Horizontal layout matching reference
+   ============================================ */
+
+.compact-music-player {
+  position: fixed;
+  bottom: 0;
+  left: 310px; /* Sidebar width + gap */
+  right: 20px;
+  background: linear-gradient(135deg, 
+    rgba(45, 55, 65, 0.98) 0%, 
+    rgba(30, 38, 45, 0.98) 100%
+  );
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 16px 16px 0 0;
+  z-index: 1000;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+}
+
+/* Adjust for desktop layout */
+@media (max-width: 768px) {
+  .compact-music-player {
+     left: 0;
+     bottom: 60px; /* Mobile bottom nav */
+     right: 0;
+  }
+}
+
+/* ============================================
+   PROGRESS BAR (TOP - THIN GREEN LINE)
+   ============================================ */
+
+.compact-progress-bar {
+  height: 4px;
+  width: 100%;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 16px 16px 0 0;
+  overflow: hidden;
+}
+
+.compact-progress-track {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.compact-progress-buffer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: rgba(88, 204, 2, 0.2);
+  transition: width 0.1s linear;
+}
+
+.compact-progress-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: #58cc02;
+  transition: width 0.1s linear;
+}
+
+/* ============================================
+   MAIN CONTENT - HORIZONTAL LAYOUT
+   ============================================ */
+
+.compact-player-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  gap: 16px;
+}
+
+/* ============================================
+   LEFT: SONG INFO
+   ============================================ */
+
+.compact-song-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.compact-cover-wrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.compact-cover-img {
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  object-fit: cover;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.compact-loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.compact-spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid rgba(88, 204, 2, 0.2);
+  border-top-color: #58cc02;
+  border-radius: 50%;
+  animation: compactSpin 0.8s linear infinite;
+}
+
+@keyframes compactSpin {
+  to { transform: rotate(360deg); }
+}
+
+.compact-text-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.compact-song-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.compact-song-artist {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ============================================
+   RIGHT: CONTROLS - 3D TACTILE DESIGN
+   Matching Start Listening / My Library style
+   ============================================ */
+
+.compact-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* 3D Tactile button base - matching btn-3d */
+.compact-btn {
+  border: none;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: transform 0.1s, box-shadow 0.1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  font-weight: 700;
+}
+
+.compact-btn:active:not(:disabled) {
+  transform: translateY(4px);
+}
+
+.compact-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Lyrics Button */
+.compact-lyrics {
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  border: none;
+  font-size: 20px;
+  margin-right: 2px;
+  box-shadow: none !important; /* Override 3D base */
+  transition: all 0.2s ease;
+}
+
+.compact-lyrics:hover, 
+.compact-lyrics.active {
+  color: var(--primary);
+  transform: scale(1.1);
+  opacity: 1 !important;
+}
+
+.compact-lyrics:active {
+  transform: scale(0.95);
+}
+
+/* Previous/Next buttons - Dark 3D style */
+.compact-prev,
+.compact-next {
+  width: 50px;
+  height: 50px;
+  background-color: var(--bg-card);
+  color: white;
+  border: 2px solid var(--border-color);
+  box-shadow: 0px 4px 0px var(--border-color);
+  margin-bottom: 4px;
+}
+
+.compact-prev:active:not(:disabled),
+.compact-next:active:not(:disabled) {
+  box-shadow: 0px 0px 0px var(--border-color);
+}
+
+.compact-prev:hover:not(:disabled),
+.compact-next:hover:not(:disabled) {
+  background-color: #283840;
+  border-color: #4b5d67;
+}
+
+.compact-prev svg,
+.compact-next svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Play button - Green 3D style (matching btn-primary) */
+.compact-play {
+  width: 66px;
+  height: 66px;
+  background-color: var(--primary);
+  color: var(--primary-text);
+  box-shadow: 0px 5px 0px var(--primary-depth);
+  margin-bottom: 5px;
+}
+
+.compact-play:active:not(:disabled) {
+  box-shadow: 0px 0px 0px var(--primary-depth);
+  transform: translateY(5px);
+}
+
+.compact-play:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+
+.compact-play svg {
+  width: 28px;
+  height: 28px;
+}
+
+.compact-play-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: compactSpin 0.8s linear infinite;
+}
+
+/* ============================================
+   ERROR TOAST
+   ============================================ */
+
+.compact-error-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #ff4444;
+  color: white;
+  padding: 12px 16px;
+  border-radius: 8px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  z-index: 2000;
+  box-shadow: 0 4px 12px rgba(255, 68, 68, 0.4);
+  animation: compactSlideIn 0.3s ease-out;
+}
+
+.compact-error-toast button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+@keyframes compactSlideIn {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* ============================================
+   MEDIA QUERIES (ADAPTED FOR DESKTOP/MOBILE)
+   ============================================ */
+
+@media (max-width: 768px) {
+  .compact-music-player {
+    /* For phone layout */
+    bottom: 72px; /* Above bottom nav */
+    border-radius: 12px 12px 0 0;
+    left: 0;
+    width: 100%;
+    right: 0;
+  }
+  
+  .compact-player-main {
+    padding: 10px 16px;
+    gap: 12px;
+  }
+  
+  .compact-cover-img {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .compact-song-title {
+    font-size: 14px;
+  }
+  
+  .compact-song-artist {
+    font-size: 12px;
+  }
+  
+  .compact-play {
+    width: 60px;
+    height: 60px;
+    box-shadow: 0px 4px 0px var(--primary-depth);
+    margin-bottom: 4px;
+  }
+  
+  .compact-play:active:not(:disabled) {
+    box-shadow: 0px 0px 0px var(--primary-depth);
+    transform: translateY(4px);
+  }
+  
+  .compact-play svg {
+    width: 26px;
+    height: 26px;
+  }
+  
+  .compact-prev,
+  .compact-next {
+    width: 46px;
+    height: 46px;
+    box-shadow: 0px 3px 0px var(--border-color);
+    margin-bottom: 3px;
+  }
+  
+  .compact-prev:active:not(:disabled),
+  .compact-next:active:not(:disabled) {
+    box-shadow: 0px 0px 0px var(--border-color);
+    transform: translateY(3px);
+  }
+  
+  .compact-prev svg,
+  .compact-next svg {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .compact-controls {
+    gap: 8px;
+  }
+}
+
+/* Small mobile devices */
+@media (max-width: 375px) {
+  .compact-player-main {
+    padding: 8px 12px;
+  }
+  
+  .compact-cover-img {
+    width: 44px;
+    height: 44px;
+  }
+  
+  .compact-play {
+    width: 56px;
+    height: 56px;
+    box-shadow: 0px 4px 0px var(--primary-depth);
+    margin-bottom: 4px;
+  }
+  
+  .compact-play:active:not(:disabled) {
+    box-shadow: 0px 0px 0px var(--primary-depth);
+    transform: translateY(4px);
+  }
+  
+  .compact-play svg {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .compact-prev,
+  .compact-next {
+    width: 42px;
+    height: 42px;
+    box-shadow: 0px 3px 0px var(--border-color);
+    margin-bottom: 3px;
+  }
+  
+  .compact-prev:active:not(:disabled),
+  .compact-next:active:not(:disabled) {
+    box-shadow: 0px 0px 0px var(--border-color);
+    transform: translateY(3px);
+  }
+  
+  .compact-prev svg,
+  .compact-next svg {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .compact-controls {
+    gap: 7px;
+  }
+}
+
+/* ============================================
+   TOUCH OPTIMIZATIONS
+   ============================================ */
+
+@media (hover: none) {
+  .compact-btn:active:not(:disabled) {
+    /* 3D press effect on touch */
+    transform: translateY(4px);
+  }
+  
+  .compact-play:active:not(:disabled) {
+    box-shadow: 0px 0px 0px var(--primary-depth);
+    transform: translateY(5px);
+  }
+  
+  .compact-prev:active:not(:disabled),
+  .compact-next:active:not(:disabled) {
+    box-shadow: 0px 0px 0px var(--border-color);
+    transform: translateY(4px);
+  }
+}

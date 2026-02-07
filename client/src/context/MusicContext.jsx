@@ -1,23 +1,19 @@
-import { createContext, useContext, useState, useRef, useEffect } from 'react';
+import { createContext, useContext, useState, useRef, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import api from '../config/api';
 
 const MusicContext = createContext();
 
 export const MusicProvider = ({ children }) => {
-  const { user, updateStats } = useAuth();
+  const { user } = useAuth();
   
   // Audio State
   const [currentSong, setCurrentSong] = useState(null);
   const [queue, setQueue] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(-1);
   const [isPlaying, setIsPlaying] = useState(false);
-
-  // Time State
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-
-  // Optional buffer bar (if UI needs later)
   const [bufferedTime, setBufferedTime] = useState(0);
 
   const audioRef = useRef(new Audio());
@@ -29,178 +25,102 @@ export const MusicProvider = ({ children }) => {
     indexRef.current = currentIndex;
   }, [queue, currentIndex]);
 
-
   // PLAY SPECIFIC INDEX
-  const playAtIndex = (index, song) => {
+  const playAtIndex = useCallback((index, song) => {
+    if (!song) return;
+
     setCurrentIndex(index);
     setCurrentSong(song);
 
     const audio = audioRef.current;
-
-    setCurrentTime(0);
-    setDuration(0);
-    setBufferedTime(0);
-
-    if (!song || !song.id) return;
-
-    // Use Backend Stream Endpoint to fix "Double Duration" bug
-    // If VITE_API_URL is set (Prod), use it. Else use '/api' (Dev Proxy)
+    
+    // Construct stable stream URL
     const baseUrl = import.meta.env.VITE_API_URL || '/api';
-    // Ensure no double slashes
     const cleanBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
     const streamUrl = `${cleanBase}/stream/${song.id}`;
 
-    // Update src only if changed
-    if (audio.src !== streamUrl) {
+    if (audio.src !== window.location.origin + streamUrl && audio.src !== streamUrl) {
       audio.src = streamUrl;
       audio.load();
-    } else {
-      audio.currentTime = 0;
     }
+    
+    audio.play().catch(err => console.warn("Playback blocked:", err));
+    setIsPlaying(true);
+  }, []);
 
-    audio.play().catch(err => console.warn("Play blocked:", err));
-  };
-
-
-  const nextSong = () => {
+  const nextSong = useCallback(() => {
     const q = queueRef.current;
     const idx = indexRef.current;
-    if (!q.length) return;
-
     if (idx < q.length - 1) {
       playAtIndex(idx + 1, q[idx + 1]);
     } else {
       setIsPlaying(false);
     }
-  };
+  }, [playAtIndex]);
 
-
-  const prevSong = () => {
+  const prevSong = useCallback(() => {
     const idx = indexRef.current;
     if (idx > 0) {
       playAtIndex(idx - 1, queueRef.current[idx - 1]);
     } else {
       audioRef.current.currentTime = 0;
     }
-  };
-
-
-  useEffect(() => {
-    const audio = audioRef.current;
-
-    const handlePlay = () => setIsPlaying(true);
-    const handlePause = () => setIsPlaying(false);
-
-    const handleEnded = () => {
-      setIsPlaying(false);
-      if (updateStats) updateStats("song_played");
-      nextSong();
-    };
-
-    const handleTimeUpdate = () => {
-      if (!isNaN(audio.currentTime)) {
-        setCurrentTime(audio.currentTime);
-      }
-    };
-
-    const handleLoadedMetadata = () => {
-      if (!isNaN(audio.duration)) {
-        setDuration(audio.duration);
-      }
-    };
-
-    const handleDurationChange = () => {
-      if (!isNaN(audio.duration)) {
-        setDuration(audio.duration);
-      }
-    };
-
-    // 🔥 BUFFER FIX — prevents double duration
-    const handleProgress = () => {
-      try {
-        if (audio.buffered.length > 0) {
-          const end = audio.buffered.end(audio.buffered.length - 1);
-          const safeEnd = Math.min(end, audio.duration || 0);
-          setBufferedTime(safeEnd);
-        }
-      } catch (e) {
-        console.warn("Buffer error:", e);
-      }
-    };
-
-    const handleLoadStart = () => {
-      setCurrentTime(0);
-      setDuration(0);
-      setBufferedTime(0);
-    };
-
-    audio.addEventListener("play", handlePlay);
-    audio.addEventListener("pause", handlePause);
-    audio.addEventListener("ended", handleEnded);
-    audio.addEventListener("timeupdate", handleTimeUpdate);
-    audio.addEventListener("loadedmetadata", handleLoadedMetadata);
-    audio.addEventListener("durationchange", handleDurationChange);
-    audio.addEventListener("progress", handleProgress); // ✅ Added
-    audio.addEventListener("loadstart", handleLoadStart);
-
-    return () => {
-      audio.removeEventListener("play", handlePlay);
-      audio.removeEventListener("pause", handlePause);
-      audio.removeEventListener("ended", handleEnded);
-      audio.removeEventListener("timeupdate", handleTimeUpdate);
-      audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
-      audio.removeEventListener("durationchange", handleDurationChange);
-      audio.removeEventListener("progress", handleProgress);
-      audio.removeEventListener("loadstart", handleLoadStart);
-    };
-  }, []);
-
-
-  // When currentSong changes
-  useEffect(() => {
-    const audio = audioRef.current;
-
-    if (!currentSong) return;
-
-    if (audio.src !== currentSong.audioUrl) {
-      audio.src = currentSong.audioUrl;
-      audio.load();
-    }
-
-    audio.play().catch(e => console.warn("Play failed:", e));
-  }, [currentSong]);
-
+  }, [playAtIndex]);
 
   const togglePlay = () => {
     const audio = audioRef.current;
-    audio.paused ? audio.play() : audio.pause();
+    if (audio.paused) {
+      audio.play().catch(e => console.warn(e));
+      setIsPlaying(true);
+    } else {
+      audio.pause();
+      setIsPlaying(false);
+    }
   };
 
   const seek = (time) => {
-    const audio = audioRef.current;
-    audio.currentTime = time;
+    audioRef.current.currentTime = time;
   };
 
-  // PLAY SONG ENTRY
   const playSong = (song, songList = []) => {
-    if (!user) {
-      window.location.href = "/login";
-      return;
-    }
-
-    let newQueue = songList.length ? songList : [song];
+    const newQueue = songList.length ? songList : [song];
     let index = newQueue.findIndex(s => s.id === song.id);
     if (index === -1) index = 0;
 
     setQueue(newQueue);
     playAtIndex(index, song);
 
-    // Log play
-    if (user?.uid && song?.id) {
-      api.post("/log-play", { userId: user.uid, songId: song.id })
-        .catch(err => console.error("History Log Failed", err));
+    // Background log
+    if (user?.uid) {
+      api.post("/log-play", { userId: user.uid, songId: song.id }).catch(() => {});
     }
   };
+
+  useEffect(() => {
+    const audio = audioRef.current;
+
+    const syncState = () => {
+      setIsPlaying(!audio.paused);
+      setCurrentTime(audio.currentTime);
+      if (!isNaN(audio.duration)) setDuration(audio.duration);
+      
+      if (audio.buffered.length > 0) {
+        setBufferedTime(audio.buffered.end(audio.buffered.length - 1));
+      }
+    };
+
+    audio.addEventListener("timeupdate", syncState);
+    audio.addEventListener("durationchange", syncState);
+    audio.addEventListener("play", () => setIsPlaying(true));
+    audio.addEventListener("pause", () => setIsPlaying(false));
+    audio.addEventListener("ended", nextSong);
+
+    return () => {
+      audio.removeEventListener("timeupdate", syncState);
+      audio.removeEventListener("durationchange", syncState);
+      audio.removeEventListener("ended", nextSong);
+    };
+  }, [nextSong]);
 
   return (
     <MusicContext.Provider value={{
@@ -212,7 +132,7 @@ export const MusicProvider = ({ children }) => {
       prevSong,
       currentTime,
       duration,
-      bufferedTime, // <-- UI can use this if needed
+      bufferedTime,
       seek
     }}>
       {children}
@@ -221,3 +141,4 @@ export const MusicProvider = ({ children }) => {
 };
 
 export const useMusic = () => useContext(MusicContext);
+

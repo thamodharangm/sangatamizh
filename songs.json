@@ -1,0 +1,11 @@
+[
+    {
+        "id": "demo-1",
+        "title": "Welcome to Sangatamizh",
+        "artist": "Antigravity",
+        "album": "The Transformation",
+        "url": "uploads/demo.mp3",
+        "cover": "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500",
+        "duration": 180
+    }
+]

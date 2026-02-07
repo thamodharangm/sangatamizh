@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import api from '../api/axios';
+import api from '../config/api';
+
 import SongCard from '../components/SongCard';
 import { useMusic } from '../context/MusicContext';
 
