@@ -12,7 +12,7 @@ const AdminEmotionManager = () => {
   const [hasChanges, setHasChanges] = useState(false);
   const [changes, setChanges] = useState({});
 
-  const emotions = ['Sad', 'Feel Good', 'Vibe', 'Motivation', 'Love', 'Party', 'Neutral'];
+  const emotions = ['Neutral', 'Feel Good', 'Sad', 'Motivation', 'Love', 'Party', 'Vibe'];
 
   // Fetch songs
   useEffect(() => {

@@ -21,8 +21,8 @@ const BottomNav = () => {
       </Link>
 
       <Link to="/playlist" className={`nav-item ${isActive('/playlist') ? 'active' : ''}`}>
-        <span>❤️</span>
-        <span className="nav-text">Liked</span>
+        <span>🎵</span>
+        <span className="nav-text">Playlist</span>
       </Link>
 
       {user && user.role === 'admin' && (

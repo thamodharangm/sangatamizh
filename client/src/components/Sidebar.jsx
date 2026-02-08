@@ -9,12 +9,7 @@ const Sidebar = () => {
 
   return (
     <aside className="sidebar">
-      {/* Logo */}
-      <div className="sidebar-header">
-          <h2 className="brand-title">
-            Sangatamizh Music
-          </h2>
-       </div>
+      {/* Logo removed as requested */}
 
       {/* Navigation */}
       <nav className="sidebar-nav">

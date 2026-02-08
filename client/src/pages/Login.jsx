@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import api from '../config/api';
 import { doc, setDoc } from "firebase/firestore";
 import { firestore } from '../firebase';
 
@@ -35,6 +36,9 @@ const Login = () => {
         lastLogin: new Date().toISOString()
       }, { merge: true });
       console.log("Login: Save complete.");
+      
+      // Log to backend analytics
+      api.post('/analytics/login', { userId: user.uid }).catch(e => console.error("Log fail:", e));
     } catch (e) {
       console.error("Error saving user to DB:", e);
     }

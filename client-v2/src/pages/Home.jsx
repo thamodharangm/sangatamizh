@@ -1,135 +1,101 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import api from '../config/api';
+import { useState, useEffect, useCallback } from 'react';
 import SongCard from '../components/SongCard';
-import { useMusic } from '../context/MusicContext';
+import { useAuth } from '../context/AuthContext';
+import api from '../config/api';
 
-// Mobile-optimized Home Page
+// Static Mobile-optimized Home Page
 const Home = () => {
-  const [songs, setSongs] = useState([]);
-  const [sections, setSections] = useState({
-    trending: [],
-    hits: [],
-    recent: []
-  });
+  const { user } = useAuth();
+  const [sections, setSections] = useState({ trending: [], recent: [] });
   const [loading, setLoading] = useState(true);
-  const [debugError, setDebugError] = useState(null); // Debug state
-  const { playSong } = useMusic();
-  const navigate = useNavigate();
 
-  const getIdentity = () => {
-    try {
-      const user = JSON.parse(localStorage.getItem('user'));
-      if (user?.id) return user.id;
-    } catch (e) { /* ignore */ }
-    
+  const getIdentity = useCallback(() => {
+    if (user?.uid) return user.uid;
     let guestId = localStorage.getItem('guestId');
     if (!guestId) {
-      guestId = 'guest_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
-      localStorage.setItem('guestId', guestId);
+        guestId = 'guest_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+        localStorage.setItem('guestId', guestId);
     }
     return guestId;
-  };
+  }, [user]);
+
+  const fetchSections = useCallback(async () => {
+    try {
+      setLoading(true);
+      const userId = getIdentity();
+      const response = await api.get(`/home-sections?userId=${userId}`);
+      if (response.data) {
+        setSections({
+          trending: Array.isArray(response.data.trending) ? response.data.trending : [],
+          recent: Array.isArray(response.data.recent) ? response.data.recent : []
+        });
+      }
+    } catch (error) {
+      console.error("Failed to fetch home sections:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [getIdentity]);
 
   useEffect(() => {
-    const fetchHomeSections = async () => {
-      try {
-        setLoading(true);
-        const userId = getIdentity();
-        
-        const [songsRes, sectionRes] = await Promise.all([
-          api.get('/songs'),
-          api.get(`/home-sections?userId=${userId}`)
-        ]);
-
-        const normalize = (list) => list.map(s => ({
-          ...s,
-          audioUrl: s.file_url || s.fileUrl,
-          coverUrl: s.cover_url || s.coverArt || s.coverUrl
-        }));
-
-        setSongs(normalize(songsRes.data));
-        setSections({
-          trending: normalize(sectionRes.data.trending || []),
-          hits: normalize(sectionRes.data.hits || []),
-          recent: normalize(sectionRes.data.recent || [])
-        });
-
-      } catch (error) {
-        console.error('Error fetching home sections:', error);
-        setDebugError(`Main Fetch Failed: ${error.message} (API: ${import.meta.env.VITE_API_URL})`);
-        // Fallback
-        try {
-          const allSongs = await api.get('/songs');
-          const normalized = allSongs.data.map(s => ({
-            ...s,
-            audioUrl: s.file_url || s.fileUrl,
-            coverUrl: s.cover_url || s.coverArt || s.coverUrl
-          }));
-          setSongs(normalized);
-          setSections({
-            trending: normalized.slice(0, 10),
-            hits: normalized.slice(10, 20),
-            recent: []
-          });
-        } catch (err) { /* silent */ }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchHomeSections();
-  }, []);
-
-  const handlePlay = (song, playlist) => {
-    playSong(song, playlist);
-    const userId = getIdentity();
-    if (userId) {
-      api.post('/log-play', { userId, songId: song.id }).catch(() => {});
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="main-content" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-         <div style={{ color: 'var(--text-muted)' }}>Loading...</div>
-      </div>
-    );
-  }
+    fetchSections();
+  }, [fetchSections]);
 
   return (
     <div className="home-page">
-      {/* Hero Section */}
-      <div className="mb-3" style={{ borderBottom: '2px solid var(--border-color)', paddingBottom: '1.5rem' }}>
-        <h1 style={{ fontSize: '1.75rem', marginBottom: '0.5rem' }}>
-          Welcome to <span style={{ color: 'var(--primary)' }}>Sangatamizh</span>
-        </h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1.25rem' }}>
-          Your daily streak of soulful music starts here.
-        </p>
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          <button 
-            onClick={() => document.getElementById('hits-section')?.scrollIntoView({ behavior: 'smooth' })} 
-            className="btn-3d btn-primary"
-          >
-            Start Listening
-          </button>
-          <button 
-            onClick={() => navigate('/library')} 
-            className="btn-3d btn-secondary"
-          >
-            My Library
-          </button>
+      {/* Premium 3D Welcome Card */}
+      <div style={{ 
+        padding: '1.25rem', 
+        backgroundColor: '#202f36',
+        borderRadius: '20px',
+        border: '2px solid #37464f',
+        boxShadow: '0px 4px 0px #37464f',
+        marginBottom: '1.5rem',
+        position: 'relative'
+      }}>
+        <div style={{ position: 'absolute', top: '12px', right: '12px' }}>
+             <div style={{
+               padding: '4px 10px',
+               background: '#111b21',
+               borderRadius: '10px',
+               border: '1px solid #37464f',
+               color: '#ec4899',
+               fontSize: '0.65rem',
+               fontWeight: '900',
+               letterSpacing: '0.5px',
+               boxShadow: '0px 2px 0px #37464f'
+             }}>STATIC</div>
         </div>
+        <h1 style={{ fontSize: '1.5rem', marginBottom: '0.4rem', color: '#e5e5e5', fontWeight: '900', letterSpacing: '0.5px' }}>
+          Welcome to <span style={{ color: '#58cc02' }}>Sangatamizh</span>
+        </h1>
+        <p style={{ color: '#afbacc', margin: 0, fontSize: '0.85rem', fontWeight: '500', lineHeight: '1.4' }}>
+          Your premium destination for soulful Tamil music.
+        </p>
       </div>
+
 
       {/* Recently Played */}
       {sections.recent && sections.recent.length > 0 && (
         <section className="mb-3" id="recent-section">
-          <h2 className="mb-2">🕒 Recently Played</h2>
-          <div className="scroll-container">
+          <h2 className="mb-2" style={{ fontSize: '1.15rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: '#111b21',
+              border: '2px solid #37464f',
+              boxShadow: '0px 2px 0px #37464f',
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              fontSize: '0.9rem'
+            }}>🕒</span>
+            Recently Played
+          </h2>
+          <div className="scroll-container no-scrollbar" style={{ scrollSnapType: 'x mandatory' }}>
             {sections.recent.map(song => (
-              <div key={song.id} className="scroll-item">
+              <div key={song.id} className="scroll-item" style={{ scrollSnapAlign: 'start' }}>
                 <SongCard 
                   song={song} 
                   playlist={sections.recent}
@@ -140,50 +106,35 @@ const Home = () => {
         </section>
       )}
 
-      {/* Hits */}
-      {sections.hits && sections.hits.length > 0 && (
-        <section className="mb-3" id="hits-section">
-          <h2 className="mb-2">🎵 Tamil Hits</h2>
-          <div className="scroll-container">
-            {sections.hits.map(song => (
-              <div key={song.id} className="scroll-item">
+      {/* Trending Now */}
+      {sections.trending && sections.trending.length > 0 && (
+        <section className="mb-3" id="trending-section">
+          <h2 className="mb-2" style={{ fontSize: '1.15rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: '#111b21',
+              border: '2px solid #37464f',
+              boxShadow: '0px 2px 0px #37464f',
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              fontSize: '0.9rem'
+            }}>🔥</span>
+            Trending Now
+          </h2>
+          <div className="scroll-container no-scrollbar" style={{ scrollSnapType: 'x mandatory' }}>
+            {sections.trending.map(song => (
+              <div key={song.id} className="scroll-item" style={{ scrollSnapAlign: 'start' }}>
                 <SongCard 
                   song={song} 
-                  playlist={sections.hits}
+                  playlist={sections.trending}
                 />
               </div>
             ))}
           </div>
         </section>
-      )}
-
-      {/* Fallback: All Songs (Grid Layout) */}
-      {songs.length > 0 && sections.hits.length === 0 && (
-        <section className="mb-3">
-          <h2 className="mb-2">🎵 All Songs</h2>
-          <div className="songs-grid">
-            {songs.map(song => (
-              <SongCard 
-                key={song.id} 
-                song={song} 
-                onPlay={() => handlePlay(song, songs)}
-              />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Empty State */}
-      {songs.length === 0 && (
-        <div className="card-flat text-center empty-state">
-           <p style={{ color: 'var(--text-muted)' }}>No songs available currently.</p>
-           {debugError && (
-             <div style={{ color: 'red', marginTop: '10px', fontSize: '0.8rem', wordBreak: 'break-all' }}>
-               <p><strong>Debug Info:</strong></p>
-               {debugError}
-             </div>
-           )}
-        </div>
       )}
     </div>
   );

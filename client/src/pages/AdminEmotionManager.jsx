@@ -17,7 +17,7 @@ const AdminEmotionManager = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const emotions = ['Sad songs', 'Feel Good', 'Vibe', 'Motivation'];
+  const emotions = ['Neutral', 'Feel Good', 'Sad', 'Motivation', 'Love', 'Party', 'Vibe'];
 
   // Handle window resize
   useEffect(() => {

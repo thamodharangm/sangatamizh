@@ -5,18 +5,16 @@ import AdminAnalytics from './AdminAnalytics';
 
 const AdminUpload = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard', 'upload', 'manage'
-  const [uploadTab, setUploadTab] = useState('file'); // 'file' or 'youtube' inside Upload tab
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [uploadTab, setUploadTab] = useState('file');
   const [youtubeUrl, setYoutubeUrl] = useState('');
   
-  // Data State
   const [songs, setSongs] = useState([]);
   const [stats, setStats] = useState({ totalSongs: 0, storageUsed: '0 MB' });
 
-  // Form State
   const [file, setFile] = useState(null);
   const [cover, setCover] = useState(null);
-  const [metadata, setMetadata] = useState({ title: '', artist: '', album: '', category: 'General', emotion: 'Neutral', coverUrl: '' });
+  const [metadata, setMetadata] = useState({ title: '', artist: '', album: '', category: 'General', emotion: 'Neutral', coverUrl: '', lyrics: '' });
   
   const [loading, setLoading] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
@@ -24,7 +22,46 @@ const AdminUpload = () => {
   const [error, setError] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState(null);
 
-  // Initial Data Fetch
+  const [editingId, setEditingId] = useState(null);
+  const [editForm, setEditForm] = useState({});
+
+  const emotionsList = ['Neutral', 'Feel Good', 'Sad', 'Motivation', 'Love', 'Party', 'Vibe'];
+
+  const startEditing = (song) => {
+    setEditingId(song.id);
+    setEditForm({
+      title: song.title,
+      artist: song.artist,
+      category: song.category || 'Tamil',
+      emotion: song.emotion || 'Neutral'
+    });
+    setDeleteConfirm(null); 
+  };
+
+  const cancelEditing = () => {
+    setEditingId(null);
+    setEditForm({});
+  };
+
+  const handleEditChange = (e) => {
+    setEditForm({ ...editForm, [e.target.name]: e.target.value });
+  };
+
+  const saveEdit = async () => {
+    try {
+      setLoading(true);
+      await api.put(`/songs/${editingId}`, editForm);
+      setMessage('Song updated successfully!');
+      setEditingId(null);
+      fetchSongs();
+    } catch (err) {
+      console.error(err);
+      setError('Update Failed: ' + (err.response?.data?.error || err.message));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchSongs();
   }, []);
@@ -35,7 +72,7 @@ const AdminUpload = () => {
       setSongs(res.data);
       setStats({
         totalSongs: res.data.length,
-        storageUsed: `${(res.data.length * 3.5).toFixed(1)} MB` // Mock estimation
+        storageUsed: `${(res.data.length * 3.5).toFixed(1)} MB`
       });
     } catch (err) {
       console.error("Failed to fetch dashboard data", err);
@@ -44,7 +81,6 @@ const AdminUpload = () => {
     }
   };
 
-  // Handle YouTube Metadata Fetch
   const fetchYoutubeMetadata = async () => {
     if (!youtubeUrl) return;
     setLoading(true);
@@ -56,6 +92,7 @@ const AdminUpload = () => {
         title, 
         artist, 
         coverUrl, 
+        lyrics: res.data.lyrics || '',
         emotion: suggestedEmotion || 'Feel Good',
         category: suggestedCategory || 'Tamil'
       }));
@@ -88,24 +125,23 @@ const AdminUpload = () => {
 
     try {
       if (uploadTab === 'youtube') {
-         // Backend Process (YouTube)
-         await api.post('/upload-from-yt', {
-           url: youtubeUrl,
-           category: metadata.category,
-           emotion: metadata.emotion,
-           customMetadata: metadata
-         });
+          await api.post('/upload-from-yt', {
+            url: youtubeUrl,
+            title: metadata.title,
+            artist: metadata.artist,
+            coverUrl: metadata.coverUrl,
+            lyrics: metadata.lyrics,
+            category: metadata.category,
+            emotion: metadata.emotion,
+          });
          setMessage('YouTube Import Successful!');
          setYoutubeUrl('');
       } else {
-         // Backend Process (File Upload)
         if (!file) throw new Error("Please select an audio file.");
 
         const formData = new FormData();
         formData.append('audio', file);
-        if (cover) {
-          formData.append('cover', cover);
-        }
+        if (cover) formData.append('cover', cover);
         formData.append('title', metadata.title || file.name.replace(/\.[^/.]+$/, ""));
         formData.append('artist', metadata.artist || 'Unknown Artist');
         formData.append('album', metadata.album || 'Single');
@@ -123,19 +159,16 @@ const AdminUpload = () => {
         if(document.getElementById('cover-input')) document.getElementById('cover-input').value = "";
       }
       
-      setMetadata({ title: '', artist: '', album: '', category: 'General', emotion: 'Neutral', coverUrl: '' });
-      fetchSongs(); // Refresh stats
+      setMetadata({ title: '', artist: '', album: '', category: 'General', emotion: 'Neutral', coverUrl: '', lyrics: '' });
+      fetchSongs();
 
     } catch (err) {
       console.error("Upload Error:", err);
-      // Improve error message extraction
       let errorMsg = 'Upload Failed';
       if (err.response && err.response.data) {
         errorMsg += ': ' + (err.response.data.message || JSON.stringify(err.response.data));
       } else if (err.message) {
         errorMsg += ': ' + err.message;
-      } else {
-        errorMsg = 'Upload Failed: ' + String(err);
       }
       setError(errorMsg);
     } finally {
@@ -147,7 +180,6 @@ const AdminUpload = () => {
     try {
       await api.delete(`/songs/${id}`);
       fetchSongs();
-      setStats(prev => ({ ...prev, totalSongs: prev.totalSongs - 1 }));
       setMessage('Song deleted successfully!');
       setTimeout(() => setMessage(''), 3000);
       setDeleteConfirm(null);
@@ -164,250 +196,344 @@ const AdminUpload = () => {
     setDeleteConfirm(id);
   };
 
-
-
   return (
-    <div style={{ padding: '2rem 1rem', maxWidth: '1000px', margin: '0 auto' }}>
-      <header style={{ marginBottom: '2rem', borderBottom: '2px solid var(--border-color)', paddingBottom: '1rem' }}>
-        <h1 style={{ color: 'white', marginBottom: '0.5rem' }}>Admin Dashboard</h1>
-        <p style={{ color: 'var(--text-muted)' }}>Manage your music library and content.</p>
-      </header>
-      
-      {/* Main Stats (Visible on Dashboard) */}
-      {activeTab === 'dashboard' && (
-        <div className="admin-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
-          <div className="card-flat admin-stat-card" style={{ padding: '1.5rem', textAlign: 'center' }}>
-            <h3 style={{ fontSize: '3rem', color: 'var(--primary)', marginBottom: '0.5rem' }}>{stats.totalSongs}</h3>
-            <p style={{ color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold', fontSize: '0.8rem' }}>Total Songs</p>
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      {/* Extreme Minimal Header */}
+      <div style={{ flexShrink: 0, background: 'var(--bg-main)', borderBottom: '1px solid var(--border-color)', padding: '0.35rem 0.75rem 0 0.75rem', maxWidth: '1600px', margin: '0 auto', width: '100%' }}>
+        <header style={{ marginBottom: '0.35rem' }}>
+          <h1 style={{ color: 'white', marginBottom: '0.1rem', fontSize: '1rem', fontWeight: '800', letterSpacing: '-0.3px' }}>Admin Dashboard</h1>
+          <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: '0.7rem' }}>Manage library</p>
+        </header>
+        
+        {/* Minimal Stats */}
+        {activeTab === 'dashboard' && (
+          <div className="admin-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.4rem', marginBottom: '0.4rem' }}>
+            <div className="card-flat admin-stat-card" style={{ padding: '0.35rem 0.4rem', textAlign: 'center' }}>
+              <h3 style={{ fontSize: '1.2rem', color: 'var(--primary)', marginBottom: '0.05rem', lineHeight: 1 }}>{stats.totalSongs}</h3>
+              <p style={{ color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700', fontSize: '0.6rem', margin: 0, lineHeight: 1 }}>Songs</p>
+            </div>
+            <div className="card-flat admin-stat-card" style={{ padding: '0.35rem 0.4rem', textAlign: 'center' }}>
+              <h3 style={{ fontSize: '1.2rem', color: '#10b981', marginBottom: '0.05rem', lineHeight: 1 }}>Active</h3>
+              <p style={{ color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700', fontSize: '0.6rem', margin: 0, lineHeight: 1 }}>Status</p>
+            </div>
+            <div className="card-flat admin-stat-card" style={{ padding: '0.35rem 0.4rem', textAlign: 'center' }}>
+              <h3 style={{ fontSize: '1.2rem', color: '#f59e0b', marginBottom: '0.05rem', lineHeight: 1 }}>{stats.storageUsed}</h3>
+              <p style={{ color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700', fontSize: '0.6rem', margin: 0, lineHeight: 1 }}>Storage</p>
+            </div>
           </div>
-          <div className="card-flat admin-stat-card" style={{ padding: '1.5rem', textAlign: 'center' }}>
-            <h3 style={{ fontSize: '3rem', color: '#10b981', marginBottom: '0.5rem' }}>Active</h3>
-            <p style={{ color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold', fontSize: '0.8rem' }}>System Status</p>
-          </div>
-          <div className="card-flat admin-stat-card" style={{ padding: '1.5rem', textAlign: 'center' }}>
-            <h3 style={{ fontSize: '3rem', color: '#f59e0b', marginBottom: '0.5rem' }}>{stats.storageUsed}</h3>
-            <p style={{ color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold', fontSize: '0.8rem' }}>Est. Storage</p>
-          </div>
-        </div>
-      )}
+        )}
 
-      {/* Main Tabs */}
-      <div className="admin-tabs" style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
-        {['dashboard', 'analytics', 'upload', 'manage', 'emotions'].map((tab) => (
-          <button  
-            key={tab}
-            onClick={() => {
-              if (tab === 'emotions') {
-                navigate('/admin/emotions');
-              } else {
-                setActiveTab(tab);
-              }
-            }}
-            className={`btn-3d ${activeTab === tab ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ textTransform: 'capitalize' }}
-          >
-            {tab === 'emotions' ? '🎭 Emotions' : tab}
-          </button>
-        ))}
+        {/* Minimal Tabs */}
+        <div className="admin-tabs" style={{ display: 'flex', gap: '0.3rem', marginBottom: '0.3rem', flexWrap: 'wrap' }}>
+          {['dashboard', 'analytics', 'upload', 'manage', 'emotions'].map((tab) => (
+            <button  
+              key={tab}
+              onClick={() => {
+                if (tab === 'emotions') {
+                  navigate('/admin/emotions');
+                } else {
+                  setActiveTab(tab);
+                  setMessage('');
+                  setError('');
+                }
+              }}
+              className={`btn-3d ${activeTab === tab ? 'btn-primary' : 'btn-secondary'}`}
+              style={{ textTransform: 'capitalize', fontSize: '0.7rem', padding: '0.25rem 0.6rem', height: 'auto', lineHeight: 1.2 }}
+            >
+              {tab === 'emotions' ? '🎭' : tab}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* DASHBOARD TAB CONTENT */}
+      {/* Content Area */}
+      <div style={{ 
+        flex: 1, 
+        overflow: 'hidden',
+        padding: '0.5rem 0.75rem 1.5rem 0.75rem', 
+        maxWidth: '1600px', 
+        margin: '0 auto', 
+        width: '100%',
+        display: 'flex',
+        flexDirection: 'column'
+      }}>
+
       {activeTab === 'dashboard' && (
-        <div className="card-flat" style={{ padding: '2rem' }}>
-          <h2 style={{ color: 'white', marginBottom: '1rem' }}>Recent Activity</h2>
-          {dataLoading ? <p>Loading...</p> : (
-            <ul className="recent-activity-list" style={{ listStyle: 'none', padding: 0 }}>
-              {songs.slice(0, 5).map(song => (
-                <li key={song.id || song._id} className="activity-item" style={{ padding: '1rem 0', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div className="activity-left" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <div style={{ width: '40px', height: '40px', borderRadius: '4px', overflow: 'hidden' }}>
-                      <img src={song.cover_url || song.coverArt || 'https://via.placeholder.com/40'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="art" />
+        <div className="card-flat" style={{ padding: '0', overflow: 'hidden', flex: 1, display: 'flex', flexDirection: 'column', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+          {/* Ultra-Compact Header */}
+          <div style={{ padding: '0.25rem 0.4rem', borderBottom: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.02)', flexShrink: 0 }}>
+            <h2 style={{ color: 'white', margin: 0, fontSize: '0.65rem', fontWeight: '700', letterSpacing: '0.3px' }}>RECENT ACTIVITY</h2>
+          </div>
+          
+          {/* Scrollable List Container */}
+          <div 
+            className="hide-scrollbar"
+            style={{ 
+              flex: 1, 
+              overflowY: 'auto', 
+              padding: '0.25rem 0.3rem 0.4rem 0.3rem',
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+              WebkitOverflowScrolling: 'touch'
+            }}
+          >
+            {dataLoading ? (
+              <div style={{ padding: '0.5rem 0', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.65rem' }}>Loading...</div>
+            ) : songs.length === 0 ? (
+              <div style={{ padding: '0.5rem 0', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.65rem' }}>No songs yet.</div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                {songs.slice(0, 10).map(song => (
+                  <div key={song.id || song._id} style={{ 
+                    padding: '0.25rem 0.3rem', 
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(255,255,255,0.05)',
+                    borderRadius: '3px',
+                    display: 'flex', 
+                    alignItems: 'center',
+                    gap: '0.35rem',
+                    transition: 'all 0.2s ease',
+                    cursor: 'pointer'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                    e.currentTarget.style.borderColor = 'rgba(50, 215, 75, 0.3)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
+                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)';
+                  }}>
+                    {/* Ultra-Compact Album Art */}
+                    <div style={{ 
+                      width: '20px', 
+                      height: '20px', 
+                      borderRadius: '2px', 
+                      overflow: 'hidden', 
+                      flexShrink: 0,
+                      background: 'rgba(0,0,0,0.3)',
+                      border: '1px solid rgba(255,255,255,0.1)'
+                    }}>
+                      <img 
+                        src={song.cover_url || song.coverArt || 'https://via.placeholder.com/20'} 
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                        alt="" 
+                      />
                     </div>
-                    <div className="activity-text">
-                      <h4 style={{ color: 'white', margin: 0 }}>{song.title}</h4>
-                      <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{song.artist}</span>
+                    
+                    {/* Ultra-Compact Song Info */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <h4 style={{ 
+                        color: 'white', 
+                        margin: 0, 
+                        fontSize: '0.7rem', 
+                        fontWeight: '600', 
+                        whiteSpace: 'nowrap', 
+                        overflow: 'hidden', 
+                        textOverflow: 'ellipsis', 
+                        lineHeight: 1.2,
+                        marginBottom: '0.05rem'
+                      }}>
+                        {song.title}
+                      </h4>
+                      <span style={{ 
+                        color: 'var(--text-muted)', 
+                        fontSize: '0.6rem', 
+                        lineHeight: 1 
+                      }}>
+                        {song.artist}
+                      </span>
                     </div>
+                    
+                    {/* Ultra-Compact Date Badge */}
+                    <span style={{ 
+                      fontSize: '0.55rem', 
+                      color: 'var(--text-muted)', 
+                      flexShrink: 0,
+                      background: 'rgba(0,0,0,0.3)',
+                      padding: '0.1rem 0.25rem',
+                      borderRadius: '2px'
+                    }}>
+                      {new Date(song.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    </span>
                   </div>
-                  <span className="activity-date" style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                    {new Date(song.created_at).toLocaleDateString()}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
-      {/* ANALYTICS TAB CONTENT */}
+
       {activeTab === 'analytics' && (
-        <AdminAnalytics />
+        <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          <AdminAnalytics />
+        </div>
       )}
 
-      {/* UPLOAD TAB CONTENT */}
       {activeTab === 'upload' && (
-        <div className="card-flat" style={{ padding: '1.5rem', maxWidth: '600px', margin: '0 auto' }}>
-           <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
+        <div className="card-flat" style={{ padding: '0.75rem', maxWidth: '600px', margin: '0 auto', flex: 1, overflow: 'hidden' }}>
+           <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '0.75rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.3rem' }}>
             <button 
               onClick={() => setUploadTab('file')}
-              style={{ background: 'none', border: 'none', color: uploadTab === 'file' ? 'var(--primary)' : 'var(--text-muted)', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.9rem' }}
+              style={{ background: 'none', border: 'none', color: uploadTab === 'file' ? 'var(--primary)' : 'var(--text-muted)', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.75rem' }}
             >
               File Upload
             </button>
             <button 
               onClick={() => setUploadTab('youtube')}
-              style={{ background: 'none', border: 'none', color: uploadTab === 'youtube' ? 'var(--primary)' : 'var(--text-muted)', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.9rem' }}
+              style={{ background: 'none', border: 'none', color: uploadTab === 'youtube' ? 'var(--primary)' : 'var(--text-muted)', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.75rem' }}
             >
               YouTube Import
             </button>
           </div>
 
-          {message && <div style={{ background: 'rgba(34, 197, 94, 0.2)', border: '1px solid rgba(34, 197, 94, 0.5)', color: '#86efac', padding: '0.5rem', borderRadius: '8px', marginBottom: '1rem', fontWeight: 'bold', fontSize: '0.9rem' }}>{message}</div>}
-          {error && <div style={{ background: 'rgba(239, 68, 68, 0.2)', border: '1px solid rgba(239, 68, 68, 0.5)', color: '#fca5a5', padding: '0.5rem', borderRadius: '8px', marginBottom: '1rem', fontWeight: 'bold', fontSize: '0.9rem' }}>{error}</div>}
+          {message && <div style={{ background: 'rgba(34, 197, 94, 0.2)', border: '1px solid rgba(34, 197, 94, 0.5)', color: '#86efac', padding: '0.35rem', borderRadius: '5px', marginBottom: '0.4rem', fontWeight: 'bold', fontSize: '0.75rem' }}>{message}</div>}
+          {error && <div style={{ background: 'rgba(239, 68, 68, 0.2)', border: '1px solid rgba(239, 68, 68, 0.5)', color: '#fca5a5', padding: '0.35rem', borderRadius: '5px', marginBottom: '0.4rem', fontWeight: 'bold', fontSize: '0.75rem' }}>{error}</div>}
 
           <form onSubmit={handleUpload}>
             {uploadTab === 'youtube' && (
-              <div style={{ marginBottom: '1.5rem' }}>
-                 <h4 style={{ color: 'var(--text-main)', marginBottom: '0.5rem', margin: 0 }}>YouTube Link</h4>
-                 <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <div style={{ marginBottom: '0.6rem' }}>
+                 <h4 style={{ color: 'var(--text-main)', marginBottom: '0.3rem', margin: 0, fontSize: '0.8rem' }}>YouTube Link</h4>
+                 <div style={{ display: 'flex', gap: '0.3rem' }}>
                    <input 
                      className="input-flat" 
                      type="text" 
-                     placeholder="Paste YouTube URL here..." 
+                     placeholder="Paste URL..." 
                      value={youtubeUrl}
                      onChange={(e) => setYoutubeUrl(e.target.value)}
-                     style={{ flex: 1 }}
+                     style={{ flex: 1, fontSize: '0.8rem', height: '32px', padding: '0 0.6rem' }}
                    />
                    <button 
                      type="button" 
                      onClick={(e) => { e.preventDefault(); fetchYoutubeMetadata(); }} 
                      className="btn-3d btn-secondary" 
                      disabled={loading || !youtubeUrl} 
-                     style={{ width: '120px', fontSize: '0.8rem', height: '42px', marginTop: '0' }}
+                     style={{ width: '70px', fontSize: '0.7rem', height: '32px', padding: '0 0.4rem' }}
                    >
-                     Auto-Fill
+                     {loading ? '...' : 'Fill'}
                    </button>
                  </div>
               </div>
             )}
 
-            {/* Show Cover Preview if Any */}
             {metadata.coverUrl && (
-               <div style={{ marginBottom: '1rem', width: '60px', height: '60px', borderRadius: '4px', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
+               <div style={{ marginBottom: '0.4rem', width: '45px', height: '45px', borderRadius: '4px', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
                   <img src={metadata.coverUrl} alt="Cover" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                </div>
             )}
 
             {uploadTab === 'file' && (
-               <div style={{ marginBottom: '1.5rem', display: 'grid', gap: '0.8rem' }}>
-                 <h4 style={{ color: 'var(--text-main)', margin: 0 }}>Song Details</h4>
-                 <input className="input-flat" type="text" name="title" placeholder="Song Title" value={metadata.title} onChange={handleMetadataChange} />
-                 <input className="input-flat" type="text" name="artist" placeholder="Artist Name" value={metadata.artist} onChange={handleMetadataChange} />
-                 <input className="input-flat" type="text" name="album" placeholder="Album Name" value={metadata.album} onChange={handleMetadataChange} />
-                 <select className="input-flat" name="emotion" value={metadata.emotion} onChange={handleMetadataChange} style={{ cursor: 'pointer' }}>
-                   <option value="Neutral">Neutral</option>
-                   <option value="Sad">Sad</option>
-                   <option value="Feel Good">Feel Good</option>
-                   <option value="Motivation">Motivation</option>
-                   <option value="Love">Love</option>
-                   <option value="Party">Party</option>
+               <div style={{ marginBottom: '0.6rem', display: 'grid', gap: '0.4rem' }}>
+                 <h4 style={{ color: 'var(--text-main)', margin: 0, fontSize: '0.8rem' }}>Details</h4>
+                 <input className="input-flat" type="text" name="title" placeholder="Title" value={metadata.title} onChange={handleMetadataChange} style={{ fontSize: '0.8rem', height: '32px', padding: '0 0.6rem' }} />
+                 <input className="input-flat" type="text" name="artist" placeholder="Artist" value={metadata.artist} onChange={handleMetadataChange} style={{ fontSize: '0.8rem', height: '32px', padding: '0 0.6rem' }} />
+                 <input className="input-flat" type="text" name="album" placeholder="Album" value={metadata.album} onChange={handleMetadataChange} style={{ fontSize: '0.8rem', height: '32px', padding: '0 0.6rem' }} />
+                 <select className="input-flat" name="emotion" value={metadata.emotion} onChange={handleMetadataChange} style={{ cursor: 'pointer', fontSize: '0.8rem', height: '32px', padding: '0 0.6rem' }}>
+                   {emotionsList.map(e => (
+                     <option key={e} value={e}>{e}</option>
+                   ))}
                  </select>
-                 {/* Category hidden */}
                </div>
             )}
 
             {uploadTab === 'youtube' && (
-               <div style={{ marginBottom: '1.5rem' }}>
-                   {/* Category hidden */}
-                   {/* Emotion auto-detected, no UI shown */}
+               <div style={{ marginBottom: '0.6rem' }}>
+                   <h4 style={{ color: 'var(--text-main)', marginBottom: '0.3rem', margin: 0, fontSize: '0.8rem' }}>AI Details</h4>
+                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.3rem' }}>
+                      <input className="input-flat" placeholder="Title" value={metadata.title} onChange={e => setMetadata({...metadata, title: e.target.value})} style={{ fontSize: '0.8rem', height: '32px', padding: '0 0.6rem' }} />
+                      <input className="input-flat" placeholder="Artist" value={metadata.artist} onChange={e => setMetadata({...metadata, artist: e.target.value})} style={{ fontSize: '0.8rem', height: '32px', padding: '0 0.6rem' }} />
+                   </div>
+                   <select className="input-flat" style={{ marginTop: '0.3rem', fontSize: '0.8rem', height: '32px', padding: '0 0.6rem' }} value={metadata.emotion} onChange={e => setMetadata({...metadata, emotion: e.target.value})}>
+                      {emotionsList.map(e => (
+                        <option key={e} value={e}>{e}</option>
+                      ))}
+                   </select>
                </div>
             )}
 
             {uploadTab === 'file' && (
-              <div style={{ marginBottom: '1.5rem' }}>
-                <h4 style={{ color: 'var(--text-main)', marginBottom: '0.5rem', margin: 0 }}>Files</h4>
-                <div style={{ marginBottom: '0.8rem' }}>
-                  <label style={{ display: 'block', marginBottom: '0.3rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>Audio File (MP3)*</label>
-                  <input id="audio-input" type="file" accept="audio/*" onChange={handleFileChange} className="input-flat" style={{ padding: '0.4rem', height: 'auto', fontSize: '0.9rem' }} required />
+              <div style={{ marginBottom: '0.6rem' }}>
+                <h4 style={{ color: 'var(--text-main)', marginBottom: '0.3rem', margin: 0, fontSize: '0.8rem' }}>Files</h4>
+                <div style={{ marginBottom: '0.4rem' }}>
+                  <label style={{ display: 'block', marginBottom: '0.2rem', color: 'var(--text-muted)', fontSize: '0.7rem' }}>Audio (MP3)*</label>
+                  <input id="audio-input" type="file" accept="audio/*" onChange={handleFileChange} className="input-flat" style={{ padding: '0.25rem', height: 'auto', fontSize: '0.75rem' }} required />
                 </div>
                 <div>
-                  <label style={{ display: 'block', marginBottom: '0.3rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>Cover Art (Image)</label>
-                  <input id="cover-input" type="file" accept="image/*" onChange={handleCoverChange} className="input-flat" style={{ padding: '0.4rem', height: 'auto', fontSize: '0.9rem' }} />
+                  <label style={{ display: 'block', marginBottom: '0.2rem', color: 'var(--text-muted)', fontSize: '0.7rem' }}>Cover Art</label>
+                  <input id="cover-input" type="file" accept="image/*" onChange={handleCoverChange} className="input-flat" style={{ padding: '0.25rem', height: 'auto', fontSize: '0.75rem' }} />
                 </div>
               </div>
             )}
 
-            <button className="btn-3d btn-primary" disabled={loading} style={{ width: '100%', marginTop: '0.5rem' }}>
+            <button className="btn-3d btn-primary" disabled={loading} style={{ width: '100%', marginTop: '0.3rem', height: '34px', fontSize: '0.8rem' }}>
               {loading ? 'Processing...' : (uploadTab === 'youtube' ? 'Import from YouTube' : 'Upload Song')}
             </button>
           </form>
         </div>
       )}
 
-
-      {/* MANAGE TAB CONTENT */}
       {activeTab === 'manage' && (
-        <div className="card-flat" style={{ padding: '0' }}>
+        <div className="card-flat" style={{ padding: '0', flex: 1, overflow: 'hidden' }}>
            {(message || error) && (
-             <div style={{ padding: '1rem' }}>
-               {message && <div style={{ background: 'rgba(34, 197, 94, 0.2)', border: '1px solid rgba(34, 197, 94, 0.5)', color: '#86efac', padding: '0.5rem', borderRadius: '8px', marginBottom: '0.5rem' }}>{message}</div>}
-               {error && <div style={{ background: 'rgba(239, 68, 68, 0.2)', border: '1px solid rgba(239, 68, 68, 0.5)', color: '#fca5a5', padding: '0.5rem', borderRadius: '8px', marginBottom: '0.5rem' }}>{error}</div>}
+             <div style={{ padding: '0.5rem 0.75rem' }}>
+               {message && <div style={{ background: 'rgba(34, 197, 94, 0.2)', border: '1px solid rgba(34, 197, 94, 0.5)', color: '#86efac', padding: '0.3rem', borderRadius: '4px', marginBottom: '0.3rem', fontSize: '0.75rem', fontWeight: '600' }}>{message}</div>}
+               {error && <div style={{ background: 'rgba(239, 68, 68, 0.2)', border: '1px solid rgba(239, 68, 68, 0.5)', color: '#fca5a5', padding: '0.3rem', borderRadius: '4px', marginBottom: '0.3rem', fontSize: '0.75rem', fontWeight: '600' }}>{error}</div>}
              </div>
            )}
-           <table className="admin-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+           <table className="admin-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.8rem' }}>
              <thead style={{ background: 'rgba(0,0,0,0.2)', color: 'var(--text-muted)' }}>
                <tr>
-                 <th style={{ padding: '1rem' }}>Track</th>
-                 <th style={{ padding: '1rem' }}>Artist</th>
-                 <th style={{ padding: '1rem' }}>Date</th>
-                 <th style={{ padding: '1rem', textAlign: 'right' }}>Actions</th>
+                 <th style={{ padding: '0.5rem 0.6rem', fontSize: '0.7rem', fontWeight: '700' }}>Track</th>
+                 <th style={{ padding: '0.5rem 0.6rem', fontSize: '0.7rem', fontWeight: '700' }}>Artist</th>
+                 <th style={{ padding: '0.5rem 0.6rem', fontSize: '0.7rem', fontWeight: '700' }}>Emotion</th>
+                 <th style={{ padding: '0.5rem 0.6rem', textAlign: 'right', fontSize: '0.7rem', fontWeight: '700' }}>Actions</th>
                </tr>
              </thead>
              <tbody>
                {songs.map((song, i) => (
                  <tr key={song.id || i} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                   <td data-label="Track" style={{ padding: '1rem', color: 'white' }}>{song.title}</td>
-                   <td data-label="Artist" style={{ padding: '1rem', color: 'var(--text-muted)' }}>{song.artist}</td>
-                   <td data-label="Date" style={{ padding: '1rem', color: 'var(--text-muted)' }}>{new Date(song.created_at).toLocaleDateString()}</td>
-                   <td data-label="Actions" style={{ padding: '1rem', textAlign: 'right' }}>
-                     {deleteConfirm === song.id ? (
-                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                           <button 
-                             onClick={() => confirmDelete(song.id)}
-                             style={{ background: '#ef4444', color: 'white', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}
-                           >
-                             Confirm
-                           </button>
-                           <button 
-                             onClick={() => setDeleteConfirm(null)}
-                             style={{ background: 'var(--bg-card)', color: 'var(--text-muted)', border: '1px solid var(--border-color)', padding: '0.4rem 0.8rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}
-                           >
-                             Cancel
-                           </button>
+                   <td style={{ padding: '0.5rem 0.6rem', color: 'white', fontSize: '0.8rem' }}>
+                      {editingId === song.id ? (
+                        <input className="input-flat" name="title" value={editForm.title} onChange={handleEditChange} style={{ height: '26px', fontSize: '0.75rem', padding: '0 0.4rem' }} />
+                      ) : song.title}
+                   </td>
+                   <td style={{ padding: '0.5rem 0.6rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                      {editingId === song.id ? (
+                        <input className="input-flat" name="artist" value={editForm.artist} onChange={handleEditChange} style={{ height: '26px', fontSize: '0.75rem', padding: '0 0.4rem' }} />
+                      ) : song.artist}
+                   </td>
+                   <td style={{ padding: '0.5rem 0.6rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                      {editingId === song.id ? (
+                        <select className="input-flat" name="emotion" value={editForm.emotion} onChange={handleEditChange} style={{ height: '26px', fontSize: '0.75rem', padding: '0 0.4rem' }}>
+                          {emotionsList.map(e => <option key={e} value={e}>{e}</option>)}
+                        </select>
+                      ) : (song.emotion || 'Neutral')}
+                   </td>
+                   <td style={{ padding: '0.5rem 0.6rem', textAlign: 'right' }}>
+                      {editingId === song.id ? (
+                        <div style={{ display: 'flex', gap: '0.3rem', justifyContent: 'flex-end' }}>
+                          <button onClick={saveEdit} className="btn-3d btn-primary" style={{ height: '26px', fontSize: '0.65rem', padding: '0 0.5rem' }}>Save</button>
+                          <button onClick={cancelEditing} className="btn-3d btn-secondary" style={{ height: '26px', fontSize: '0.65rem', padding: '0 0.5rem' }}>Cancel</button>
                         </div>
-                     ) : (
-                       <button 
-                         onClick={() => handleDelete(song.id)}
-                         style={{ 
-                           background: 'rgba(239, 68, 68, 0.1)', 
-                           color: '#ef4444', 
-                           border: '1px solid rgba(239, 68, 68, 0.3)', 
-                           padding: '0.5rem 1rem', 
-                           borderRadius: '8px', 
-                           cursor: 'pointer',
-                           fontWeight: 'bold' 
-                         }}
-                         title="Delete Song"
-                       >
-                         🗑️
-                       </button>
-                     )}
+                      ) : deleteConfirm === song.id ? (
+                         <div style={{ display: 'flex', gap: '0.3rem', justifyContent: 'flex-end' }}>
+                            <button onClick={() => confirmDelete(song.id)} className="btn-3d btn-danger" style={{ height: '26px', fontSize: '0.65rem', padding: '0 0.5rem' }}>Delete</button>
+                            <button onClick={() => setDeleteConfirm(null)} className="btn-3d btn-secondary" style={{ height: '26px', fontSize: '0.65rem', padding: '0 0.5rem' }}>Cancel</button>
+                         </div>
+                      ) : (
+                        <div style={{ display: 'flex', gap: '0.6rem', justifyContent: 'flex-end', alignItems: 'center' }}>
+                           <button onClick={() => startEditing(song)} className="btn-3d btn-secondary" style={{ height: '26px', fontSize: '0.65rem', padding: '0 0.5rem' }}>Edit</button>
+                           <button onClick={() => handleDelete(song.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem' }}>🗑️</button>
+                        </div>
+                      )}
                    </td>
                  </tr>
                ))}
              </tbody>
            </table>
-        </div>
-      )}
+         </div>
+       )}
+      </div>
     </div>
   );
 };

@@ -33,30 +33,32 @@ function App() {
           <div className="app-shell">
             <Sidebar />
             <div className="main-content">
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/test-db" element={<TestDB />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/library" element={<Library />} />
-                <Route path="/playlist" element={<Playlist />} />
-                
-                {/* Admin Routes */}
-                <Route path="/admin" element={
-                  <PrivateRoute adminOnly={true}>
-                    <AdminUpload />
-                  </PrivateRoute>
-                } />
-                <Route path="/admin/upload" element={
-                  <PrivateRoute adminOnly={true}>
-                    <AdminUpload />
-                  </PrivateRoute>
-                } />
-                <Route path="/admin/emotions" element={
-                  <PrivateRoute adminOnly={true}>
-                    <AdminEmotionManager />
-                  </PrivateRoute>
-                } />
-              </Routes>
+              <div className="page-wrapper">
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/test-db" element={<TestDB />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/library" element={<Library />} />
+                  <Route path="/playlist" element={<Playlist />} />
+                  
+                  {/* Admin Routes */}
+                  <Route path="/admin" element={
+                    <PrivateRoute adminOnly={true}>
+                      <AdminUpload />
+                    </PrivateRoute>
+                  } />
+                  <Route path="/admin/upload" element={
+                    <PrivateRoute adminOnly={true}>
+                      <AdminUpload />
+                    </PrivateRoute>
+                  } />
+                  <Route path="/admin/emotions" element={
+                    <PrivateRoute adminOnly={true}>
+                      <AdminEmotionManager />
+                    </PrivateRoute>
+                  } />
+                </Routes>
+              </div>
             </div>
           </div>
           <MusicPlayer />

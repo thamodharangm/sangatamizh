@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import usePlayerStore from '../stores/usePlayerStore';
 import api from '../config/api';
@@ -11,45 +11,42 @@ const SongCard = ({ song, playlist = [] }) => {
   const [isLiked, setIsLiked] = useState(false);
   const [liking, setLiking] = useState(false);
   
-  // Get loadTrack from new player store
   const loadTrack = usePlayerStore(state => state.loadTrack);
   const currentTrack = usePlayerStore(state => state.currentTrack);
-  
-  // Check if this song is currently playing
   const isCurrentSong = currentTrack?.id === song.id;
 
-  // Fetch initial liked status when component mounts
-  useEffect(() => {
-    const checkLikedStatus = async () => {
-      if (!user?.uid) return;
-      
-      try {
-        const response = await api.get(`/likes/ids?userId=${user.uid}`);
-        const likedIds = response.data;
-        setIsLiked(likedIds.includes(song.id));
-      } catch (error) {
-        // Silent error
-      }
-    };
-
-    checkLikedStatus();
+  const checkStatus = useCallback(async () => {
+    const userId = user?.uid || localStorage.getItem('guestId');
+    if (!userId) return;
+    try {
+      const response = await api.get(`/likes/ids?userId=${userId}`);
+      setIsLiked(response.data.includes(song.id));
+    } catch (error) { /* silent */ }
   }, [user, song.id]);
+
+  useEffect(() => {
+    checkStatus();
+    window.addEventListener('playlistUpdated', checkStatus);
+    return () => window.removeEventListener('playlistUpdated', checkStatus);
+  }, [checkStatus]);
 
   const handleLike = async (e) => {
     e.stopPropagation();
     
-    if (!user) {
-      alert('Please Login to Like Songs!');
-      return;
+    // Use Firebase UID or Guest ID
+    let userId = user?.uid || localStorage.getItem('guestId');
+    
+    // Create Guest ID if neither exists
+    if (!userId) {
+       userId = 'guest_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+       localStorage.setItem('guestId', userId);
     }
 
     if (liking) return;
 
-    // Optimistic Update
     const previousState = isLiked;
     setIsLiked(!previousState);
 
-    // Confetti Effect if Liking
     if (!previousState) {
       const rect = e.target.getBoundingClientRect();
       const x = (rect.left + rect.width / 2) / window.innerWidth;
@@ -59,53 +56,35 @@ const SongCard = ({ song, playlist = [] }) => {
         particleCount: 100,
         spread: 70,
         origin: { x, y },
-        colors: ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF'],
+        colors: ['#FF0000', '#58cc02', '#ec4899', '#FFFF00', '#FF00FF'],
         disableForReducedMotion: true,
         zIndex: 9999,
       });
     }
 
     setLiking(true);
-
     try {
-      await api.post('/likes/toggle', {
-        userId: user.uid,
-        songId: song.id
-      });
-
-      // Dispatch custom event
+      const userId = user?.uid || localStorage.getItem('guestId');
+      await api.post('/likes/toggle', { userId, songId: song.id });
       window.dispatchEvent(new CustomEvent('playlistUpdated'));
-
     } catch (error) {
-      console.error('Like Toggle Failed', error);
       setIsLiked(previousState);
     } finally {
       setLiking(false);
     }
   };
   
-  // Handle song click - load track with playlist
-  const handlePlay = () => {
-    loadTrack(song, playlist);
-  };
+  const handlePlay = () => loadTrack(song, playlist);
 
   const coverUrl = song.coverUrl || song.cover_url || 'https://via.placeholder.com/300';
   const title = song.title || 'Unknown Title';
   const artist = song.artist || 'Unknown Artist';
 
   return (
-    <div 
-      className={`song-card ${isCurrentSong ? 'active' : ''}`} 
-      onClick={handlePlay}
-    >
+    <div className={`song-card ${isCurrentSong ? 'active' : ''}`} onClick={handlePlay}>
       <div className="song-card-cover">
-        <img 
-          src={coverUrl} 
-          alt={title}
-          loading="lazy"
-        />
+        <img src={coverUrl} alt={title} loading="lazy" />
         
-        {/* Like Button */}
         <button
           className={`like-btn ${isLiked ? 'liked' : ''}`}
           onClick={handleLike}
@@ -114,7 +93,6 @@ const SongCard = ({ song, playlist = [] }) => {
           {isLiked ? '❤️' : '🤍'}
         </button>
         
-        {/* Playing Indicator */}
         {isCurrentSong && (
           <div className="playing-indicator">
             <div className="bar"></div>

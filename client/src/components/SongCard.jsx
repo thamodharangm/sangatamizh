@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import confetti from 'canvas-confetti';
 import api from '../config/api';
 import { useAuth } from '../context/AuthContext';
@@ -6,211 +6,164 @@ import { useAuth } from '../context/AuthContext';
 const SongCard = ({ song, onPlay }) => {
   const [isLiked, setIsLiked] = useState(false);
   const { user } = useAuth();
+  
+  const handleCardClick = (e) => {
+    if (e.target.closest('.song-card-like')) return;
+    if (onPlay) onPlay(song);
+  };
 
-  // Fetch initial liked status when component mounts
-  useEffect(() => {
-    const checkLikedStatus = async () => {
-      if (!user?.uid) return;
-      
-      try {
-        const response = await api.get(`/likes/ids?userId=${user.uid}`);
-        const likedIds = response.data;
-        setIsLiked(likedIds.includes(song.id));
-      } catch (error) {
-        console.error('Error checking liked status:', error);
-      }
-    };
-
-    checkLikedStatus();
+  const checkStatus = useCallback(async () => {
+    const userId = user?.uid || localStorage.getItem('guestId');
+    if (!userId) return;
+    try {
+      const response = await api.get(`/likes/ids?userId=${userId}`);
+      setIsLiked(response.data.includes(song.id));
+    } catch (error) { /* silent */ }
   }, [user, song.id]);
+
+  useEffect(() => {
+    checkStatus();
+    window.addEventListener('playlistUpdated', checkStatus);
+    return () => window.removeEventListener('playlistUpdated', checkStatus);
+  }, [checkStatus]);
   
   const handleLike = async (e) => {
     e.stopPropagation();
     
-    if (!user) {
-        // Simple alert or redirect
-        alert("Please Login to Like Songs!"); 
-        return;
+    // Use Firebase UID or Guest ID
+    let userId = user?.uid || localStorage.getItem('guestId');
+    
+    // Create Guest ID if neither exists
+    if (!userId) {
+       userId = 'guest_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+       localStorage.setItem('guestId', userId);
     }
 
-    // Optimistic Update
     const previousState = isLiked;
     setIsLiked(!previousState);
 
-    // Confetti Effect if Liking
     if (!previousState) {
         const rect = e.target.getBoundingClientRect();
         const x = (rect.left + rect.width / 2) / window.innerWidth;
         const y = (rect.top + rect.height / 2) / window.innerHeight;
-  
         confetti({
           particleCount: 100,
           spread: 70,
           origin: { x, y },
-          colors: ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF'],
+          colors: ['#FF0000', '#58cc02', '#ec4899', '#FFFF00', '#FF00FF'],
           disableForReducedMotion: true,
           zIndex: 9999,
         });
     }
 
     try {
-        await api.post('/likes/toggle', { 
-            userId: user.uid, // Firebase UID 
-            songId: song.id 
-        });
-        
-        // Dispatch custom event to notify other components (like Playlist page)
+        const userId = user?.uid || localStorage.getItem('guestId');
+        await api.post('/likes/toggle', { userId, songId: song.id });
         window.dispatchEvent(new CustomEvent('playlistUpdated'));
-        
     } catch (err) {
-        console.error("Like Toggle Failed", err);
-        // Revert UI on failure
         setIsLiked(previousState);
     }
   };
 
   return (
     <>
-      <div 
-        className="card-flat song-card" 
-        onClick={() => onPlay && onPlay(song)} 
-        style={{ 
-          cursor: 'pointer', 
-          padding: '0.75rem', 
-          position: 'relative',
-          background: 'rgba(30, 41, 59, 0.4)', // Glassmorphism base
-          backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(255, 255, 255, 0.05)',
-          borderRadius: '16px',
-          transition: 'transform 0.2s ease, background 0.2s ease',
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column'
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'translateY(-4px)';
-          e.currentTarget.style.background = 'rgba(30, 41, 59, 0.6)';
-          const overlay = e.currentTarget.querySelector('.play-overlay');
-          if(overlay) overlay.style.opacity = '1';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'translateY(0)';
-          e.currentTarget.style.background = 'rgba(30, 41, 59, 0.4)';
-          const overlay = e.currentTarget.querySelector('.play-overlay');
-          if(overlay) overlay.style.opacity = '0';
-        }}
-      >
-        <div style={{ 
-          position: 'relative',
-          width: '100%', 
-          aspectRatio: '1/1', 
-          borderRadius: '12px', 
-          overflow: 'hidden', 
-          marginBottom: '0.75rem',
-          boxShadow: '0 4px 6px rgba(0,0,0,0.3)'
-        }}>
+      <div className="song-card-3d" onClick={handleCardClick}>
+        <div className="song-card-cover">
           <img 
             src={song.coverUrl || song.cover_url || 'https://via.placeholder.com/300'} 
             alt={song.title}
-            style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s ease' }}
-            className="card-image"
+            className="song-card-image"
           />
           
-          {/* Top Right Like Button (Always visible if liked, or on hover via parent) */}
           <button 
-                onClick={handleLike}
-                className="like-btn"
-                style={{
-                  position: 'absolute',
-                  top: '8px',
-                  right: '8px',
-                  background: isLiked ? 'rgba(255, 0, 50, 0.2)' : 'rgba(0,0,0,0.4)',
-                  backdropFilter: 'blur(4px)',
-                  border: 'none',
-                  borderRadius: '50%',
-                  width: '32px',
-                  height: '32px',
-                  color: isLiked ? '#ff4055' : 'white',
-                  cursor: 'pointer',
-                  zIndex: 10,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: 'all 0.2s ease',
-                }}
-             >
-               {isLiked ? '❤️' : '🤍'}
+            onClick={handleLike}
+            className={`song-card-like ${isLiked ? 'liked' : ''}`}
+          >
+            {isLiked ? '❤️' : '🤍'}
           </button>
 
-          {/* Premium Play Overlay */}
-           <div className="play-overlay" style={{
-            position: 'absolute',
-            inset: 0,
-            background: 'rgba(0,0,0,0.2)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            opacity: 0,
-            transition: 'all 0.3s ease',
-            pointerEvents: 'none' 
-          }}>
-             <div style={{
-               width: '50px',
-               height: '50px',
-               borderRadius: '50%',
-               background: 'var(--primary)',
-               display: 'flex',
-               alignItems: 'center',
-               justifyContent: 'center',
-               boxShadow: '0 8px 16px rgba(0,0,0,0.3)',
-               transform: 'scale(1)',
-               transition: 'transform 0.2s',
-               pointerEvents: 'auto',
-               cursor: 'pointer'
-             }}
-             className="play-btn"
-             onClick={(e) => {
-               e.stopPropagation();
-               onPlay && onPlay(song);
-             }}
-             >
-               <span style={{ fontSize: '1.5rem', color: 'white', marginLeft: '4px' }}>▶</span>
-             </div>
+          <div className="song-card-play-overlay">
+            <div className="song-card-play-btn">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+            </div>
           </div>
         </div>
         
-        <div style={{ padding: '0 0.25rem' }}>
-          <h3 style={{ 
-            fontSize: '0.95rem', 
-            fontWeight: '600', 
-            marginBottom: '0.25rem', 
-            whiteSpace: 'nowrap', 
-            overflow: 'hidden', 
-            textOverflow: 'ellipsis', 
-            color: 'white' 
-          }}>
-            {song.title}
-          </h3>
-          <p style={{ 
-            fontSize: '0.8rem', 
-            color: 'var(--text-muted)', 
-            margin: 0,
-            whiteSpace: 'nowrap', 
-            overflow: 'hidden', 
-            textOverflow: 'ellipsis'
-          }}>
-            {song.artist}
-          </p>
+        <div className="song-card-info">
+          <h3 className="song-card-title">{song.title}</h3>
+          <p className="song-card-artist">{song.artist}</p>
         </div>
       </div>
+      
       <style>{`
-        .card-flat:hover .card-image {
-           transform: scale(1.05);
+        .song-card-3d {
+          background: #202f36;
+          border: 2px solid #37464f;
+          border-radius: 16px;
+          padding: 10px;
+          box-shadow: 0px 4px 0px #37464f;
+          cursor: pointer;
+          transition: transform 0.1s, box-shadow 0.1s;
+          display: flex;
+          flex-direction: column;
+          height: 100%;
         }
-        .song-card:hover .like-btn {
-          opacity: 1;
-          transform: scale(1);
+        .song-card-3d:active { transform: translateY(4px); box-shadow: 0px 0px 0px #37464f; }
+        
+        .song-card-cover {
+          position: relative;
+          width: 100%;
+          aspect-ratio: 1/1;
+          border-radius: 12px;
+          overflow: hidden;
+          margin-bottom: 8px;
+          border: 1px solid rgba(255,255,255,0.05);
         }
+        
+        .song-card-image { width: 100%; height: 100%; object-fit: cover; }
+        
+        .song-card-like {
+          position: absolute; top: 6px; right: 6px;
+          width: 32px; height: 32px;
+          border-radius: 50%;
+          background: rgba(0,0,0,0.4);
+          backdrop-filter: blur(4px);
+          border: 1px solid rgba(255,255,255,0.1);
+          color: white; font-size: 0.9rem;
+          display: flex; align-items: center; justify-content: center;
+          z-index: 10; cursor: pointer;
+          transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+          opacity: 0;
+        }
+        .song-card-3d:hover .song-card-like { opacity: 1; }
+        .song-card-like.liked { opacity: 1; color: #ff4055; background: rgba(0,0,0,0.6); animation: pulse-v1 0.4s ease; border-color: rgba(255, 64, 85, 0.4); }
+        .song-card-like:hover { transform: scale(1.1); }
+
+        @keyframes pulse-v1 {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.4); }
+          100% { transform: scale(1); }
+        }
+
+        .song-card-play-overlay {
+          position: absolute; inset: 0;
+          background: rgba(0, 0, 0, 0.3);
+          display: flex; align-items: center; justify-content: center;
+          opacity: 0; transition: opacity 0.2s;
+        }
+        .song-card-3d:hover .song-card-play-overlay { opacity: 1; }
+        
+        .song-card-play-btn {
+          width: 44px; height: 44px;
+          border-radius: 50%; background: #58cc02;
+          box-shadow: 0px 4px 0px #46a302;
+          display: flex; align-items: center; justify-content: center;
+        }
+        
+        .song-card-title { font-size: 0.85rem; font-weight: 800; color: #f8fafc; margin: 0 0 2px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .song-card-artist { font-size: 0.7rem; color: #afbacc; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       `}</style>
     </>
   );

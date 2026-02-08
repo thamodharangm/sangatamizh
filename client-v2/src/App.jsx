@@ -40,34 +40,36 @@ function App() {
             <ScrollToTop />
             <div className="app-shell">
               <div className="main-content">
-                <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/library" element={<Library />} />
-                  <Route path="/playlist" element={<Playlist />} />
-                  <Route path="/login" element={<Login />} />
-                  
-                  {/* Test Route */}
-                  <Route path="/test-db" element={<TestDB />} />
-                  
-                  {/* Admin Routes - DESKTOP FEATURE */}
-                  <Route path="/admin" element={
-                    <PrivateRoute adminOnly={true}>
-                      <AdminUpload />
-                    </PrivateRoute>
-                  } />
-                  <Route path="/admin/upload" element={
-                    <PrivateRoute adminOnly={true}>
-                      <AdminUpload />
-                    </PrivateRoute>
-                  } />
-                  <Route path="/admin/analytics" element={
-                    <PrivateRoute adminOnly={true}>
-                      <AdminAnalytics />
-                    </PrivateRoute>
-                  } />
-                  
-                  <Route path="*" element={<Navigate to="/" />} />
-                </Routes>
+                <div className="page-wrapper">
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/library" element={<Library />} />
+                    <Route path="/playlist" element={<Playlist />} />
+                    <Route path="/login" element={<Login />} />
+                    
+                    {/* Test Route */}
+                    <Route path="/test-db" element={<TestDB />} />
+                    
+                    {/* Admin Routes - DESKTOP FEATURE */}
+                    <Route path="/admin" element={
+                      <PrivateRoute adminOnly={true}>
+                        <AdminUpload />
+                      </PrivateRoute>
+                    } />
+                    <Route path="/admin/upload" element={
+                      <PrivateRoute adminOnly={true}>
+                        <AdminUpload />
+                      </PrivateRoute>
+                    } />
+                    <Route path="/admin/analytics" element={
+                      <PrivateRoute adminOnly={true}>
+                        <AdminAnalytics />
+                      </PrivateRoute>
+                    } />
+                    
+                    <Route path="*" element={<Navigate to="/" />} />
+                  </Routes>
+                </div>
               </div>
               
               {/* Music Player - Fixed above bottom nav */}

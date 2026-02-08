@@ -339,13 +339,19 @@ textarea {
   border-radius: var(--radius-lg);
   padding: 0.75rem;
   cursor: pointer;
-  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.1s, box-shadow 0.1s;
   position: relative;
   overflow: hidden;
+  /* Premium 3D Card Styling */
+  background-color: var(--bg-card);
+  border: 2px solid var(--border-color);
+  box-shadow: 0px 4px 0px var(--border-color);
+  margin-bottom: 4px;
 }
 
 .song-card:active {
-  transform: scale(0.96);
+  transform: translateY(4px);
+  box-shadow: 0px 0px 0px var(--border-color);
 }
 
 .song-card-cover {
@@ -355,6 +361,9 @@ textarea {
   overflow: hidden;
   margin-bottom: 0.75rem;
   position: relative;
+  /* 3D Cover Effect */
+  border: 2px solid var(--border-color);
+  box-shadow: 0px 3px 0px var(--border-color);
 }
 .song-card-cover img {
   width: 100%;
@@ -363,40 +372,49 @@ textarea {
 }
 
 .song-card-title {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: white;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--text-main);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   margin-bottom: 2px;
+  letter-spacing: 0.3px;
 }
 .song-card-artist {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: var(--text-muted);
+  font-weight: 600;
 }
 
-/* Like Button on Card */
+/* Like Button on Card - 3D Style */
 .like-btn {
   position: absolute;
   top: 6px;
   right: 6px;
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
-  border: none;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(4px);
-  color: white;
+  border: 2px solid var(--border-color);
+  background: var(--bg-main);
+  box-shadow: 0px 2px 0px var(--border-color);
+  color: rgba(255, 255, 255, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1rem;
+  font-size: 0.85rem;
   z-index: 5;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+.like-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0px 0px 0px var(--border-color);
 }
 .like-btn.liked {
-  color: #ff4055;
-  background: rgba(255, 64, 85, 0.15);
+  color: var(--secondary);
+  background: rgba(236, 72, 153, 0.15);
+  border-color: var(--secondary);
+  box-shadow: 0px 2px 0px var(--secondary-depth);
 }
 
 /* Utilities */
@@ -459,4 +477,13 @@ h2 {
 }
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+.page-wrapper {
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }

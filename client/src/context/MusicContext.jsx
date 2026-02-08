@@ -35,17 +35,24 @@ export const MusicProvider = ({ children }) => {
     const audio = audioRef.current;
     
     // Construct stable stream URL
-    const baseUrl = import.meta.env.VITE_API_URL || '/api';
-    const cleanBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
-    const streamUrl = `${cleanBase}/stream/${song.id}`;
+    // Relative path is safer for dev proxying
+    const streamUrl = `/api/stream/${song.id}`;
 
-    if (audio.src !== window.location.origin + streamUrl && audio.src !== streamUrl) {
+    console.log(`[MusicContext] Playing: ${song.title} from ${streamUrl}`);
+
+    // Check if we need to change the source
+    const absoluteStreamUrl = window.location.origin + streamUrl;
+    if (audio.src !== absoluteStreamUrl) {
       audio.src = streamUrl;
       audio.load();
     }
     
-    audio.play().catch(err => console.warn("Playback blocked:", err));
-    setIsPlaying(true);
+    audio.play()
+      .then(() => setIsPlaying(true))
+      .catch(err => {
+        console.warn("Playback blocked/failed:", err);
+        setIsPlaying(false);
+      });
   }, []);
 
   const nextSong = useCallback(() => {
@@ -91,9 +98,10 @@ export const MusicProvider = ({ children }) => {
     playAtIndex(index, song);
 
     // Background log
-    if (user?.uid) {
-      api.post("/log-play", { userId: user.uid, songId: song.id }).catch(() => {});
-    }
+    const userId = user?.uid || localStorage.getItem('guestId') || 'guest_' + Math.random().toString(36).substr(2, 9);
+    if (!localStorage.getItem('guestId') && !user?.uid) localStorage.setItem('guestId', userId);
+    
+    api.post("/log-play", { userId, songId: song.id }).catch(() => {});
   };
 
   useEffect(() => {
@@ -141,4 +149,3 @@ export const MusicProvider = ({ children }) => {
 };
 
 export const useMusic = () => useContext(MusicContext);
-

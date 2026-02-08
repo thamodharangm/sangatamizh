@@ -1,11 +1,12 @@
 // ============================================
 // MODERN COMPACT MUSIC PLAYER
-// Horizontal layout matching reference design
+// With Expandable View
 // ============================================
 
 import { useEffect, useState } from 'react';
 import usePlayerStore from '../stores/usePlayerStore';
 import './MusicPlayerPro.css';
+import LyricsOverlay from './LyricsOverlay';
 
 const MusicPlayerPro = () => {
   const {
@@ -27,6 +28,8 @@ const MusicPlayerPro = () => {
   
   const [isSeeking, setIsSeeking] = useState(false);
   const [seekTime, setSeekTime] = useState(0);
+  const [showLyrics, setShowLyrics] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   
   // Initialize audio on mount
   useEffect(() => {
@@ -76,14 +79,124 @@ const MusicPlayerPro = () => {
       setIsSeeking(false);
     }
   };
+
+  // Handle clicking on song info to expand
+  const handleExpand = () => {
+    setIsExpanded(!isExpanded);
+  };
   
   return (
     <>
+      {/* Lyrics Overlay */}
+      <LyricsOverlay 
+        isOpen={showLyrics} 
+        onClose={() => setShowLyrics(false)} 
+        currentTrack={currentTrack} 
+      />
+
       {/* Error Toast */}
       {error && (
         <div className="compact-error-toast">
           <span>⚠️ {error}</span>
           <button onClick={clearError}>×</button>
+        </div>
+      )}
+
+      {/* Expanded View Overlay */}
+      {isExpanded && (
+        <div className="expanded-player-overlay" onClick={handleExpand}>
+          <div className="expanded-player-container" onClick={(e) => e.stopPropagation()}>
+            {/* Close Button */}
+            <button className="expanded-close-btn" onClick={handleExpand}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/>
+              </svg>
+            </button>
+
+            {/* Album Art */}
+            <div className="expanded-cover-wrapper">
+              <img 
+                src={currentTrack.coverUrl || currentTrack.cover_url || '/placeholder.png'} 
+                alt={currentTrack.title}
+                className="expanded-cover-img"
+              />
+              {isPlaying && (
+                <div className="expanded-wave-container">
+                  <div className="expanded-wave-bar"></div>
+                  <div className="expanded-wave-bar"></div>
+                  <div className="expanded-wave-bar"></div>
+                  <div className="expanded-wave-bar"></div>
+                  <div className="expanded-wave-bar"></div>
+                </div>
+              )}
+            </div>
+
+            {/* Song Info */}
+            <div className="expanded-song-info">
+              <h2 className="expanded-song-title">{currentTrack.title}</h2>
+              <p className="expanded-song-artist">{currentTrack.artist}</p>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="expanded-progress-section">
+              <div 
+                className="expanded-progress-bar"
+                onClick={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const percent = (e.clientX - rect.left) / rect.width;
+                  seek(percent * duration);
+                }}
+              >
+                <div className="expanded-progress-buffer" style={{ width: `${bufferPercent}%` }} />
+                <div className="expanded-progress-fill" style={{ width: `${playPercent}%` }} />
+              </div>
+              <div className="expanded-time-display">
+                <span>{formatTime(currentTime)}</span>
+                <span>{formatTime(duration)}</span>
+              </div>
+            </div>
+
+            {/* Controls */}
+            <div className="expanded-controls">
+              <button className="expanded-control-btn" onClick={playPrevious}>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M6 6h2v12H6V6zm3.5 6l8.5 6V6l-8.5 6z"/>
+                </svg>
+              </button>
+              
+              <button 
+                className="expanded-play-btn"
+                onClick={togglePlay}
+                disabled={isLoading}
+              >
+                {isLoading || isBuffering ? (
+                  <div className="expanded-spinner"></div>
+                ) : isPlaying ? (
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+                  </svg>
+                ) : (
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M8 5v14l11-7z"/>
+                  </svg>
+                )}
+              </button>
+              
+              <button className="expanded-control-btn" onClick={playNext}>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
+                </svg>
+              </button>
+            </div>
+
+            {/* Lyrics Button */}
+            <button 
+              className="expanded-lyrics-btn"
+              onClick={() => { setShowLyrics(true); setIsExpanded(false); }}
+            >
+              🎤 Show Lyrics
+            </button>
+          </div>
         </div>
       )}
       
@@ -115,14 +228,21 @@ const MusicPlayerPro = () => {
         
         {/* Main Content - Horizontal Layout */}
         <div className="compact-player-main">
-          {/* Left: Song Info */}
-          <div className="compact-song-info">
+          {/* Left: Song Info - Clickable to expand */}
+          <div className="compact-song-info" onClick={handleExpand} style={{ cursor: 'pointer' }}>
             <div className="compact-cover-wrapper">
               <img 
                 src={currentTrack.coverUrl || currentTrack.cover_url || '/placeholder.png'} 
                 alt={currentTrack.title}
                 className="compact-cover-img"
               />
+              {isPlaying && (
+                <div className="wave-container-mini">
+                  <div className="wave-bar-mini"></div>
+                  <div className="wave-bar-mini"></div>
+                  <div className="wave-bar-mini"></div>
+                </div>
+              )}
               {(isLoading || isBuffering) && (
                 <div className="compact-loading-overlay">
                   <div className="compact-spinner"></div>

@@ -21,7 +21,14 @@ const AdminAnalytics = () => {
   const fetchStats = async () => {
     try {
       const res = await api.get('/analytics/stats');
-      setStats(res.data);
+      if (res.data) {
+        setStats({
+          totalLogins: res.data.totalLogins || 0,
+          totalSongs: res.data.totalSongs || 0,
+          activeUsers: res.data.activeUsers || 0,
+          chartData: Array.isArray(res.data.chartData) ? res.data.chartData : []
+        });
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -30,61 +37,62 @@ const AdminAnalytics = () => {
   };
 
   return (
-    <div style={{ padding: '0 1rem 2rem', maxWidth: '1200px', margin: '0 auto' }}>
-      {/* Header */}
-      <div style={{ marginBottom: '2rem', borderBottom: '2px solid var(--border-color)', paddingBottom: '1.5rem' }}>
-        <h1 style={{ color: 'white', margin: '0 0 0.5rem 0', fontSize: 'clamp(1.5rem, 5vw, 2rem)' }}>
+    <div style={{ padding: '0.5rem 0.75rem', width: '100%', height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      {/* Compact Header */}
+      <div style={{ marginBottom: '0.6rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.4rem', flexShrink: 0 }}>
+        <h1 style={{ color: 'white', margin: '0 0 0.2rem 0', fontSize: '0.95rem', fontWeight: '800' }}>
           Analytics
         </h1>
-        <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: '0.9rem' }}>
-          Platform statistics and trends
+        <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: '0.7rem' }}>
+          Platform statistics
         </p>
       </div>
 
-      {/* Stats Grid */}
+      {/* Compact Stats Grid */}
       <div style={{ 
         display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', 
-        gap: '1rem', 
-        marginBottom: '2rem' 
+        gridTemplateColumns: 'repeat(3, 1fr)', 
+        gap: '0.5rem', 
+        marginBottom: '0.6rem',
+        flexShrink: 0
       }}>
-        <div className="card-flat" style={{ padding: '1.5rem', textAlign: 'center' }}>
-          <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
-            Total Logins
+        <div className="card-flat" style={{ padding: '0.6rem 0.4rem', textAlign: 'center', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+          <div style={{ color: 'var(--text-muted)', fontSize: '0.6rem', fontWeight: '700', textTransform: 'uppercase', marginBottom: '0.2rem', letterSpacing: '0.5px' }}>
+            TOTAL LOGINS
           </div>
-          <div style={{ fontSize: '2.5rem', fontWeight: '800', color: 'white' }}>
+          <div style={{ fontSize: '1.4rem', fontWeight: '800', color: 'white', lineHeight: 1 }}>
             {stats.totalLogins}
           </div>
         </div>
 
-        <div className="card-flat" style={{ padding: '1.5rem', textAlign: 'center' }}>
-          <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
-            Total Songs
+        <div className="card-flat" style={{ padding: '0.6rem 0.4rem', textAlign: 'center', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+          <div style={{ color: 'var(--text-muted)', fontSize: '0.6rem', fontWeight: '700', textTransform: 'uppercase', marginBottom: '0.2rem', letterSpacing: '0.5px' }}>
+            TOTAL SONGS
           </div>
-          <div style={{ fontSize: '2.5rem', fontWeight: '800', color: 'white' }}>
+          <div style={{ fontSize: '1.4rem', fontWeight: '800', color: 'white', lineHeight: 1 }}>
             {stats.totalSongs}
           </div>
         </div>
 
-        <div className="card-flat" style={{ padding: '1.5rem', textAlign: 'center' }}>
-          <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
-            Active Users (24h)
+        <div className="card-flat" style={{ padding: '0.6rem 0.4rem', textAlign: 'center', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(50, 215, 75, 0.1)' }}>
+          <div style={{ color: 'var(--text-muted)', fontSize: '0.6rem', fontWeight: '700', textTransform: 'uppercase', marginBottom: '0.2rem', letterSpacing: '0.5px' }}>
+            ACTIVE (24H)
           </div>
-          <div style={{ fontSize: '2.5rem', fontWeight: '800', color: '#10b981' }}>
+          <div style={{ fontSize: '1.4rem', fontWeight: '800', color: '#10b981', lineHeight: 1 }}>
             {stats.activeUsers}
           </div>
         </div>
       </div>
 
-      {/* Chart Section */}
-      <div className="card-flat" style={{ padding: '1.5rem' }}>
-        <h3 style={{ color: 'white', marginBottom: '1.5rem', fontSize: '1.1rem' }}>
-          Login Trends (Last 7 Days)
+      {/* Compact Chart Section */}
+      <div className="card-flat" style={{ padding: '0.6rem', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+        <h3 style={{ color: 'white', marginBottom: '0.4rem', fontSize: '0.8rem', fontWeight: '700', flexShrink: 0 }}>
+          Login Trends (7 Days)
         </h3>
         
-        <div style={{ height: '300px', width: '100%' }}>
+        <div style={{ flex: 1, minHeight: 0, width: '100%' }}>
           {loading ? (
-            <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
+            <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '0.7rem' }}>
               Loading...
             </div>
           ) : (
@@ -100,7 +108,7 @@ const AdminAnalytics = () => {
                 <XAxis 
                   dataKey="date" 
                   stroke="var(--text-muted)" 
-                  fontSize={12} 
+                  fontSize={9} 
                   tickLine={false}
                   axisLine={false}
                   tickFormatter={(str) => {
@@ -110,12 +118,12 @@ const AdminAnalytics = () => {
                 />
                 <YAxis 
                   stroke="var(--text-muted)" 
-                  fontSize={12} 
+                  fontSize={9} 
                   tickLine={false}
                   axisLine={false}
                 />
                 <Tooltip 
-                  contentStyle={{ background: '#1c1c1c', border: '1px solid #333', borderRadius: '8px', color: 'white' }}
+                  contentStyle={{ background: '#1c1c1c', border: '1px solid #333', borderRadius: '6px', color: 'white', fontSize: '0.7rem', padding: '0.4rem' }}
                   itemStyle={{ color: '#10b981' }}
                   labelStyle={{ color: '#888' }}
                 />
@@ -123,7 +131,7 @@ const AdminAnalytics = () => {
                   type="monotone" 
                   dataKey="logins" 
                   stroke="#10b981" 
-                  strokeWidth={3}
+                  strokeWidth={2}
                   fillOpacity={1} 
                   fill="url(#colorLogins)" 
                 />

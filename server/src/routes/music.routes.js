@@ -6,7 +6,14 @@ import {
     deleteSong, 
     getHomeSections, 
     getYTMeta, 
-    uploadFromYoutube 
+    uploadFromYoutube,
+    logPlay,
+    logLogin,
+    getAnalyticsStats,
+    getLyrics,
+    updateSong,
+    initializeEmotions,
+    bulkUpdateEmotions
 } from "../controllers/music.controller.js";
 import multer from "multer";
 import path from "path";
@@ -43,23 +50,62 @@ router.post("/upload-file", upload.fields([
 
 // Endpoint: /api/songs/:id
 router.delete("/songs/:id", deleteSong);
+router.put("/songs/:id", updateSong);
+
+// Emotion Endpoints
+router.post("/emotions/initialize", initializeEmotions);
+router.post("/emotions/bulk-update", bulkUpdateEmotions);
 
 // YouTube Endpoints
 router.post("/yt-metadata", getYTMeta);
 router.post("/upload-from-yt", uploadFromYoutube);
 
-// Analytics Dummies
-router.post("/log-play", (req, res) => res.json({ ok: true }));
-router.post("/analytics/login", (req, res) => res.json({ ok: true }));
-router.get("/analytics/stats", (req, res) => res.json({ 
-    totalLogins: 42, 
-    totalSongs: 10, 
-    activeUsers: 5, 
-    chartData: [
-        { date: "2024-01-01", logins: 5 },
-        { date: "2024-01-02", logins: 8 },
-        { date: "2024-01-03", logins: 12 }
-    ] 
-}));
+// Endpoint: /api/log-play
+router.post("/log-play", logPlay);
+
+// Endpoint: /api/lyrics
+router.get("/lyrics", getLyrics);
+
+router.post("/analytics/login", logLogin);
+router.get("/analytics/stats", getAnalyticsStats);
+
+// ========== LIKES ENDPOINTS (CLOUDBE READY) ==========
+import likesService from "../services/likes.service.js";
+
+// GET /api/likes/ids?userId=xxx - Array of liked IDs
+router.get("/likes/ids", async (req, res) => {
+    try {
+        const { userId } = req.query;
+        if (!userId) return res.status(400).json({ error: "userId required" });
+        const ids = await likesService.getLikedIds(userId);
+        res.json(ids);
+    } catch (e) {
+        res.status(500).json({ error: "Server error" });
+    }
+});
+
+// POST /api/likes/toggle - Toggle single like
+router.post("/likes/toggle", async (req, res) => {
+    try {
+        const { userId, songId } = req.body;
+        if (!userId || !songId) return res.status(400).json({ error: "userId and songId required" });
+        const result = await likesService.toggleLike(userId, songId);
+        res.json({ ok: true, ...result });
+    } catch (e) {
+        res.status(500).json({ error: "Toggle failed" });
+    }
+});
+
+// GET /api/likes/songs?userId=xxx - Full song objects for individual playlist
+router.get("/likes/songs", async (req, res) => {
+    try {
+        const { userId } = req.query;
+        if (!userId) return res.status(400).json({ error: "userId required" });
+        const songs = await likesService.getUserLikedSongs(userId);
+        res.json(songs);
+    } catch (e) {
+        res.status(500).json({ error: "Fetch failed" });
+    }
+});
 
 export default router;
