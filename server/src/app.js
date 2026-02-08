@@ -15,13 +15,15 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: (origin, callback) => {
-    // allow requests with no origin (like mobile apps or curl requests)
-    if (!origin || allowedOrigins.includes(origin) || process.env.NODE_ENV === 'development') {
-      callback(null, true);
+    // For debugging: Log the incoming origin
+    if (origin) {
+      console.log(`[CORS] Request from origin: ${origin}`);
     } else {
-      // In production, you might want to be stricter, but for now we allow if it matches
-      callback(null, true); 
+      console.log(`[CORS] Request with no origin (Server-side/Mobile)`);
     }
+
+    // Always allow in this phase to stop the "Not allowed by CORS" errors
+    callback(null, true);
   },
   credentials: true
 }));
