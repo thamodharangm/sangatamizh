@@ -124,15 +124,23 @@ export const streamSong = async (req, res) => {
   const songs = getSongs();
   const song = songs.find(s => s.id === req.params.id || s.id == req.params.id);
   
-  if (!song) return res.sendStatus(404);
+  if (!song) {
+      console.log(`[Stream] Song not found for ID: ${req.params.id}`);
+      return res.sendStatus(404);
+  }
   
+  console.log(`[Stream] Request for: ${song.title} (${song.id})`);
+
   // Handle YouTube Stream
   if (song.is_youtube || song.url.includes('youtube.com') || song.url.includes('youtu.be')) {
       return streamYouTubeAudio(song.url, req, res);
   }
 
   const filePath = path.join(process.cwd(), song.url);
-  if (!fs.existsSync(filePath)) return res.sendStatus(404);
+  if (!fs.existsSync(filePath)) {
+      console.log(`[Stream] File not found: ${filePath}`);
+      return res.sendStatus(404);
+  }
   
   streamFile(req, res, filePath);
 };

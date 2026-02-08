@@ -10,12 +10,12 @@ export default defineConfig(({ mode }) => {
       host: true,
       proxy: {
         '/api': {
-          target: env.VITE_API_TARGET || 'http://localhost:3002',
+          target: env.VITE_API_TARGET || 'http://127.0.0.1:3002',
           changeOrigin: true,
           secure: false,
         },
         '/uploads': {
-           target: env.VITE_API_TARGET || 'http://localhost:3002',
+           target: env.VITE_API_TARGET || 'http://127.0.0.1:3002',
            changeOrigin: true,
            secure: false,
         }

@@ -102,8 +102,8 @@ export const streamYouTubeAudio = async (url, req, res) => {
         console.log(`[YouTubeService] Streaming request for: ${url}`);
         
         // Get the direct audio URL using yt-dlp
-        // Priority: mp3 > m4a > webm (mp3/m4a have best browser support)
-        const cmd = `"${YTDLP_PATH}" -f "bestaudio[ext=m4a]/bestaudio[ext=mp3]/bestaudio" -g --no-warnings "${url}"`;
+        // Added --force-ipv4 and User-Agent to avoid 403 Forbidden / Rate limits
+        const cmd = `"${YTDLP_PATH}" -f "bestaudio[ext=m4a]/bestaudio[ext=mp3]/bestaudio" -g --no-warnings --force-ipv4 --add-header "User-Agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" "${url}"`;
         
         console.log(`[YouTubeService] Running: ${cmd}`);
         
@@ -113,7 +113,9 @@ export const streamYouTubeAudio = async (url, req, res) => {
                     console.error('[YouTubeService] yt-dlp error:', stderr || error.message);
                     return reject(error);
                 }
-                const url = stdout.trim().split('\n')[0];
+                // yt-dlp might return multiple lines if it finds both audio and video or multiple formats, take the first one
+                const lines = stdout.trim().split('\n');
+                const url = lines[0]; 
                 if (!url) {
                     return reject(new Error('No URL extracted'));
                 }

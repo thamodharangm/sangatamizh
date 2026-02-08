@@ -250,7 +250,7 @@ const AdminUpload = () => {
       <div style={{ 
         flex: 1, 
         overflow: 'hidden',
-        padding: '0.5rem 0.75rem 1.5rem 0.75rem', 
+        padding: '1rem 0.75rem 1.5rem 0.75rem', 
         maxWidth: '1600px', 
         margin: '0 auto', 
         width: '100%',
@@ -259,102 +259,82 @@ const AdminUpload = () => {
       }}>
 
       {activeTab === 'dashboard' && (
-        <div className="card-flat" style={{ padding: '0', overflow: 'hidden', flex: 1, display: 'flex', flexDirection: 'column', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
-          {/* Ultra-Compact Header */}
-          <div style={{ padding: '0.25rem 0.4rem', borderBottom: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.02)', flexShrink: 0 }}>
-            <h2 style={{ color: 'white', margin: 0, fontSize: '0.65rem', fontWeight: '700', letterSpacing: '0.3px' }}>RECENT ACTIVITY</h2>
+        <div className="card-flat" style={{ padding: '0', borderRadius: '20px', overflow: 'hidden', height: '380px', display: 'flex', flexDirection: 'column', background: 'var(--bg-card)', border: '1px solid rgba(255,255,255,0.05)' }}>
+          {/* Header */}
+          <div style={{ padding: '1rem 1.25rem 0.75rem 1.25rem', borderBottom: '2px solid rgba(255,255,255,0.05)', background: 'var(--bg-card)', flexShrink: 0 }}>
+            <h2 style={{ fontSize: '1rem', margin: 0, fontWeight: '800' }}>Recent Activity</h2>
           </div>
           
-          {/* Scrollable List Container */}
+          {/* Scrollable List */}
           <div 
             className="hide-scrollbar"
             style={{ 
               flex: 1, 
               overflowY: 'auto', 
-              padding: '0.25rem 0.3rem 0.4rem 0.3rem',
+              padding: '0 1.25rem 2rem 1.25rem',
               scrollbarWidth: 'none',
               msOverflowStyle: 'none',
               WebkitOverflowScrolling: 'touch'
             }}
           >
             {dataLoading ? (
-              <div style={{ padding: '0.5rem 0', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.65rem' }}>Loading...</div>
+              <div style={{ padding: '2rem 0', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>Loading...</div>
             ) : songs.length === 0 ? (
-              <div style={{ padding: '0.5rem 0', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.65rem' }}>No songs yet.</div>
+              <div style={{ padding: '2rem 0', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>No songs yet.</div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-                {songs.slice(0, 10).map(song => (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0', marginBottom: '2rem' }}>
+                {songs.slice(0, 15).map(song => (
                   <div key={song.id || song._id} style={{ 
-                    padding: '0.25rem 0.3rem', 
-                    background: 'rgba(255,255,255,0.03)',
-                    border: '1px solid rgba(255,255,255,0.05)',
-                    borderRadius: '3px',
                     display: 'flex', 
-                    alignItems: 'center',
-                    gap: '0.35rem',
-                    transition: 'all 0.2s ease',
-                    cursor: 'pointer'
+                    gap: '0.85rem', 
+                    alignItems: 'center', 
+                    padding: '0.75rem 0', 
+                    borderBottom: '1px solid rgba(255,255,255,0.05)',
+                    cursor: 'pointer',
+                    transition: 'background 0.2s ease'
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
-                    e.currentTarget.style.borderColor = 'rgba(50, 215, 75, 0.3)';
+                    e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
-                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)';
+                    e.currentTarget.style.background = 'transparent';
                   }}>
-                    {/* Ultra-Compact Album Art */}
-                    <div style={{ 
-                      width: '20px', 
-                      height: '20px', 
-                      borderRadius: '2px', 
-                      overflow: 'hidden', 
-                      flexShrink: 0,
-                      background: 'rgba(0,0,0,0.3)',
-                      border: '1px solid rgba(255,255,255,0.1)'
-                    }}>
-                      <img 
-                        src={song.cover_url || song.coverArt || 'https://via.placeholder.com/20'} 
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-                        alt="" 
-                      />
-                    </div>
+                    {/* Album Art */}
+                    <img 
+                      src={song.cover_url || song.coverArt || 'https://via.placeholder.com/42'} 
+                      style={{ 
+                        width: '42px', 
+                        height: '42px', 
+                        borderRadius: '10px', 
+                        objectFit: 'cover', 
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        flexShrink: 0
+                      }} 
+                      alt="cover" 
+                    />
                     
-                    {/* Ultra-Compact Song Info */}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <h4 style={{ 
-                        color: 'white', 
-                        margin: 0, 
-                        fontSize: '0.7rem', 
-                        fontWeight: '600', 
+                    {/* Song Info */}
+                    <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+                      <div style={{ 
+                        fontSize: '0.85rem', 
+                        fontWeight: '700', 
                         whiteSpace: 'nowrap', 
                         overflow: 'hidden', 
                         textOverflow: 'ellipsis', 
-                        lineHeight: 1.2,
-                        marginBottom: '0.05rem'
+                        marginBottom: '2px',
+                        color: 'white'
                       }}>
                         {song.title}
-                      </h4>
-                      <span style={{ 
-                        color: 'var(--text-muted)', 
-                        fontSize: '0.6rem', 
-                        lineHeight: 1 
-                      }}>
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                         {song.artist}
-                      </span>
+                      </div>
                     </div>
                     
-                    {/* Ultra-Compact Date Badge */}
-                    <span style={{ 
-                      fontSize: '0.55rem', 
-                      color: 'var(--text-muted)', 
-                      flexShrink: 0,
-                      background: 'rgba(0,0,0,0.3)',
-                      padding: '0.1rem 0.25rem',
-                      borderRadius: '2px'
-                    }}>
+                    {/* Date */}
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', flexShrink: 0, textAlign: 'right' }}>
                       {new Date(song.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                    </span>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -371,17 +351,44 @@ const AdminUpload = () => {
       )}
 
       {activeTab === 'upload' && (
-        <div className="card-flat" style={{ padding: '0.75rem', maxWidth: '600px', margin: '0 auto', flex: 1, overflow: 'hidden' }}>
-           <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '0.75rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.3rem' }}>
+        <div className="card-flat" style={{ 
+          padding: '1rem 1.25rem', 
+          maxWidth: '600px', 
+          margin: '0 auto', 
+          flex: 1, 
+          overflow: 'hidden',
+          borderRadius: '20px',
+          background: 'var(--bg-card)',
+          border: '1px solid rgba(255,255,255,0.05)'
+        }}>
+           <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem', borderBottom: '2px solid rgba(255,255,255,0.05)', paddingBottom: '0.5rem' }}>
             <button 
               onClick={() => setUploadTab('file')}
-              style={{ background: 'none', border: 'none', color: uploadTab === 'file' ? 'var(--primary)' : 'var(--text-muted)', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.75rem' }}
+              style={{ 
+                background: 'none', 
+                border: 'none', 
+                color: uploadTab === 'file' ? 'var(--primary)' : 'var(--text-muted)', 
+                fontWeight: uploadTab === 'file' ? '800' : '600',
+                cursor: 'pointer', 
+                fontSize: '0.85rem',
+                transition: 'all 0.2s ease',
+                padding: '0.25rem 0'
+              }}
             >
               File Upload
             </button>
             <button 
               onClick={() => setUploadTab('youtube')}
-              style={{ background: 'none', border: 'none', color: uploadTab === 'youtube' ? 'var(--primary)' : 'var(--text-muted)', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.75rem' }}
+              style={{ 
+                background: 'none', 
+                border: 'none', 
+                color: uploadTab === 'youtube' ? 'var(--primary)' : 'var(--text-muted)', 
+                fontWeight: uploadTab === 'youtube' ? '800' : '600',
+                cursor: 'pointer', 
+                fontSize: '0.85rem',
+                transition: 'all 0.2s ease',
+                padding: '0.25rem 0'
+              }}
             >
               YouTube Import
             </button>
@@ -423,16 +430,18 @@ const AdminUpload = () => {
             )}
 
             {uploadTab === 'file' && (
-               <div style={{ marginBottom: '0.6rem', display: 'grid', gap: '0.4rem' }}>
-                 <h4 style={{ color: 'var(--text-main)', margin: 0, fontSize: '0.8rem' }}>Details</h4>
-                 <input className="input-flat" type="text" name="title" placeholder="Title" value={metadata.title} onChange={handleMetadataChange} style={{ fontSize: '0.8rem', height: '32px', padding: '0 0.6rem' }} />
-                 <input className="input-flat" type="text" name="artist" placeholder="Artist" value={metadata.artist} onChange={handleMetadataChange} style={{ fontSize: '0.8rem', height: '32px', padding: '0 0.6rem' }} />
-                 <input className="input-flat" type="text" name="album" placeholder="Album" value={metadata.album} onChange={handleMetadataChange} style={{ fontSize: '0.8rem', height: '32px', padding: '0 0.6rem' }} />
-                 <select className="input-flat" name="emotion" value={metadata.emotion} onChange={handleMetadataChange} style={{ cursor: 'pointer', fontSize: '0.8rem', height: '32px', padding: '0 0.6rem' }}>
-                   {emotionsList.map(e => (
-                     <option key={e} value={e}>{e}</option>
-                   ))}
-                 </select>
+               <div style={{ marginBottom: '0.75rem' }}>
+                 <h4 style={{ color: 'var(--text-main)', margin: 0, fontSize: '0.9rem', fontWeight: '700', marginBottom: '0.4rem' }}>Details</h4>
+                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                   <input className="input-flat" type="text" name="title" placeholder="Title" value={metadata.title} onChange={handleMetadataChange} style={{ fontSize: '0.8rem', height: '32px', padding: '0 0.6rem' }} />
+                   <input className="input-flat" type="text" name="artist" placeholder="Artist" value={metadata.artist} onChange={handleMetadataChange} style={{ fontSize: '0.8rem', height: '32px', padding: '0 0.6rem' }} />
+                   <input className="input-flat" type="text" name="album" placeholder="Album" value={metadata.album} onChange={handleMetadataChange} style={{ fontSize: '0.8rem', height: '32px', padding: '0 0.6rem' }} />
+                   <select className="input-flat" name="emotion" value={metadata.emotion} onChange={handleMetadataChange} style={{ cursor: 'pointer', fontSize: '0.8rem', height: '32px', padding: '0 0.6rem' }}>
+                     {emotionsList.map(e => (
+                       <option key={e} value={e}>{e}</option>
+                     ))}
+                   </select>
+                 </div>
                </div>
             )}
 
@@ -443,7 +452,7 @@ const AdminUpload = () => {
                       <input className="input-flat" placeholder="Title" value={metadata.title} onChange={e => setMetadata({...metadata, title: e.target.value})} style={{ fontSize: '0.8rem', height: '32px', padding: '0 0.6rem' }} />
                       <input className="input-flat" placeholder="Artist" value={metadata.artist} onChange={e => setMetadata({...metadata, artist: e.target.value})} style={{ fontSize: '0.8rem', height: '32px', padding: '0 0.6rem' }} />
                    </div>
-                   <select className="input-flat" style={{ marginTop: '0.3rem', fontSize: '0.8rem', height: '32px', padding: '0 0.6rem' }} value={metadata.emotion} onChange={e => setMetadata({...metadata, emotion: e.target.value})}>
+                   <select className="input-flat" style={{ marginTop: '0.3rem', fontSize: '0.8rem', height: '32px', padding: '0 0.6rem', width: '100%' }} value={metadata.emotion} onChange={e => setMetadata({...metadata, emotion: e.target.value})}>
                       {emotionsList.map(e => (
                         <option key={e} value={e}>{e}</option>
                       ))}
@@ -452,21 +461,66 @@ const AdminUpload = () => {
             )}
 
             {uploadTab === 'file' && (
-              <div style={{ marginBottom: '0.6rem' }}>
-                <h4 style={{ color: 'var(--text-main)', marginBottom: '0.3rem', margin: 0, fontSize: '0.8rem' }}>Files</h4>
-                <div style={{ marginBottom: '0.4rem' }}>
-                  <label style={{ display: 'block', marginBottom: '0.2rem', color: 'var(--text-muted)', fontSize: '0.7rem' }}>Audio (MP3)*</label>
-                  <input id="audio-input" type="file" accept="audio/*" onChange={handleFileChange} className="input-flat" style={{ padding: '0.25rem', height: 'auto', fontSize: '0.75rem' }} required />
-                </div>
-                <div>
-                  <label style={{ display: 'block', marginBottom: '0.2rem', color: 'var(--text-muted)', fontSize: '0.7rem' }}>Cover Art</label>
-                  <input id="cover-input" type="file" accept="image/*" onChange={handleCoverChange} className="input-flat" style={{ padding: '0.25rem', height: 'auto', fontSize: '0.75rem' }} />
+              <div style={{ marginBottom: '0.75rem' }}>
+                <h4 style={{ color: 'var(--text-main)', marginBottom: '0.4rem', margin: 0, fontSize: '0.9rem', fontWeight: '700' }}>Files</h4>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '0.2rem', color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: '600' }}>Audio (MP3)*</label>
+                    <input 
+                      id="audio-input" 
+                      type="file" 
+                      accept="audio/*" 
+                      onChange={handleFileChange} 
+                      className="input-flat" 
+                      style={{ 
+                        padding: '0.35rem', 
+                        height: 'auto', 
+                        fontSize: '0.75rem', 
+                        width: '100%', 
+                        cursor: 'pointer',
+                        background: 'rgba(255,255,255,0.03)'
+                      }} 
+                      required 
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '0.2rem', color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: '600' }}>Cover Art</label>
+                    <input 
+                      id="cover-input" 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleCoverChange} 
+                      className="input-flat" 
+                      style={{ 
+                        padding: '0.35rem', 
+                        height: 'auto', 
+                        fontSize: '0.75rem', 
+                        width: '100%', 
+                        cursor: 'pointer',
+                        background: 'rgba(255,255,255,0.03)'
+                      }} 
+                    />
+                  </div>
                 </div>
               </div>
             )}
 
-            <button className="btn-3d btn-primary" disabled={loading} style={{ width: '100%', marginTop: '0.3rem', height: '34px', fontSize: '0.8rem' }}>
-              {loading ? 'Processing...' : (uploadTab === 'youtube' ? 'Import from YouTube' : 'Upload Song')}
+            <button 
+              className="btn-3d btn-primary" 
+              disabled={loading} 
+              style={{ 
+                width: '100%', 
+                marginTop: '0', 
+                height: '42px', 
+                fontSize: '0.9rem',
+                borderRadius: '12px',
+                fontWeight: '800',
+                letterSpacing: '0.5px',
+                boxShadow: '0 4px 12px rgba(88, 204, 2, 0.3)',
+                textTransform: 'uppercase'
+              }}
+            >
+              {loading ? 'PROCESSING...' : (uploadTab === 'youtube' ? 'IMPORT FROM YOUTUBE' : 'UPLOAD SONG')}
             </button>
           </form>
         </div>

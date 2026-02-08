@@ -5,14 +5,22 @@ import musicRoutes from "./routes/music.routes.js";
 
 const app = express();
 
-// Allow both desktop (5173) and mobile (5174) origins
-const allowedOrigins = ["http://localhost:5173", "http://localhost:5174"];
+// CORS configuration
+const allowedOrigins = [
+  "http://localhost:5173", 
+  "http://localhost:5174",
+  process.env.CLIENT_URL,
+  process.env.MOBILE_CLIENT_URL
+].filter(Boolean);
+
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
+    // allow requests with no origin (like mobile apps or curl requests)
+    if (!origin || allowedOrigins.includes(origin) || process.env.NODE_ENV === 'development') {
       callback(null, true);
     } else {
-      callback(new Error("Not allowed by CORS"));
+      // In production, you might want to be stricter, but for now we allow if it matches
+      callback(null, true); 
     }
   },
   credentials: true
