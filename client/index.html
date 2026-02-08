@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -11,6 +11,23 @@
       rel="stylesheet"
     />
     <title>Sangatamizh - desktop</title>
+    <script>
+      // Mobile Detection Redirect - Magic 🪄
+      if (
+        /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+          navigator.userAgent,
+        )
+      ) {
+        // Redirect to your Vercel Mobile URL
+        // Replace 'm.sangatamizh.vercel.app' with your actual V2 URL after deployment
+        if (!window.location.hostname.includes("localhost")) {
+          window.location.href = window.location.href.replace(
+            window.location.hostname,
+            "sangatamizh-mobile.vercel.app",
+          );
+        }
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -18,24 +18,46 @@ const YTDLP_PATH = path.join(TEMP_DIR, process.platform === 'win32' ? 'yt-dlp.ex
 
 // Initialize yt-dlp binary if missing
 const initYtDlp = async () => {
-    if (!fs.existsSync(YTDLP_PATH)) {
+    if (fs.existsSync(YTDLP_PATH)) return;
+
+    try {
         console.log('[YouTubeService] Downloading yt-dlp...');
         const url = 'https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp' + (process.platform === 'win32' ? '.exe' : '');
+        
+        const headers = {};
+        if (process.env.GITHUB_TOKEN) {
+            headers['Authorization'] = `token ${process.env.GITHUB_TOKEN}`;
+        }
+
         const response = await axios({
             url,
             method: 'GET',
-            responseType: 'stream'
+            responseType: 'stream',
+            headers
         });
+
         const writer = fs.createWriteStream(YTDLP_PATH);
         response.data.pipe(writer);
+
         await new Promise((resolve, reject) => {
             writer.on('finish', resolve);
-            writer.on('error', reject);
+            writer.on('error', (err) => {
+                fs.unlink(YTDLP_PATH, () => {}); // Cleanup partial file
+                reject(err);
+            });
         });
+
         if (process.platform !== 'win32') {
             fs.chmodSync(YTDLP_PATH, '755');
         }
-        console.log('[YouTubeService] yt-dlp ready.');
+        console.log('[YouTubeService] yt-dlp binary downloaded successfully.');
+    } catch (err) {
+        if (err.response && err.response.status === 403) {
+            console.error('[YouTubeService] ⚠️ GitHub Rate Limit Hit! streaming might fail until binary is available.');
+            console.error('[YouTubeService] Add a GITHUB_TOKEN to your environment variables to bypass this.');
+        } else {
+            console.error('[YouTubeService] Failed to download yt-dlp:', err.message);
+        }
     }
 };
 
