@@ -1,5 +1,5 @@
 import { streamFile } from "../utils/streamFile.js";
-import { getYouTubeMetadata, streamYouTubeAudio } from "../services/youtube.service.js";
+import { getYouTubeMetadata, streamYouTubeAudio, YTDLP_PATH, IS_GLOBAL } from "../services/youtube.service.js";
 import lyricsFinder from 'lyrics-finder';
 import { dbService } from "../services/db.service.js";
 import { storageService } from "../services/storage.service.js";
@@ -60,25 +60,76 @@ export const getYTMeta = async (req, res) => {
 
 export const uploadFromYoutube = async (req, res) => {
     try {
-        const { url, title, artist, category, emotion, coverUrl } = req.body;
+        const { url, title, artist, category, emotion, coverUrl, lyrics } = req.body;
         if (!url) return res.status(400).json({ error: "URL required" });
+
+        console.log(`[Admin] Starting YouTube migration for: ${url}`);
+        
+        const videoId = url.match(/(?:v=|youtu\.be\/|embed\/|watch\?v=)([\w-]{11})/)?.[1];
+        if (!videoId) throw new Error('Invalid YouTube URL');
+
+        const tempDir = path.join(process.cwd(), 'temp');
+        if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
+        
+        const outputPattern = path.join(tempDir, `${videoId}.%(ext)s`);
+
+        // Use local yt-dlp if available
+        const cookiesPath = path.join(process.cwd(), 'cookies.txt');
+        const cookieFlag = fs.existsSync(cookiesPath) ? `--cookies "${cookiesPath}"` : '';
+        const YTDLP_RUN = IS_GLOBAL ? 'yt-dlp' : YTDLP_PATH;
+
+        const downloadCmd = `"${YTDLP_RUN}" ${cookieFlag} -f "ba" -o "${outputPattern}" "${url}"`;
+        
+        console.log(`[Admin] Downloading: ${downloadCmd}`);
+        
+        await new Promise((resolve, reject) => {
+            exec(downloadCmd, (err) => {
+                if (err) return reject(err);
+                resolve();
+            });
+        });
+
+        // Find file
+        const files = fs.readdirSync(tempDir);
+        const downloadedFile = files.find(f => f.startsWith(videoId) && f !== videoId && !f.endsWith('.exe'));
+
+        if (!downloadedFile) throw new Error("Download failed - File not found");
+
+        const actualTempPath = path.join(tempDir, downloadedFile);
+        const ext = path.extname(downloadedFile);
+        const mimetype = ext === '.m4a' ? 'audio/mp4' : (ext === '.webm' ? 'audio/webm' : 'audio/mpeg');
+
+        console.log(`[Admin] Uploading to Cloud...`);
+        const mockFile = {
+            path: actualTempPath,
+            originalname: downloadedFile,
+            filename: downloadedFile,
+            mimetype: mimetype
+        };
+        
+        const cloudUrl = await storageService.uploadFile(mockFile, 'songs');
 
         const newSong = {
             id: 'yt_' + Date.now().toString(),
             title: title || "YouTube Song",
             artist: artist || "YouTube",
-            lyrics: req.body.lyrics || "",
+            lyrics: lyrics || "",
             category: category || "Tamil",
             emotion: emotion || "Neutral",
-            url: url,
+            url: cloudUrl, // Save the CLOUD URL instead of YT link
             cover_url: coverUrl || "https://i.ytimg.com/vi/placeholder/hqdefault.jpg",
-            is_youtube: true,
+            is_youtube: false, // It's a cloud file now!
             created_at: new Date().toISOString()
         };
 
         const saved = await dbService.addSong(newSong);
+        
+        // Final cleanup
+        try { fs.unlinkSync(actualTempPath); } catch (e) {}
+
         res.json({ ok: true, song: saved });
     } catch (err) {
+        console.error("[Admin] YT Upload Error:", err);
         res.status(500).json({ error: err.message });
     }
 };

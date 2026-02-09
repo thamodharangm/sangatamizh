@@ -23,8 +23,8 @@ const checkGlobalYtDlp = () => {
     });
 };
 
-const IS_GLOBAL = await checkGlobalYtDlp();
-const YTDLP_PATH = IS_GLOBAL ? 'yt-dlp' : path.join(TEMP_DIR, process.platform === 'win32' ? 'yt-dlp.exe' : 'yt-dlp');
+export const IS_GLOBAL = await checkGlobalYtDlp();
+export const YTDLP_PATH = IS_GLOBAL ? 'yt-dlp' : path.join(TEMP_DIR, process.platform === 'win32' ? 'yt-dlp.exe' : 'yt-dlp');
 
 // Initialize yt-dlp binary if missing
 const initYtDlp = async () => {

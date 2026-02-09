@@ -151,13 +151,15 @@ export const dbService = {
         if (this.isCloud) {
             await supabase.from('analytics_plays').insert([{ user_id: userId, song_id: songId }]);
         } else {
-            let analytics = { plays: [], logins: [] };
-            if (fs.existsSync(ANALYTICS_PATH)) {
-                analytics = JSON.parse(fs.readFileSync(ANALYTICS_PATH, "utf8"));
-            }
-            if (!analytics.plays) analytics.plays = [];
-            analytics.plays.push({ userId, songId, date: new Date().toISOString() });
-            fs.writeFileSync(ANALYTICS_PATH, JSON.stringify(analytics, null, 2));
+            try {
+                let analytics = { plays: [], logins: [] };
+                if (fs.existsSync(ANALYTICS_PATH)) {
+                    analytics = JSON.parse(fs.readFileSync(ANALYTICS_PATH, "utf8"));
+                }
+                if (!analytics.plays) analytics.plays = [];
+                analytics.plays.push({ userId, songId, date: new Date().toISOString() });
+                fs.writeFileSync(ANALYTICS_PATH, JSON.stringify(analytics, null, 2));
+            } catch (e) {}
         }
     },
 
