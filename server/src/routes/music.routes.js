@@ -13,8 +13,7 @@ import {
     getLyrics,
     updateSong,
     initializeEmotions,
-    bulkUpdateEmotions,
-    updateCookies
+    bulkUpdateEmotions
 } from "../controllers/music.controller.js";
 import multer from "multer";
 import path from "path";
@@ -69,9 +68,6 @@ router.get("/lyrics", getLyrics);
 
 router.post("/analytics/login", logLogin);
 router.get("/analytics/stats", getAnalyticsStats);
-
-// Cookie Management
-router.post("/admin/update-cookies", updateCookies);
 
 // ========== LIKES ENDPOINTS (CLOUDBE READY) ==========
 import likesService from "../services/likes.service.js";
