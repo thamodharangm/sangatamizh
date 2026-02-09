@@ -85,150 +85,173 @@ const Playlist = () => {
       </div>
 
       {playlistSongs.length > 0 ? (
-        <div className="playlist-list">
-          {playlistSongs.map((song, index) => {
-            const isCurrent = currentTrack?.id === song.id;
-            return (
-              <div
-                key={song.id}
-                className="playlist-item"
-                onClick={() => {
-                  if (isCurrent) {
-                    togglePlay();
-                  } else {
-                    loadTrack(song, playlistSongs);
-                  }
-                }}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.75rem',
-                  padding: '0 12px',
-                  height: '52px',
-                  background: isCurrent ? 'rgba(88, 204, 2, 0.08)' : 'var(--bg-card)',
-                  borderRadius: 'var(--radius-lg)',
-                  marginBottom: '8px',
-                  cursor: 'pointer',
-                  border: isCurrent ? '2px solid var(--primary)' : '2px solid var(--border-color)',
-                  boxShadow: isCurrent ? '0px 4px 0px var(--primary-depth)' : '0px 4px 0px var(--border-color)',
-                  transition: 'transform 0.1s, box-shadow 0.1s, filter 0.2s',
-                  userSelect: 'none'
-                }}
-                onMouseDown={(e) => {
-                  e.currentTarget.style.transform = 'translateY(4px)';
-                  e.currentTarget.style.boxShadow = '0px 0px 0px transparent';
-                }}
-                onMouseUp={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = isCurrent ? '0px 4px 0px var(--primary-depth)' : '0px 4px 0px var(--border-color)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = isCurrent ? '0px 4px 0px var(--primary-depth)' : '0px 4px 0px var(--border-color)';
-                }}
-              >
-                <div style={{ 
-                  width: '24px', 
-                  textAlign: 'center', 
-                  color: isCurrent ? 'var(--primary)' : 'var(--text-muted)', 
-                  fontSize: '0.85rem',
-                  fontWeight: '800',
-                  display: 'flex',
-                  justifyContent: 'center'
-                }}>
-                  {isCurrent && isPlaying ? (
-                    <div className="v2-bars">
-                      <span className="v2-bar"></span>
-                      <span className="v2-bar"></span>
-                      <span className="v2-bar"></span>
-                    </div>
-                  ) : index + 1}
-                </div>
+        <div className="card-flat" style={{ 
+          padding: '0', 
+          borderRadius: '24px', 
+          overflow: 'hidden', 
+          flex: 1,
+          maxHeight: 'calc(100vh - 240px)',
+          display: 'flex', 
+          flexDirection: 'column',
+          background: 'var(--bg-card)',
+          border: '1px solid var(--border-color)'
+        }}>
+          {/* Internal Header for the List */}
+          <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.01)', flexShrink: 0 }}>
+            <h2 style={{ fontSize: '0.8rem', margin: 0, fontWeight: '900', letterSpacing: '0.5px', color: 'var(--text-muted)' }}>QUEUED TRACKS</h2>
+          </div>
 
-                <img
-                  src={song.coverUrl || song.cover_url || 'https://via.placeholder.com/50'}
-                  alt={song.title}
-                  style={{
-                    width: '36px',
-                    height: '36px',
-                    borderRadius: '8px',
-                    objectFit: 'cover',
-                    border: '1px solid var(--border-color)'
-                  }}
-                />
-
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{
-                    fontSize: '0.9rem',
-                    fontWeight: '600',
-                    color: isCurrent ? 'var(--primary)' : 'white',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis'
-                  }}>
-                    {song.title}
-                  </div>
-                  <div style={{
-                    fontSize: '0.75rem',
-                    color: 'var(--text-muted)',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis'
-                  }}>
-                    {song.artist}
-                  </div>
-                </div>
-
-                <button
-                  onClick={(e) => removeFromPlaylist(e, song.id)}
-                  style={{
-                    width: '36px',
-                    height: '36px',
-                    borderRadius: '50%',
-                    border: 'none',
-                    background: 'rgba(255, 64, 85, 0.15)',
-                    color: '#ff4055',
-                    fontSize: '1rem',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    transition: 'all 0.2s ease'
-                  }}
-                >
-                  ❤️
-                </button>
-
-                <button
-                  className="control-btn"
-                  style={{
-                    width: '36px',
-                    height: '36px',
-                    flexShrink: 0,
-                    background: isCurrent ? 'var(--primary)' : 'rgba(255, 255, 255, 0.1)',
-                    color: 'white',
-                    borderRadius: '50%',
-                    fontSize: '0.9rem',
-                    boxShadow: isCurrent ? '0 2px 8px rgba(88, 204, 2, 0.4)' : 'none',
-                    border: 'none',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation();
+          <div className="playlist-list hide-scrollbar" style={{ 
+            flex: 1, 
+            overflowY: 'auto', 
+            padding: '0.75rem',
+            paddingBottom: '2rem'
+          }}>
+            {playlistSongs.map((song, index) => {
+              const isCurrent = currentTrack?.id === song.id;
+              return (
+                <div
+                  key={song.id}
+                  className="playlist-item"
+                  onClick={() => {
                     if (isCurrent) {
                       togglePlay();
                     } else {
                       loadTrack(song, playlistSongs);
                     }
                   }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    padding: '0 12px',
+                    height: '54px',
+                    background: isCurrent ? 'rgba(88, 204, 2, 0.08)' : 'rgba(255,255,255,0.02)',
+                    borderRadius: '16px',
+                    marginBottom: '8px',
+                    cursor: 'pointer',
+                    border: isCurrent ? '2px solid var(--primary)' : '1px solid rgba(255,255,255,0.05)',
+                    boxShadow: isCurrent ? '0px 4px 0px var(--primary-depth)' : '0px 3px 0px rgba(0,0,0,0.2)',
+                    transition: 'transform 0.1s, box-shadow 0.1s',
+                    userSelect: 'none'
+                  }}
+                  onMouseDown={(e) => {
+                    e.currentTarget.style.transform = 'translateY(3px)';
+                    e.currentTarget.style.boxShadow = '0px 0px 0px transparent';
+                  }}
+                  onMouseUp={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = isCurrent ? '0px 4px 0px var(--primary-depth)' : '0px 3px 0px rgba(0,0,0,0.2)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = isCurrent ? '0px 4px 0px var(--primary-depth)' : '0px 3px 0px rgba(0,0,0,0.2)';
+                  }}
                 >
-                  {isCurrent && isPlaying ? '⏸' : '▶'}
-                </button>
-              </div>
-            );
-          })}
+                  <div style={{ 
+                    width: '24px', 
+                    textAlign: 'center', 
+                    color: isCurrent ? 'var(--primary)' : 'var(--text-muted)', 
+                    fontSize: '0.8rem',
+                    fontWeight: '900',
+                    display: 'flex',
+                    justifyContent: 'center'
+                  }}>
+                    {isCurrent && isPlaying ? (
+                      <div className="v2-bars">
+                        <span className="v2-bar"></span>
+                        <span className="v2-bar"></span>
+                        <span className="v2-bar"></span>
+                      </div>
+                    ) : index + 1}
+                  </div>
+
+                  <img
+                    src={song.coverUrl || song.cover_url || 'https://via.placeholder.com/50'}
+                    alt={song.title}
+                    style={{
+                      width: '38px',
+                      height: '38px',
+                      borderRadius: '10px',
+                      objectFit: 'cover',
+                      border: '1px solid rgba(255,255,255,0.1)'
+                    }}
+                  />
+
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{
+                      fontSize: '0.85rem',
+                      fontWeight: '800',
+                      color: isCurrent ? 'var(--primary)' : 'white',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}>
+                      {song.title}
+                    </div>
+                    <div style={{
+                      fontSize: '0.7rem',
+                      color: 'var(--text-muted)',
+                      fontWeight: '700',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}>
+                      {song.artist}
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={(e) => removeFromPlaylist(e, song.id)}
+                    style={{
+                      width: '34px',
+                      height: '34px',
+                      borderRadius: '12px',
+                      border: 'none',
+                      background: 'rgba(255, 64, 85, 0.1)',
+                      color: '#ff4055',
+                      fontSize: '0.9rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    ❤️
+                  </button>
+
+                  <button
+                    className="control-btn"
+                    style={{
+                      width: '34px',
+                      height: '34px',
+                      flexShrink: 0,
+                      background: isCurrent ? 'var(--primary)' : 'rgba(255, 255, 255, 0.05)',
+                      color: 'white',
+                      borderRadius: '12px',
+                      fontSize: '0.8rem',
+                      boxShadow: isCurrent ? '0 2px 8px rgba(88, 204, 2, 0.3)' : 'none',
+                      border: '1px solid rgba(255,255,255,0.05)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (isCurrent) {
+                        togglePlay();
+                      } else {
+                        loadTrack(song, playlistSongs);
+                      }
+                    }}
+                  >
+                    {isCurrent && isPlaying ? '⏸' : '▶'}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
         </div>
       ) : (
         <div className="empty-state card-flat">

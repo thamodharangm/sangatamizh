@@ -96,19 +96,36 @@ function Playlist() {
   }
 
   return (
-    <div className="playlist-container" style={{ padding: '2rem', maxWidth: '1000px', margin: '0 auto' }}>
-      <header className="playlist-header" style={{ marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '2rem' }}>
+    <div className="playlist-container" style={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      height: '100%', 
+      width: '100%',
+      overflow: 'hidden'
+    }}>
+      <header className="playlist-header" style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '1.5rem', flexShrink: 0 }}>
          <div className="playlist-info">
-            <h4 style={{ textTransform: 'uppercase', color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '0.5rem' }}>PLAYLIST</h4>
-            <h1 style={{ fontSize: '3.5rem', marginBottom: '1rem', fontWeight: '800' }}>🎵 My Playlist</h1>
-            <p style={{ color: 'var(--text-muted)' }}>
+            <h4 style={{ textTransform: 'uppercase', color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: '0.25rem' }}>PLAYLIST</h4>
+            <h1 style={{ fontSize: '2rem', marginBottom: '0.5rem', fontWeight: '800' }}>🎵 My Playlist</h1>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
                 {playlistSongs.length} songs • By {user?.displayName || user?.email || 'Guest User'}
             </p>
          </div>
       </header>
 
-      {/* Tactile 3D Playlist Items */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      {/* Scrollable Song List Container */}
+      <div 
+        className="no-scrollbar"
+        style={{ 
+          flex: 1, 
+          overflowY: 'auto', 
+          display: 'flex', 
+          flexDirection: 'column', 
+          gap: '0.5rem',
+          paddingRight: '4px',
+          paddingBottom: '2rem'
+        }}
+      >
         {playlistSongs.length > 0 ? (
           playlistSongs.map((song, index) => {
             const isCurrent = currentSong?.id === song.id;
@@ -126,36 +143,37 @@ function Playlist() {
                 style={{ 
                   display: 'flex', 
                   alignItems: 'center', 
-                  gap: '1.25rem',
-                  padding: '0 1.25rem',
-                  height: '64px',
+                  gap: '1rem',
+                  padding: '0 1rem',
+                  height: '52px',
                   background: isCurrent ? 'rgba(88, 204, 2, 0.1)' : 'var(--bg-card, #202f36)',
                   border: isCurrent ? '2px solid var(--primary, #58cc02)' : '2px solid var(--border-color, #37464f)',
-                  boxShadow: isCurrent ? '0px 4px 0px var(--primary-depth, #46a302)' : '0px 4px 0px var(--border-color, #37464f)',
-                  borderRadius: '16px',
+                  boxShadow: isCurrent ? '0px 3px 0px var(--primary-depth, #46a302)' : '0px 3px 0px var(--border-color, #37464f)',
+                  borderRadius: '12px',
                   cursor: 'pointer',
                   transition: 'all 0.1s ease',
                   userSelect: 'none',
                   position: 'relative',
-                  marginBottom: '6px'
+                  marginBottom: '4px',
+                  flexShrink: 0
                 }}
                 onMouseDown={(e) => {
-                  e.currentTarget.style.transform = 'translateY(4px)';
+                  e.currentTarget.style.transform = 'translateY(3px)';
                   e.currentTarget.style.boxShadow = '0px 0px 0px transparent';
                 }}
                 onMouseUp={(e) => {
                   e.currentTarget.style.transform = 'translateY(0)';
                   const currentIsActive = currentSong?.id === song.id;
-                  e.currentTarget.style.boxShadow = currentIsActive ? '0px 4px 0px var(--primary-depth, #46a302)' : '0px 4px 0px var(--border-color, #37464f)';
+                  e.currentTarget.style.boxShadow = currentIsActive ? '0px 3px 0px var(--primary-depth, #46a302)' : '0px 3px 0px var(--border-color, #37464f)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = 'translateY(0)';
                   const currentIsActive = currentSong?.id === song.id;
-                  e.currentTarget.style.boxShadow = currentIsActive ? '0px 4px 0px var(--primary-depth, #46a302)' : '0px 4px 0px var(--border-color, #37464f)';
+                  e.currentTarget.style.boxShadow = currentIsActive ? '0px 3px 0px var(--primary-depth, #46a302)' : '0px 3px 0px var(--border-color, #37464f)';
                 }}
               >
                 {/* Index / Indicator */}
-                <div style={{ width: '28px', fontSize: '0.9rem', fontWeight: '800', color: isCurrent ? 'var(--primary)' : 'var(--text-muted)' }}>
+                <div style={{ width: '24px', fontSize: '0.8rem', fontWeight: '800', color: isCurrent ? 'var(--primary)' : 'var(--text-muted)' }}>
                   {isCurrent && isPlaying ? (
                     <div className="playing-bars">
                       <span className="bar"></span>
@@ -170,9 +188,9 @@ function Playlist() {
                   src={song.coverUrl} 
                   alt="" 
                   style={{ 
-                    width: '42px', 
-                    height: '42px', 
-                    borderRadius: '10px', 
+                    width: '36px', 
+                    height: '36px', 
+                    borderRadius: '8px', 
                     objectFit: 'cover',
                     border: '1px solid rgba(255,255,255,0.1)'
                   }} 
@@ -182,7 +200,7 @@ function Playlist() {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ 
                     fontWeight: '700', 
-                    fontSize: '1rem',
+                    fontSize: '0.9rem',
                     color: isCurrent ? 'var(--primary)' : 'white',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
@@ -190,22 +208,22 @@ function Playlist() {
                   }}>
                     {song.title}
                   </div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '500' }}>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '500' }}>
                     {song.artist}
                   </div>
                 </div>
 
                 {/* Action Buttons */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                   <button 
                     onClick={(e) => removeFromPlaylist(e, song.id)}
                     style={{ 
                       background: 'none', 
                       border: 'none', 
                       color: '#ff4055', 
-                      fontSize: '1.2rem', 
+                      fontSize: '1rem', 
                       cursor: 'pointer',
-                      padding: '8px'
+                      padding: '4px'
                     }}
                     title="Remove"
                   >
@@ -215,16 +233,16 @@ function Playlist() {
                   <div 
                     className="play-indicator-v1"
                     style={{
-                      width: '40px',
-                      height: '40px',
+                      width: '32px',
+                      height: '32px',
                       borderRadius: '50%',
                       background: isCurrent ? 'var(--primary)' : 'rgba(255,255,255,0.1)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       color: 'white',
-                      fontSize: '1.1rem',
-                      boxShadow: isCurrent ? '0 4px 12px rgba(88, 204, 2, 0.4)' : 'none'
+                      fontSize: '0.9rem',
+                      boxShadow: isCurrent ? '0 3px 8px rgba(88, 204, 2, 0.3)' : 'none'
                     }}
                   >
                     {isCurrent && isPlaying ? '⏸' : '▶'}
@@ -234,11 +252,11 @@ function Playlist() {
             );
           })
         ) : (
-          <div style={{ padding: '4rem 1rem', textAlign: 'center', background: 'rgba(255,255,255,0.02)', borderRadius: '24px' }}>
-             <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🎵</div>
-             <h3 style={{ marginBottom: '0.5rem', color: 'white', fontSize: '1.5rem', fontWeight: '800' }}>Empty Collection</h3>
-             <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>Start adding songs to build your vibe.</p>
-             <button className="btn-3d btn-primary" onClick={() => navigate('/')}>
+          <div style={{ padding: '2rem 1rem', textAlign: 'center', background: 'rgba(255,255,255,0.02)', borderRadius: '24px' }}>
+             <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>🎵</div>
+             <h3 style={{ marginBottom: '0.25rem', color: 'white', fontSize: '1.25rem', fontWeight: '800' }}>Empty Collection</h3>
+             <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>Start adding songs to build your vibe.</p>
+             <button className="btn-3d btn-primary" style={{ height: '40px', fontSize: '0.85rem' }} onClick={() => navigate('/')}>
                 Discover Tracks
              </button>
           </div>
@@ -252,10 +270,10 @@ function Playlist() {
           display: flex;
           align-items: flex-end;
           gap: 2px;
-          height: 14px;
+          height: 12px;
         }
         .playing-bars .bar {
-          width: 3px;
+          width: 2.5px;
           background: var(--primary);
           animation: bar-dance 0.5s ease-in-out infinite alternate;
         }
@@ -263,8 +281,8 @@ function Playlist() {
         .playing-bars .bar:nth-child(3) { animation-delay: 0.2s; animation-duration: 0.6s; }
         
         @keyframes bar-dance {
-          from { height: 4px; }
-          to { height: 14px; }
+          from { height: 3px; }
+          to { height: 12px; }
         }
       `}</style>
     </div>

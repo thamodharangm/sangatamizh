@@ -1,5 +1,4 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
 import api from '../config/api';
 import { useAuth } from '../context/AuthContext';
 import SongCard from '../components/SongCard';
@@ -8,9 +7,7 @@ import { useMusic } from '../context/MusicContext';
 const Library = () => {
   const { user } = useAuth();
   const [playlistSongs, setPlaylistSongs] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const { playSong, currentSong } = useMusic();
-  const location = useLocation();
+  const { playSong } = useMusic();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEmotion, setSelectedEmotion] = useState('All');
@@ -18,9 +15,6 @@ const Library = () => {
   // Refs for each horizontal row to handle scrolling
   const allScrollRef = useRef(null);
   const loveScrollRef = useRef(null);
-  const sadScrollRef = useRef(null);
-  const motScrollRef = useRef(null);
-  const partyScrollRef = useRef(null);
 
   const scrollRow = (ref, direction) => {
     if (ref.current) {
@@ -95,50 +89,48 @@ const Library = () => {
     <div className="library-container" style={{ 
       display: 'flex', 
       flexDirection: 'column', 
-      height: 'calc(100vh - 80px)', // Adjusted height
-      padding: '2rem 2.5rem', // Increased top padding to prevent cutoff
-      maxWidth: '1400px',
-      margin: '0 auto',
+      height: '100%',
+      width: '100%',
+      padding: '0.5rem 1rem',
       overflow: 'hidden',
       color: 'var(--text-main)',
-      backgroundColor: '#111b21'
     }}>
       {/* Single Screen Content Container */}
       <div style={{ 
         flex: 1, 
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'center', // Center content vertically
-        paddingBottom: '1rem',
+        minHeight: 0,
         overflow: 'hidden'
       }}>
         
         {/* Header Section - Ultra Compact */}
-        <div style={{ marginBottom: '1.5rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1rem' }}>
+        <div style={{ marginBottom: '1rem', flexShrink: 0 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
             <h1 style={{ 
               color: 'white', 
               margin: 0, 
-              fontSize: '2rem', 
+              fontSize: '1.5rem', 
               fontWeight: '900',
               letterSpacing: '-0.5px'
             }}>Library</h1>
             
-            <div style={{ position: 'relative', width: '250px' }}>
+            <div style={{ position: 'relative', width: '200px' }}>
               <input 
                 type="text" 
-                placeholder="Search..." 
+                placeholder="Search songs..." 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="input-flat"
                 style={{ 
                   width: '100%', 
-                  borderRadius: '12px',
+                  height: '36px',
+                  borderRadius: '10px',
                   backgroundColor: '#202f36',
                   border: '1.5px solid #37464f',
-                  padding: '8px 16px',
+                  padding: '0 12px',
                   color: 'white',
-                  fontSize: '0.85rem'
+                  fontSize: '0.8rem'
                 }}
               />
             </div>
@@ -147,7 +139,7 @@ const Library = () => {
           {/* Emotion Filters - Ultra Compact */}
           <div className="no-scrollbar" style={{ 
             display: 'flex', 
-            gap: '0.75rem', 
+            gap: '0.5rem', 
             overflowX: 'auto', 
             paddingBottom: '0.5rem'
           }}>
@@ -166,29 +158,30 @@ const Library = () => {
                   onClick={() => setSelectedEmotion(emotion)}
                   className={`btn-3d-custom ${isActive ? 'active' : ''}`}
                   style={{ 
-                    padding: '8px 18px', 
-                    fontSize: '0.75rem', 
+                    padding: '6px 14px', 
+                    fontSize: '0.7rem', 
                     fontWeight: '800',
                     textTransform: 'uppercase',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '8px',
-                    borderRadius: '12px',
+                    gap: '6px',
+                    border: 'none',
+                    borderRadius: '10px',
                     backgroundColor: isActive ? activeColor : '#202f36',
-                    border: `1.5px solid ${isActive ? activeDepth : '#37464f'}`,
-                    boxShadow: `0px 3px 0px ${isActive ? activeDepth : '#37464f'}`,
+                    boxShadow: `0px 2px 0px ${isActive ? activeDepth : '#37464f'}`,
                     color: textColor,
                     cursor: 'pointer',
                     transition: 'all 0.1s ease',
-                    transform: isActive ? 'translateY(1.5px)' : 'none'
+                    transform: isActive ? 'translateY(1.5px)' : 'none',
+                    marginBottom: '2px'
                   }}
                 >
                   <span>{emotion}</span>
                   <span style={{ 
                     background: isActive ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.05)',
-                    padding: '1.5px 6px',
-                    borderRadius: '6px',
-                    fontSize: '0.65rem',
+                    padding: '1px 5px',
+                    borderRadius: '5px',
+                    fontSize: '0.6rem',
                     color: isActive && isAll ? '#fff' : (isActive ? '#ec4899' : '#afbacc')
                   }}>
                     {count}
@@ -199,62 +192,83 @@ const Library = () => {
           </div>
         </div>
 
-        {/* Netflix Style Rows (Perfectly centered on screen) */}
-        {selectedEmotion === 'All' && !searchTerm && (
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            
-            {/* Row 1: All Songs */}
-            <section className="netflix-section">
-              <h2 className="section-title">🎶 All Songs</h2>
-              <div className="row-wrapper">
-                <button className="btn-netflix left" onClick={() => scrollRow(allScrollRef, 'left')}>‹</button>
-                <div ref={allScrollRef} className="row-scroll-container no-scrollbar">
-                  {loadingSongs ? (
-                    <div style={{ padding: '2rem', color: 'var(--text-muted)' }}>Loading songs...</div>
-                  ) : allSongs.length > 0 ? (
-                    allSongs.map(song => (
-                      <div key={`all-${song.id}`} className="song-card-wrapper">
-                        <SongCard song={song} onPlay={() => playSong(song, allSongs)} />
-                      </div>
-                    ))
-                  ) : (
-                    <div style={{ padding: '2rem', color: 'var(--text-muted)' }}>No songs found in database.</div>
-                  )}
+        {/* Scrollable Area */}
+        <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', paddingRight: '4px', paddingBottom: '2rem' }}>
+            {selectedEmotion === 'All' && !searchTerm && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                
+                {/* Row 1: All Songs */}
+                <section className="netflix-section">
+                <h2 className="section-title" style={{ fontSize: '0.85rem' }}>🎶 All Songs</h2>
+                <div className="row-wrapper">
+                    <button className="btn-netflix left" style={{ width: '28px', height: '28px', fontSize: '1rem' }} onClick={() => scrollRow(allScrollRef, 'left')}>‹</button>
+                    <div ref={allScrollRef} className="row-scroll-container no-scrollbar">
+                    {loadingSongs ? (
+                        <div style={{ padding: '1rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>Loading songs...</div>
+                    ) : allSongs.length > 0 ? (
+                        allSongs.map(song => (
+                        <div key={`all-${song.id}`} className="library-card-scaler">
+                            <SongCard song={song} onPlay={() => playSong(song, allSongs)} />
+                        </div>
+                        ))
+                    ) : (
+                        <div style={{ padding: '1rem', color: 'var(--text-muted)' }}>No songs found.</div>
+                    )}
+                    </div>
+                    <button className="btn-netflix right" style={{ width: '28px', height: '28px', fontSize: '1rem' }} onClick={() => scrollRow(allScrollRef, 'right')}>›</button>
                 </div>
-                <button className="btn-netflix right" onClick={() => scrollRow(allScrollRef, 'right')}>›</button>
-              </div>
-            </section>
-          </div>
-        )}
+                </section>
 
-        {/* Search Results - Fixed height to avoid scroll */}
-        {(selectedEmotion !== 'All' || searchTerm) && (
-          <section style={{ height: '100%', overflow: 'hidden' }}>
-            <h2 className="section-title">🔍 Search Results</h2>
-            <div style={{ 
-              display: 'grid', 
-              gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', 
-              gap: '1rem',
-              maxHeight: 'calc(100vh - 250px)', // Dynamic height based on viewport
-              overflowY: 'auto',
-              paddingBottom: '1rem'
-            }} className="no-scrollbar">
-              {filteredSongs.length > 0 ? (
-                filteredSongs.map(song => (
-                  <SongCard 
-                    key={song.id} 
-                    song={song} 
-                    onPlay={() => playSong(song, filteredSongs)} 
-                  />
-                ))
-              ) : (
-                <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '2rem' }}>
-                  <p style={{ color: 'var(--text-muted)' }}>No songs found.</p>
+                {/* Additional Sections can be added here if needed */}
+                <section className="netflix-section">
+                <h2 className="section-title" style={{ fontSize: '0.85rem' }}>❤️ Your Library</h2>
+                <div className="row-wrapper">
+                    <button className="btn-netflix left" style={{ width: '28px', height: '28px', fontSize: '1rem' }} onClick={() => scrollRow(loveScrollRef, 'left')}>‹</button>
+                    <div ref={loveScrollRef} className="row-scroll-container no-scrollbar" style={{ minHeight: '130px' }}>
+                    {playlistSongs.length > 0 ? (
+                        playlistSongs.map(song => (
+                        <div key={`fav-${song.id}`} className="library-card-scaler">
+                            <SongCard song={song} onPlay={() => playSong(song, playlistSongs)} />
+                        </div>
+                        ))
+                    ) : (
+                        <div style={{ padding: '1rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>No liked songs yet.</div>
+                    )}
+                    </div>
+                    <button className="btn-netflix right" style={{ width: '28px', height: '28px', fontSize: '1rem' }} onClick={() => scrollRow(loveScrollRef, 'right')}>›</button>
                 </div>
-              )}
+                </section>
             </div>
-          </section>
-        )}
+            )}
+
+            {/* Search Results */}
+            {(selectedEmotion !== 'All' || searchTerm) && (
+            <section style={{ height: 'auto' }}>
+                <h2 className="section-title" style={{ fontSize: '0.85rem' }}>🔍 Search Results ({filteredSongs.length})</h2>
+                <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', 
+                gap: '0.75rem',
+                paddingBottom: '1rem'
+                }}>
+                {filteredSongs.length > 0 ? (
+                    filteredSongs.map(song => (
+                    <div key={song.id} className="library-card-scaler">
+                        <SongCard 
+                            song={song} 
+                            onPlay={() => playSong(song, filteredSongs)} 
+                        />
+                    </div>
+                    ))
+                ) : (
+                    <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '2rem' }}>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>No matching songs found.</p>
+                    </div>
+                )}
+                </div>
+            </section>
+            )}
+        </div>
       </div>
 
       <style>{`
@@ -263,7 +277,7 @@ const Library = () => {
           scrollbar-color: rgba(255,255,255,0.1) transparent;
         }
         .library-container::-webkit-scrollbar {
-          width: 6px;
+          width: 5px;
         }
         .library-container::-webkit-scrollbar-thumb {
           background: rgba(255,255,255,0.1);
@@ -276,48 +290,81 @@ const Library = () => {
         .netflix-section {
           position: relative;
           width: 100%;
+          margin-bottom: 0.5rem;
         }
         .section-title {
-          font-size: 1rem;
+          font-size: 0.8rem !important;
           color: white;
-          margin-bottom: 1rem;
-          padding-left: 10px;
+          margin-bottom: 0.5rem !important;
+          padding-left: 5px;
           display: flex;
           align-items: center;
-          gap: 8px;
+          gap: 6px;
           font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          opacity: 0.8;
         }
         .row-wrapper {
           position: relative;
           display: flex;
           align-items: center;
-          padding: 0 5px; 
+          padding: 0 2px; 
         }
         .row-scroll-container {
           display: flex;
-          gap: 0.75rem;
+          gap: 0.5rem;
           overflow-x: auto;
           scroll-behavior: smooth;
           width: 100%;
-          padding: 5px 5px 10px 5px;
+          padding: 2px 2px 8px 2px;
         }
-        .song-card-wrapper {
-          min-width: 120px; /* Reduced to 120px */
-          transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+        /* CARD SCALING FOR LIBRARY ONLY */
+        .library-card-scaler {
+          min-width: 105px;
+          max-width: 105px;
+          transition: transform 0.2s ease;
         }
-        .song-card-wrapper:hover {
-          transform: scale(1.12) translateY(-8px);
+        .library-card-scaler:hover {
+          transform: translateY(-4px);
           z-index: 10;
         }
+        .library-card-scaler .song-card-3d {
+          padding: 6px !important;
+          border-radius: 10px !important;
+          box-shadow: 0px 2px 0px #37464f !important;
+        }
+        .library-card-scaler .song-card-cover {
+          border-radius: 8px !important;
+          margin-bottom: 4px !important;
+        }
+        .library-card-scaler .song-card-title {
+          font-size: 0.7rem !important;
+          margin-bottom: 1px !important;
+        }
+        .library-card-scaler .song-card-artist {
+          font-size: 0.6rem !important;
+        }
+        .library-card-scaler .song-card-play-btn {
+          width: 32px !important;
+          height: 32px !important;
+        }
+        .library-card-scaler .song-card-like {
+          width: 24px !important;
+          height: 24px !important;
+          font-size: 0.7rem !important;
+        }
+
         .btn-netflix {
           position: absolute;
           z-index: 100;
-          top: 38%;
+          top: 45%;
           transform: translateY(-50%);
-          width: 32px; /* Small, refined buttons */
-          height: 32px;
+          width: 28px;
+          height: 28px;
           border-radius: 50%;
-          background-color: rgba(32, 47, 54, 0.9);
+          background-color: rgba(32, 47, 54, 0.95);
           color: #ec4899;
           border: 1.5px solid #37464f;
           box-shadow: 0px 2px 0px #37464f;
@@ -325,30 +372,25 @@ const Library = () => {
           align-items: center;
           justify-content: center;
           font-weight: 900;
-          font-size: 1.1rem;
+          font-size: 1rem;
           cursor: pointer;
           user-select: none;
           transition: all 0.15s ease;
-          padding-bottom: 1.5px;
           backdrop-filter: blur(4px);
         }
         .btn-netflix:hover {
-          transform: translateY(-54%) scale(1.15);
           background-color: #2a3d46;
           color: #ff5eaa;
         }
         .btn-netflix:active {
-          transform: translateY(-46%);
-          box-shadow: 0px 1px 0px #37464f;
+          transform: translateY(-50%) translateY(2px);
+          box-shadow: 0px 0px 0px #37464f;
         }
-        .btn-netflix.left {
-          left: -8px;
-        }
-        .btn-netflix.right {
-          right: -8px;
-        }
+        .btn-netflix.left { left: -6px; }
+        .btn-netflix.right { right: -6px; }
+
         .btn-3d-custom:hover:not(.active) {
-          transform: translateY(-2px);
+          transform: translateY(-1px);
           filter: brightness(1.1);
         }
       `}</style>

@@ -249,14 +249,14 @@ const AdminUpload = () => {
       {/* Content Area */}
       <div style={{ 
         flex: 1, 
-        overflow: 'hidden',
-        padding: '1rem 0.75rem 1.5rem 0.75rem', 
+        overflowY: 'auto',
+        padding: '0.75rem', 
         maxWidth: '1600px', 
         margin: '0 auto', 
         width: '100%',
         display: 'flex',
         flexDirection: 'column'
-      }}>
+      }} className="no-scrollbar">
 
       {activeTab === 'dashboard' && (
         <div className="card-flat" style={{ padding: '0', borderRadius: '20px', overflow: 'hidden', height: '380px', display: 'flex', flexDirection: 'column', background: 'var(--bg-card)', border: '1px solid rgba(255,255,255,0.05)' }}>
@@ -352,14 +352,14 @@ const AdminUpload = () => {
 
       {activeTab === 'upload' && (
         <div className="card-flat" style={{ 
-          padding: '1rem 1.25rem', 
-          maxWidth: '600px', 
+          padding: '1.25rem 1.75rem', 
+          maxWidth: '650px', 
           margin: '0 auto', 
-          flex: 1, 
-          overflow: 'hidden',
-          borderRadius: '20px',
-          background: 'var(--bg-card)',
-          border: '1px solid rgba(255,255,255,0.05)'
+          flex: '0 0 auto', 
+          borderRadius: '24px',
+          background: '#1c2529',
+          border: '1px solid rgba(255,255,255,0.08)',
+          boxShadow: '0 20px 40px rgba(0,0,0,0.3)'
         }}>
            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem', borderBottom: '2px solid rgba(255,255,255,0.05)', paddingBottom: '0.5rem' }}>
             <button 
@@ -430,94 +430,133 @@ const AdminUpload = () => {
             )}
 
             {uploadTab === 'file' && (
-               <div style={{ marginBottom: '0.75rem' }}>
-                 <h4 style={{ color: 'var(--text-main)', margin: 0, fontSize: '0.9rem', fontWeight: '700', marginBottom: '0.4rem' }}>Details</h4>
-                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-                   <input className="input-flat" type="text" name="title" placeholder="Title" value={metadata.title} onChange={handleMetadataChange} style={{ fontSize: '0.8rem', height: '32px', padding: '0 0.6rem' }} />
-                   <input className="input-flat" type="text" name="artist" placeholder="Artist" value={metadata.artist} onChange={handleMetadataChange} style={{ fontSize: '0.8rem', height: '32px', padding: '0 0.6rem' }} />
-                   <input className="input-flat" type="text" name="album" placeholder="Album" value={metadata.album} onChange={handleMetadataChange} style={{ fontSize: '0.8rem', height: '32px', padding: '0 0.6rem' }} />
-                   <select className="input-flat" name="emotion" value={metadata.emotion} onChange={handleMetadataChange} style={{ cursor: 'pointer', fontSize: '0.8rem', height: '32px', padding: '0 0.6rem' }}>
-                     {emotionsList.map(e => (
-                       <option key={e} value={e}>{e}</option>
-                     ))}
-                   </select>
+               <div style={{ marginBottom: '1rem' }}>
+                 <h4 style={{ 
+                    color: 'white', 
+                    margin: '0 0 0.65rem 0', 
+                    fontSize: '0.95rem', 
+                    fontWeight: '800',
+                    letterSpacing: '-0.2px'
+                 }}>Details</h4>
+                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div className="admin-input-group">
+                        <input className="admin-input" type="text" name="title" placeholder="Title" value={metadata.title} onChange={handleMetadataChange} />
+                    </div>
+                    <div className="admin-input-group">
+                        <input className="admin-input" type="text" name="artist" placeholder="Artist" value={metadata.artist} onChange={handleMetadataChange} />
+                    </div>
+                    <div className="admin-input-group">
+                        <input className="admin-input" type="text" name="album" placeholder="Album" value={metadata.album} onChange={handleMetadataChange} />
+                    </div>
+                    <div className="admin-input-group" style={{ position: 'relative' }}>
+                        <select className="admin-input" name="emotion" value={metadata.emotion} onChange={handleMetadataChange} style={{ appearance: 'none', cursor: 'pointer' }}>
+                            {emotionsList.map(e => (
+                            <option key={e} value={e}>{e}</option>
+                            ))}
+                        </select>
+                        <div style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: '#94a3b8' }}>▼</div>
+                    </div>
                  </div>
                </div>
             )}
 
             {uploadTab === 'youtube' && (
-               <div style={{ marginBottom: '0.6rem' }}>
-                   <h4 style={{ color: 'var(--text-main)', marginBottom: '0.3rem', margin: 0, fontSize: '0.8rem' }}>AI Details</h4>
-                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.3rem' }}>
-                      <input className="input-flat" placeholder="Title" value={metadata.title} onChange={e => setMetadata({...metadata, title: e.target.value})} style={{ fontSize: '0.8rem', height: '32px', padding: '0 0.6rem' }} />
-                      <input className="input-flat" placeholder="Artist" value={metadata.artist} onChange={e => setMetadata({...metadata, artist: e.target.value})} style={{ fontSize: '0.8rem', height: '32px', padding: '0 0.6rem' }} />
+               <div style={{ marginBottom: '1.25rem' }}>
+                   <h4 style={{ color: 'white', marginBottom: '0.85rem', margin: 0, fontSize: '1rem', fontWeight: '800' }}>AI Details</h4>
+                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                      <div className="admin-input-group">
+                        <input className="admin-input" placeholder="Title" value={metadata.title} onChange={e => setMetadata({...metadata, title: e.target.value})} />
+                      </div>
+                      <div className="admin-input-group">
+                        <input className="admin-input" placeholder="Artist" value={metadata.artist} onChange={e => setMetadata({...metadata, artist: e.target.value})} />
+                      </div>
                    </div>
-                   <select className="input-flat" style={{ marginTop: '0.3rem', fontSize: '0.8rem', height: '32px', padding: '0 0.6rem', width: '100%' }} value={metadata.emotion} onChange={e => setMetadata({...metadata, emotion: e.target.value})}>
-                      {emotionsList.map(e => (
-                        <option key={e} value={e}>{e}</option>
-                      ))}
-                   </select>
+                   <div className="admin-input-group" style={{ marginTop: '1rem', position: 'relative' }}>
+                        <select className="admin-input" style={{ appearance: 'none', cursor: 'pointer' }} value={metadata.emotion} onChange={e => setMetadata({...metadata, emotion: e.target.value})}>
+                            {emotionsList.map(e => (
+                                <option key={e} value={e}>{e}</option>
+                            ))}
+                        </select>
+                        <div style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: '#94a3b8' }}>▼</div>
+                   </div>
                </div>
             )}
 
             {uploadTab === 'file' && (
-              <div style={{ marginBottom: '0.75rem' }}>
-                <h4 style={{ color: 'var(--text-main)', marginBottom: '0.4rem', margin: 0, fontSize: '0.9rem', fontWeight: '700' }}>Files</h4>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-                  <div>
-                    <label style={{ display: 'block', marginBottom: '0.2rem', color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: '600' }}>Audio (MP3)*</label>
-                    <input 
-                      id="audio-input" 
-                      type="file" 
-                      accept="audio/*" 
-                      onChange={handleFileChange} 
-                      className="input-flat" 
-                      style={{ 
-                        padding: '0.35rem', 
-                        height: 'auto', 
-                        fontSize: '0.75rem', 
-                        width: '100%', 
-                        cursor: 'pointer',
-                        background: 'rgba(255,255,255,0.03)'
-                      }} 
-                      required 
-                    />
+              <div style={{ marginBottom: '1rem' }}>
+                <h4 style={{ 
+                    color: 'white', 
+                    margin: '0 0 0.65rem 0', 
+                    fontSize: '0.95rem', 
+                    fontWeight: '800',
+                    letterSpacing: '-0.2px'
+                }}>Files</h4>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div style={{ minWidth: 0 }}>
+                    <label style={{ display: 'block', marginBottom: '0.4rem', color: '#60a5fa', fontSize: '0.85rem', fontWeight: '800' }}>Audio (MP3)*</label>
+                    <div className="form-file-card" style={{ display: 'flex', alignItems: 'center' }}>
+                        <input 
+                            id="audio-input" 
+                            type="file" 
+                            accept="audio/*" 
+                            onChange={handleFileChange} 
+                            style={{ 
+                                fontSize: '0.75rem', 
+                                width: '100%', 
+                                cursor: 'pointer',
+                                color: '#94a3b8'
+                            }} 
+                            required 
+                        />
+                    </div>
                   </div>
-                  <div>
-                    <label style={{ display: 'block', marginBottom: '0.2rem', color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: '600' }}>Cover Art</label>
-                    <input 
-                      id="cover-input" 
-                      type="file" 
-                      accept="image/*" 
-                      onChange={handleCoverChange} 
-                      className="input-flat" 
-                      style={{ 
-                        padding: '0.35rem', 
-                        height: 'auto', 
-                        fontSize: '0.75rem', 
-                        width: '100%', 
-                        cursor: 'pointer',
-                        background: 'rgba(255,255,255,0.03)'
-                      }} 
-                    />
+                  <div style={{ minWidth: 0 }}>
+                    <label style={{ display: 'block', marginBottom: '0.4rem', color: '#94a3b8', fontSize: '0.85rem', fontWeight: '800' }}>Cover Art</label>
+                    <div className="form-file-card" style={{ display: 'flex', alignItems: 'center' }}>
+                        <input 
+                            id="cover-input" 
+                            type="file" 
+                            accept="image/*" 
+                            onChange={handleCoverChange} 
+                            style={{ 
+                                fontSize: '0.75rem', 
+                                width: '100%', 
+                                cursor: 'pointer',
+                                color: '#94a3b8'
+                            }} 
+                        />
+                    </div>
                   </div>
                 </div>
               </div>
             )}
 
             <button 
-              className="btn-3d btn-primary" 
+              className="btn-3d" 
               disabled={loading} 
               style={{ 
                 width: '100%', 
-                marginTop: '0', 
-                height: '42px', 
-                fontSize: '0.9rem',
-                borderRadius: '12px',
-                fontWeight: '800',
-                letterSpacing: '0.5px',
-                boxShadow: '0 4px 12px rgba(88, 204, 2, 0.3)',
-                textTransform: 'uppercase'
+                marginTop: '0.5rem', 
+                height: '52px', 
+                fontSize: '1rem',
+                borderRadius: '16px',
+                fontWeight: '900',
+                letterSpacing: '1px',
+                background: '#58cc02',
+                color: 'white',
+                border: 'none',
+                boxShadow: '0 4px 0 #46a302',
+                textTransform: 'uppercase',
+                transition: 'all 0.1s ease',
+                cursor: 'pointer'
+              }}
+              onMouseDown={(e) => {
+                e.currentTarget.style.transform = 'translateY(2px)';
+                e.currentTarget.style.boxShadow = '0 2px 0 #46a302';
+              }}
+              onMouseUp={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 4px 0 #46a302';
               }}
             >
               {loading ? 'PROCESSING...' : (uploadTab === 'youtube' ? 'IMPORT FROM YOUTUBE' : 'UPLOAD SONG')}
@@ -527,67 +566,130 @@ const AdminUpload = () => {
       )}
 
       {activeTab === 'manage' && (
-        <div className="card-flat" style={{ padding: '0', flex: 1, overflow: 'hidden' }}>
-           {(message || error) && (
-             <div style={{ padding: '0.5rem 0.75rem' }}>
-               {message && <div style={{ background: 'rgba(34, 197, 94, 0.2)', border: '1px solid rgba(34, 197, 94, 0.5)', color: '#86efac', padding: '0.3rem', borderRadius: '4px', marginBottom: '0.3rem', fontSize: '0.75rem', fontWeight: '600' }}>{message}</div>}
-               {error && <div style={{ background: 'rgba(239, 68, 68, 0.2)', border: '1px solid rgba(239, 68, 68, 0.5)', color: '#fca5a5', padding: '0.3rem', borderRadius: '4px', marginBottom: '0.3rem', fontSize: '0.75rem', fontWeight: '600' }}>{error}</div>}
-             </div>
-           )}
-           <table className="admin-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.8rem' }}>
-             <thead style={{ background: 'rgba(0,0,0,0.2)', color: 'var(--text-muted)' }}>
-               <tr>
-                 <th style={{ padding: '0.5rem 0.6rem', fontSize: '0.7rem', fontWeight: '700' }}>Track</th>
-                 <th style={{ padding: '0.5rem 0.6rem', fontSize: '0.7rem', fontWeight: '700' }}>Artist</th>
-                 <th style={{ padding: '0.5rem 0.6rem', fontSize: '0.7rem', fontWeight: '700' }}>Emotion</th>
-                 <th style={{ padding: '0.5rem 0.6rem', textAlign: 'right', fontSize: '0.7rem', fontWeight: '700' }}>Actions</th>
-               </tr>
-             </thead>
-             <tbody>
-               {songs.map((song, i) => (
-                 <tr key={song.id || i} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                   <td style={{ padding: '0.5rem 0.6rem', color: 'white', fontSize: '0.8rem' }}>
-                      {editingId === song.id ? (
-                        <input className="input-flat" name="title" value={editForm.title} onChange={handleEditChange} style={{ height: '26px', fontSize: '0.75rem', padding: '0 0.4rem' }} />
-                      ) : song.title}
-                   </td>
-                   <td style={{ padding: '0.5rem 0.6rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-                      {editingId === song.id ? (
-                        <input className="input-flat" name="artist" value={editForm.artist} onChange={handleEditChange} style={{ height: '26px', fontSize: '0.75rem', padding: '0 0.4rem' }} />
-                      ) : song.artist}
-                   </td>
-                   <td style={{ padding: '0.5rem 0.6rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-                      {editingId === song.id ? (
-                        <select className="input-flat" name="emotion" value={editForm.emotion} onChange={handleEditChange} style={{ height: '26px', fontSize: '0.75rem', padding: '0 0.4rem' }}>
-                          {emotionsList.map(e => <option key={e} value={e}>{e}</option>)}
-                        </select>
-                      ) : (song.emotion || 'Neutral')}
-                   </td>
-                   <td style={{ padding: '0.5rem 0.6rem', textAlign: 'right' }}>
-                      {editingId === song.id ? (
-                        <div style={{ display: 'flex', gap: '0.3rem', justifyContent: 'flex-end' }}>
-                          <button onClick={saveEdit} className="btn-3d btn-primary" style={{ height: '26px', fontSize: '0.65rem', padding: '0 0.5rem' }}>Save</button>
-                          <button onClick={cancelEditing} className="btn-3d btn-secondary" style={{ height: '26px', fontSize: '0.65rem', padding: '0 0.5rem' }}>Cancel</button>
-                        </div>
-                      ) : deleteConfirm === song.id ? (
-                         <div style={{ display: 'flex', gap: '0.3rem', justifyContent: 'flex-end' }}>
-                            <button onClick={() => confirmDelete(song.id)} className="btn-3d btn-danger" style={{ height: '26px', fontSize: '0.65rem', padding: '0 0.5rem' }}>Delete</button>
-                            <button onClick={() => setDeleteConfirm(null)} className="btn-3d btn-secondary" style={{ height: '26px', fontSize: '0.65rem', padding: '0 0.5rem' }}>Cancel</button>
-                         </div>
-                      ) : (
-                        <div style={{ display: 'flex', gap: '0.6rem', justifyContent: 'flex-end', alignItems: 'center' }}>
-                           <button onClick={() => startEditing(song)} className="btn-3d btn-secondary" style={{ height: '26px', fontSize: '0.65rem', padding: '0 0.5rem' }}>Edit</button>
-                           <button onClick={() => handleDelete(song.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem' }}>🗑️</button>
-                        </div>
-                      )}
-                   </td>
+        <div className="card-flat" style={{ 
+          padding: '0', 
+          flex: 1, 
+          display: 'flex', 
+          flexDirection: 'column', 
+          overflow: 'hidden',
+          borderRadius: '20px',
+          background: 'var(--bg-card)',
+          border: '1px solid rgba(255,255,255,0.05)'
+        }}>
+           {/* Fixed Table Header */}
+           <div style={{ flexShrink: 0, background: 'rgba(0,0,0,0.3)', borderBottom: '2px solid rgba(255,255,255,0.05)' }}>
+             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', tableLayout: 'fixed' }}>
+               <thead>
+                 <tr>
+                   <th style={{ padding: '0.75rem 1rem', fontSize: '0.7rem', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', width: '45%' }}>Track</th>
+                   <th style={{ padding: '0.75rem 1rem', fontSize: '0.7rem', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', width: '25%' }}>Artist</th>
+                   <th style={{ padding: '0.75rem 1rem', fontSize: '0.7rem', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', width: '15%' }}>Emotion</th>
+                   <th style={{ padding: '0.75rem 1rem', fontSize: '0.7rem', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', width: '15%', textAlign: 'right' }}>Actions</th>
                  </tr>
-               ))}
-             </tbody>
-           </table>
-         </div>
-       )}
+               </thead>
+             </table>
+           </div>
+
+           {/* Scrollable Table Body */}
+           <div 
+             className="no-scrollbar"
+             style={{ 
+               flex: 1, 
+               overflowY: 'auto',
+               paddingBottom: '1rem'
+             }}
+           >
+             <table className="admin-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', tableLayout: 'fixed' }}>
+               <tbody>
+                 {songs.map((song, i) => (
+                   <tr key={song.id || i} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)', transition: 'background 0.2s' }} className="manage-row">
+                     <td style={{ padding: '0.6rem 1rem', width: '45%' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <img src={song.cover_url || song.coverArt} style={{ width: '28px', height: '28px', borderRadius: '6px', objectFit: 'cover' }} alt="" />
+                          <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '0.8rem', fontWeight: '600', color: 'white' }}>
+                            {editingId === song.id ? (
+                              <input className="admin-input" name="title" value={editForm.title} onChange={handleEditChange} style={{ height: '30px', fontSize: '0.75rem', padding: '0 0.5rem' }} />
+                            ) : song.title}
+                          </div>
+                        </div>
+                     </td>
+                     <td style={{ padding: '0.6rem 1rem', width: '25%' }}>
+                        <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                           {editingId === song.id ? (
+                             <input className="admin-input" name="artist" value={editForm.artist} onChange={handleEditChange} style={{ height: '30px', fontSize: '0.75rem', padding: '0 0.5rem' }} />
+                           ) : song.artist}
+                        </div>
+                     </td>
+                     <td style={{ padding: '0.6rem 1rem', width: '15%' }}>
+                        <span style={{ 
+                          fontSize: '0.65rem', 
+                          padding: '2px 8px', 
+                          borderRadius: '10px', 
+                          background: 'rgba(255,255,255,0.05)',
+                          color: 'var(--text-muted)',
+                          fontWeight: '700'
+                        }}>
+                          {editingId === song.id ? (
+                            <select className="admin-input" name="emotion" value={editForm.emotion} onChange={handleEditChange} style={{ height: '30px', fontSize: '0.75rem', padding: '0 0.5rem' }}>
+                              {emotionsList.map(e => <option key={e} value={e}>{e}</option>)}
+                            </select>
+                          ) : (song.emotion || 'Neutral')}
+                        </span>
+                     </td>
+                     <td style={{ padding: '0.6rem 1rem', textAlign: 'right', width: '15%' }}>
+                        {editingId === song.id ? (
+                          <div style={{ display: 'flex', gap: '0.3rem', justifyContent: 'flex-end' }}>
+                            <button onClick={saveEdit} className="btn-3d btn-primary" style={{ height: '26px', fontSize: '0.65rem', padding: '0 0.5rem' }}>Save</button>
+                            <button onClick={cancelEditing} className="btn-3d btn-secondary" style={{ height: '26px', fontSize: '0.65rem', padding: '0 0.5rem' }}>Cancel</button>
+                          </div>
+                        ) : deleteConfirm === song.id ? (
+                           <div style={{ display: 'flex', gap: '0.3rem', justifyContent: 'flex-end' }}>
+                              <button onClick={() => confirmDelete(song.id)} className="btn-3d btn-danger" style={{ height: '26px', fontSize: '0.65rem', padding: '0 0.5rem' }}>Delete</button>
+                              <button onClick={() => setDeleteConfirm(null)} className="btn-3d btn-secondary" style={{ height: '26px', fontSize: '0.65rem', padding: '0 0.5rem' }}>Cancel</button>
+                           </div>
+                        ) : (
+                          <div style={{ display: 'flex', gap: '0.8rem', justifyContent: 'flex-end', alignItems: 'center' }}>
+                             <button onClick={() => startEditing(song)} className="btn-3d btn-secondary" style={{ height: '28px', fontSize: '0.65rem', padding: '0 0.75rem', borderRadius: '8px' }}>Edit</button>
+                             <button onClick={() => handleDelete(song.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', opacity: 0.6 }} className="delete-hover">🗑️</button>
+                          </div>
+                        )}
+                     </td>
+                   </tr>
+                 ))}
+               </tbody>
+             </table>
+           </div>
+        </div>
+      )}
       </div>
+      <style>{`
+        .admin-input {
+            width: 100%;
+            height: 44px;
+            background: #111b21;
+            border: 2px solid #37464f;
+            border-radius: 12px;
+            padding: 0 1rem;
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        .admin-input:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(88, 204, 2, 0.1);
+        }
+        .admin-input-group {
+            position: relative;
+        }
+        .form-file-card {
+            background: #111b21 !important;
+            border: 2px solid #37464f !important;
+            border-radius: 14px !important;
+            padding: 8px 12px !important;
+        }
+      `}</style>
     </div>
   );
 };

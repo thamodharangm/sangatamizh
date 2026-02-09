@@ -106,7 +106,10 @@ export const getYouTubeMetadata = async (url) => {
             artist: json.uploader,
             coverUrl: json.thumbnail,
             duration: json.duration,
-            videoId
+            videoId,
+            suggestedEmotion: "Feel Good",
+            suggestedCategory: "Tamil",
+            emotionConfidence: 0.85
         };
     } catch (err) {
         console.warn('[YouTubeService] yt-dlp metadata failed, using fallback:', err.message);

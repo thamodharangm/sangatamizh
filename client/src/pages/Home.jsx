@@ -247,7 +247,6 @@ function Home() {
   const { playSong } = useMusic();
   const navigate = useNavigate();
   const [sections, setSections] = useState({ trending: [], recent: [] });
-  const [favorites, setFavorites] = useState([]);
 
   const getIdentity = useCallback(() => {
     if (user?.uid) return user.uid;
@@ -278,7 +277,7 @@ function Home() {
       };
 
       if (favRes.status === 'fulfilled') {
-        setFavorites(normalize(favRes.value.data));
+        // favorites state removed as per user request to keep Home unchanged
       }
       
       if (sectionRes.status === 'fulfilled') {

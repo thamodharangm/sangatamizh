@@ -172,27 +172,43 @@ const AdminUpload = () => {
   };
 
   return (
-    <div className="admin-page" style={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', paddingBottom: 0 }}>
-      {/* Compact Header Section */}
-      <div style={{ flexShrink: 0, background: 'var(--bg-main)', borderBottom: '2px solid rgba(255,255,255,0.05)', padding: '1rem 1rem 0 1rem' }}>
-        <h1 className="mb-3" style={{ fontSize: '1.75rem', fontWeight: '900', letterSpacing: '-1px', margin: '0 0 1rem 0' }}>Admin Hub</h1>
+    <div className="admin-page" style={{ 
+      height: '100dvh', 
+      display: 'flex', 
+      flexDirection: 'column', 
+      overflow: 'hidden', 
+      padding: 0,
+      background: 'var(--bg-main)'
+    }}>
+      {/* Compact Header Section - FIXED */}
+      <div style={{ 
+        flexShrink: 0, 
+        background: 'var(--bg-main)', 
+        borderBottom: '1px solid var(--border-color)', 
+        padding: 'max(0.5rem, var(--safe-area-top, 0px)) 1rem 0 1rem',
+        zIndex: 200
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+          <h1 style={{ fontSize: '1.25rem', fontWeight: '900', letterSpacing: '-0.5px', margin: 0 }}>Admin Hub</h1>
+          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: '700' }}>V2.0 PRO</div>
+        </div>
 
         {/* Compact Stats - Only visible on dashboard */}
         {activeTab === 'dashboard' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem', marginBottom: '1rem' }}>
-            <div className="card-flat" style={{ textAlign: 'center', padding: '1rem', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(50, 215, 75, 0.1)' }}>
-              <div style={{ fontSize: '1.5rem', color: 'var(--primary)', fontWeight: '900', lineHeight: 1 }}>{stats.totalSongs}</div>
-              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: '700', textTransform: 'uppercase', marginTop: '0.25rem' }}>Songs</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '0.75rem' }}>
+            <div className="card-flat" style={{ textAlign: 'center', padding: '0.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px' }}>
+              <div style={{ fontSize: '1.1rem', color: 'var(--primary)', fontWeight: '900', lineHeight: 1 }}>{stats.totalSongs}</div>
+              <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)', fontWeight: '700', textTransform: 'uppercase' }}>Songs</div>
             </div>
-            <div className="card-flat" style={{ textAlign: 'center', padding: '1rem', background: 'rgba(255,255,255,0.03)' }}>
-              <div style={{ fontSize: '1.5rem', color: '#f59e0b', fontWeight: '900', lineHeight: 1 }}>{stats.storageUsed}</div>
-              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: '700', textTransform: 'uppercase', marginTop: '0.25rem' }}>Storage</div>
+            <div className="card-flat" style={{ textAlign: 'center', padding: '0.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px' }}>
+              <div style={{ fontSize: '1.1rem', color: '#f59e0b', fontWeight: '900', lineHeight: 1 }}>{stats.storageUsed}</div>
+              <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)', fontWeight: '700', textTransform: 'uppercase' }}>Storage</div>
             </div>
           </div>
         )}
 
-        {/* Compact Tabs */}
-        <div className="scroll-container no-scrollbar" style={{ paddingBottom: '0.75rem', marginBottom: 0 }}>
+        {/* Compact Tabs - Scrollable */}
+        <div className="scroll-container no-scrollbar" style={{ paddingBottom: '0.5rem', marginBottom: 0, gap: '0.4rem' }}>
           {['dashboard', 'analytics', 'upload', 'manage', 'emotions'].map((tab) => (
             <button  
               key={tab}
@@ -200,11 +216,10 @@ const AdminUpload = () => {
               className={`btn-3d ${activeTab === tab ? 'btn-primary' : 'btn-secondary'}`}
               style={{ 
                   minWidth: 'auto',
-                  fontSize: '0.75rem',
-                  marginRight: '0.5rem',
-                  height: '36px',
-                  padding: '0 1rem',
-                  borderRadius: '18px'
+                  fontSize: '0.65rem',
+                  height: '28px',
+                  padding: '0 0.85rem',
+                  borderRadius: '14px'
               }}
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -217,55 +232,54 @@ const AdminUpload = () => {
       <div style={{ 
         flex: 1, 
         overflowY: 'auto', 
-        padding: '1.5rem 1rem 120px 1rem',
+        padding: '0.75rem 0.75rem 80px 0.75rem', 
         scrollbarWidth: 'none',
-        msOverflowStyle: 'none'
+        msOverflowStyle: 'none',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0.75rem'
       }} className="hide-scrollbar">
 
       {activeTab === 'dashboard' && (
-        <div className="card-flat" style={{ padding: '0', borderRadius: '20px', overflow: 'hidden', height: '380px', display: 'flex', flexDirection: 'column' }}>
+        <div className="card-flat" style={{ padding: '0', borderRadius: '24px', overflow: 'hidden', height: '400px', display: 'flex', flexDirection: 'column' }}>
           {/* Compact Header */}
-          <div style={{ padding: '1rem 1.25rem 0.75rem 1.25rem', borderBottom: '2px solid rgba(255,255,255,0.05)', background: 'var(--bg-card)', flexShrink: 0 }}>
-            <h2 style={{ fontSize: '1rem', margin: 0, fontWeight: '800' }}>Recent Uploads</h2>
+          <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.01)', flexShrink: 0 }}>
+            <h2 style={{ fontSize: '0.9rem', margin: 0, fontWeight: '900', letterSpacing: '0.5px' }}>RECENT ACTIVITY</h2>
           </div>
           
           {/* Scrollable List */}
           <div style={{ 
             flex: 1, 
             overflowY: 'auto', 
-            padding: '0 1.25rem',
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none',
-            WebkitOverflowScrolling: 'touch'
+            padding: '0 0.85rem',
           }} className="hide-scrollbar">
             {songs.length === 0 ? (
-              <div style={{ padding: '2rem 0', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>No songs yet.</div>
+              <div style={{ padding: '3rem 0', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8rem' }}>No uploads found.</div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
-                {songs.slice(0, 15).map(song => (
-                  <div key={song.id} style={{ display: 'flex', gap: '0.85rem', alignItems: 'center', padding: '0.75rem 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                {songs.slice(0, 20).map(song => (
+                  <div key={song.id} style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', padding: '0.65rem 0.4rem', borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
                     <img 
-                      src={song.cover_url || 'https://via.placeholder.com/42'} 
+                      src={song.cover_url || 'https://via.placeholder.com/34'} 
                       style={{ 
-                        width: '42px', 
-                        height: '42px', 
+                        width: '34px', 
+                        height: '34px', 
                         borderRadius: '10px', 
                         objectFit: 'cover', 
-                        border: '1px solid rgba(255,255,255,0.08)',
-                        flexShrink: 0
+                        flexShrink: 0,
+                        border: '1px solid rgba(255,255,255,0.05)'
                       }} 
-                      alt="cover" 
                     />
-                    <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
-                      <div style={{ fontSize: '0.85rem', fontWeight: '700', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '2px' }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: '0.8rem', fontWeight: '800', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'white' }}>
                         {song.title}
                       </div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: '600' }}>
                         {song.artist}
                       </div>
                     </div>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', flexShrink: 0, textAlign: 'right' }}>
-                      {new Date(song.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontWeight: '700', opacity: 0.6 }}>
+                      {new Date(song.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                     </div>
                   </div>
                 ))}
@@ -279,123 +293,130 @@ const AdminUpload = () => {
       {activeTab === 'emotions' && <AdminEmotionManager />}
 
       {activeTab === 'upload' && (
-        <div className="card-flat" style={{ padding: '1.5rem', borderRadius: '24px' }}>
-          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
+        <div className="card-flat" style={{ padding: '1.25rem', borderRadius: '24px' }}>
+          <div style={{ display: 'flex', gap: '0.6rem', marginBottom: '1.25rem' }}>
              <button 
                 onClick={() => setUploadTab('youtube')} 
                 className={`btn-3d ${uploadTab === 'youtube' ? 'btn-primary' : 'btn-secondary'}`}
-                style={{ flex: 1, fontSize: '0.85rem', height: '44px', borderRadius: '14px' }}
+                style={{ flex: 1, fontSize: '0.8rem', height: '42px', borderRadius: '12px' }}
              >
                 YouTube
              </button>
              <button 
                 onClick={() => setUploadTab('file')} 
                 className={`btn-3d ${uploadTab === 'file' ? 'btn-primary' : 'btn-secondary'}`}
-                style={{ flex: 1, fontSize: '0.85rem', height: '44px', borderRadius: '14px' }}
+                style={{ flex: 1, fontSize: '0.8rem', height: '42px', borderRadius: '12px' }}
              >
-                 File
+                 Local File
              </button>
           </div>
 
-          {message && <div style={{ background: 'rgba(50, 215, 75, 0.1)', color: '#32D74B', padding: '1rem', borderRadius: '14px', marginBottom: '1rem', fontSize: '0.9rem', fontWeight: '600' }}>{message}</div>}
-          {error && <div style={{ background: 'rgba(255, 64, 85, 0.1)', color: '#FF4055', padding: '1rem', borderRadius: '14px', marginBottom: '1rem', fontSize: '0.9rem', fontWeight: '600' }}>{error}</div>}
+          {message && <div style={{ background: 'rgba(88, 204, 2, 0.1)', color: 'var(--primary)', padding: '0.75rem', borderRadius: '14px', marginBottom: '1rem', fontSize: '0.75rem', fontWeight: '700', border: '1px solid rgba(88, 204, 2, 0.1)' }}>{message}</div>}
+          {error && <div style={{ background: 'rgba(255, 64, 85, 0.1)', color: '#FF4055', padding: '0.75rem', borderRadius: '14px', marginBottom: '1rem', fontSize: '0.75rem', fontWeight: '700', border: '1px solid rgba(255, 64, 85, 0.1)' }}>{error}</div>}
 
           <form onSubmit={handleUpload}>
              {uploadTab === 'youtube' && (
                  <div className="mb-3">
-                     <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <input className="input-flat" placeholder="YouTube Link" value={youtubeUrl} onChange={e => setYoutubeUrl(e.target.value)} style={{ flex: 1 }} />
+                     <div style={{ display: 'flex', gap: '0.6rem' }}>
+                        <input className="input-flat" placeholder="Paste YouTube Link" value={youtubeUrl} onChange={e => setYoutubeUrl(e.target.value)} style={{ flex: 1, height: '44px', fontSize: '0.85rem' }} />
                         <button 
                             type="button" 
                             onClick={(e) => { e.preventDefault(); fetchYoutubeMetadata(); }} 
                             className="btn-3d btn-primary" 
-                            style={{ fontSize: '0.8rem', minWidth: '80px', height: '44px' }} 
+                            style={{ fontSize: '0.7rem', minWidth: '70px', height: '44px', borderRadius: '12px' }} 
                             disabled={loading}
                         >
-                            {loading ? '...' : 'Fetch'}
+                            {loading ? '...' : 'FETCH'}
                         </button>
                      </div>
                  </div>
              )}
 
-             {metadata.coverUrl && (
-                <div style={{ marginBottom: '1rem', width: '80px', height: '80px', borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}>
-                   <img src={metadata.coverUrl} alt="Cover" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                </div>
-             )}
-
-             <div style={{ display: 'grid', gap: '0.75rem', marginBottom: '1.5rem' }}>
-                 <input className="input-flat" placeholder="Song Title" name="title" value={metadata.title} onChange={handleMetadataChange} />
-                 <input className="input-flat" placeholder="Artist" name="artist" value={metadata.artist} onChange={handleMetadataChange} />
-                 <select className="input-flat" name="emotion" value={metadata.emotion} onChange={handleMetadataChange}>
+             <div style={{ display: 'grid', gap: '0.6rem', marginBottom: '1.25rem' }}>
+                 {metadata.coverUrl && (
+                    <div style={{ width: '48px', height: '48px', borderRadius: '12px', overflow: 'hidden', border: '1.5px solid rgba(88, 204, 2, 0.3)', boxShadow: '0 4px 12px rgba(88, 204, 2, 0.2)' }}>
+                       <img src={metadata.coverUrl} alt="Cover" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    </div>
+                 )}
+                 <input className="input-flat" placeholder="Track Title" name="title" value={metadata.title} onChange={handleMetadataChange} style={{ height: '44px', fontSize: '0.85rem' }} />
+                 <input className="input-flat" placeholder="Artist Name" name="artist" value={metadata.artist} onChange={handleMetadataChange} style={{ height: '44px', fontSize: '0.85rem' }} />
+                 <select className="input-flat" name="emotion" value={metadata.emotion} onChange={handleMetadataChange} style={{ height: '44px', fontSize: '0.85rem' }}>
                     {EMOTIONS.map(e => <option key={e} value={e}>{e}</option>)}
                  </select>
              </div>
 
              {uploadTab === 'file' && (
-                 <div style={{ marginBottom: '1.5rem' }}>
-                     <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: '600' }}>Audio File (MP3)*</label>
-                     <input id="audio-input" type="file" accept="audio/*" onChange={handleFileChange} className="input-flat mb-2" style={{ padding: '0.75rem' }} required={uploadTab === 'file'} />
-                     <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: '600' }}>Cover Art</label>
-                     <input id="cover-input" type="file" accept="image/*" onChange={handleCoverChange} className="input-flat" style={{ padding: '0.75rem' }} />
+                 <div style={{ marginBottom: '1.5rem', background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '16px', border: '1px dashed rgba(255,255,255,0.05)' }}>
+                     <label style={{ display: 'block', marginBottom: '0.4rem', color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: '800' }}>AUDIO (MP3)*</label>
+                     <input id="audio-input" type="file" accept="audio/*" onChange={handleFileChange} className="input-flat mb-3" style={{ padding: '0.65rem', fontSize: '0.7rem' }} required={uploadTab === 'file'} />
+                     <label style={{ display: 'block', marginBottom: '0.4rem', color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: '800' }}>COVER ART (OPTIONAL)</label>
+                     <input id="cover-input" type="file" accept="image/*" onChange={handleCoverChange} className="input-flat" style={{ padding: '0.65rem', fontSize: '0.7rem' }} />
                  </div>
              )}
 
-             <button type="submit" className="btn-3d btn-primary" style={{ width: '100%', height: '52px', fontSize: '1rem' }} disabled={loading}>
-                 {loading ? 'Processing...' : (uploadTab === 'youtube' ? 'Start Import' : 'Upload Song')}
+             <button type="submit" className="btn-3d btn-primary" style={{ width: '100%', height: '54px', fontSize: '0.95rem', fontWeight: '900', borderRadius: '18px' }} disabled={loading}>
+                 {loading ? 'PROCESSING...' : (uploadTab === 'youtube' ? 'START IMPORT' : 'UPLOAD TRACK')}
              </button>
           </form>
         </div>
       )}
 
       {activeTab === 'manage' && (
-          <div className="card-flat" style={{ padding: '1.5rem', borderRadius: '24px' }}>
-               <h2 style={{ fontSize: '1.2rem', marginBottom: '1.5rem', fontWeight: '800' }}>Manage Library</h2>
-               
-               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                   {songs.slice(0, 10).map(song => (
-                       <div key={song.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '1.25rem' }}>
-                           {editingId !== song.id ? (
-                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
-                                <div style={{ overflow: 'hidden', flex: 1 }}>
-                                    <div style={{ fontSize: '1rem', fontWeight: '700', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{song.title}</div>
-                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                                      {song.artist} • <span style={{ color: 'var(--primary)' }}>{song.emotion || 'Neutral'}</span>
-                                    </div>
-                                </div>
-                                
-                                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                   {deleteConfirm === song.id ? (
-                                       <>
-                                         <button onClick={() => confirmDelete(song.id)} className="btn-3d btn-danger" style={{ padding: '0 0.75rem', height: '36px', fontSize: '0.8rem' }}>Del</button>
-                                         <button onClick={() => setDeleteConfirm(null)} className="btn-3d btn-secondary" style={{ padding: '0 0.75rem', height: '36px', fontSize: '0.8rem' }}>No</button>
-                                       </>
-                                   ) : (
-                                       <>
-                                         <button onClick={() => startEditing(song)} className="btn-3d btn-secondary" style={{ padding: '0 1rem', height: '38px', fontSize: '0.85rem', borderRadius: '12px' }}>Edit</button>
-                                         <button onClick={() => setDeleteConfirm(song.id)} style={{ background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer', padding: '0 0.25rem' }}>🗑️</button>
-                                       </>
-                                   )}
-                                </div>
-                             </div>
-                           ) : (
-                             <div style={{ display: 'grid', gap: '0.6rem', background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                <input className="input-flat" name="title" value={editForm.title} onChange={handleEditChange} placeholder="Title" />
-                                <input className="input-flat" name="artist" value={editForm.artist} onChange={handleEditChange} placeholder="Artist" />
-                                <select className="input-flat" name="emotion" value={editForm.emotion} onChange={handleEditChange}>
-                                    {EMOTIONS.map(e => <option key={e} value={e}>{e}</option>)}
-                                </select>
-                                <div style={{ display: 'flex', gap: '0.6rem', marginTop: '0.2rem' }}>
-                                   <button onClick={saveEdit} className="btn-3d btn-primary" style={{ flex: 1, height: '42px', borderRadius: '12px' }}>Save</button>
-                                   <button onClick={cancelEditing} className="btn-3d btn-secondary" style={{ flex: 1, height: '42px', borderRadius: '12px' }}>Cancel</button>
-                                </div>
-                             </div>
-                           )}
-                       </div>
-                   ))}
-               </div>
-           </div>
-       )}
+        <div className="card-flat" style={{ padding: '0', borderRadius: '24px', overflow: 'hidden', height: '480px', display: 'flex', flexDirection: 'column' }}>
+          {/* Compact Header */}
+          <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.01)', flexShrink: 0 }}>
+            <h2 style={{ fontSize: '0.9rem', margin: 0, fontWeight: '900', letterSpacing: '0.5px' }}>INVENTORY CONTROL</h2>
+          </div>
+          
+          {/* Scrollable List */}
+          <div style={{ 
+            flex: 1, 
+            overflowY: 'auto', 
+            padding: '0 0.85rem',
+          }} className="hide-scrollbar">
+                    {songs.map(song => (
+                        <div key={song.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)', padding: '0.65rem 0.4rem' }}>
+                            {editingId !== song.id ? (
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem' }}>
+                                 <div style={{ overflow: 'hidden', flex: 1 }}>
+                                     <div style={{ fontSize: '0.85rem', fontWeight: '800', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'white' }}>{song.title}</div>
+                                     <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: '600', marginTop: '1px' }}>
+                                       {song.artist} • <span style={{ color: 'var(--primary)', fontWeight: '800' }}>{song.emotion || 'Unset'}</span>
+                                     </div>
+                                 </div>
+                                 
+                                 <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                                    {deleteConfirm === song.id ? (
+                                        <div style={{ display: 'flex', gap: '4px' }}>
+                                          <button onClick={() => confirmDelete(song.id)} className="btn-3d btn-danger" style={{ padding: '0 0.6rem', height: '28px', fontSize: '0.65rem', borderRadius: '8px' }}>DEL</button>
+                                          <button onClick={() => setDeleteConfirm(null)} className="btn-3d btn-secondary" style={{ padding: '0 0.6rem', height: '28px', fontSize: '0.65rem', borderRadius: '8px' }}>X</button>
+                                        </div>
+                                    ) : (
+                                        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                                          <button onClick={() => startEditing(song)} className="btn-3d btn-secondary" style={{ padding: '0 0.75rem', height: '32px', fontSize: '0.7rem', fontWeight: '800', borderRadius: '10px' }}>EDIT</button>
+                                          <button onClick={() => setDeleteConfirm(song.id)} style={{ background: 'rgba(255, 64, 85, 0.05)', border: 'none', width: '30px', height: '30px', borderRadius: '8px', fontSize: '0.9rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🗑️</button>
+                                        </div>
+                                    )}
+                                 </div>
+                              </div>
+                            ) : (
+                              <div style={{ display: 'grid', gap: '0.6rem', background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '18px', margin: '0.5rem 0', border: '1px solid rgba(88, 204, 2, 0.2)' }}>
+                                 <input className="input-flat" name="title" value={editForm.title} onChange={handleEditChange} placeholder="Title" style={{ height: '40px', fontSize: '0.8rem' }} />
+                                 <input className="input-flat" name="artist" value={editForm.artist} onChange={handleEditChange} placeholder="Artist" style={{ height: '40px', fontSize: '0.8rem' }} />
+                                 <select className="input-flat" name="emotion" value={editForm.emotion} onChange={handleEditChange} style={{ height: '40px', fontSize: '0.8rem' }}>
+                                     {EMOTIONS.map(e => <option key={e} value={e}>{e}</option>)}
+                                 </select>
+                                 <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem' }}>
+                                    <button onClick={saveEdit} className="btn-3d btn-primary" style={{ flex: 1, height: '40px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: '900' }}>SAVE CHANGES</button>
+                                    <button onClick={cancelEditing} className="btn-3d btn-secondary" style={{ flex: 1, height: '40px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: '800' }}>CANCEL</button>
+                                 </div>
+                              </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            </div>
+        )}
       </div>
     </div>
   );

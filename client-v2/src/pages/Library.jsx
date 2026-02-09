@@ -114,31 +114,70 @@ const Library = () => {
       {/* Main Scrollable Content */}
       <div className="library-content no-scrollbar" style={{ flex: 1, overflowY: 'auto', paddingBottom: '2rem' }}>
         
-        {/* Netflix Style Horizontal Rows */}
+        {/* Modern Horizontal Rows */}
         {category === 'All' && !searchQuery && (
-          <>
-          <>
-            {/* Row 1: All Songs */}
-            <section className="mb-4">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            {/* Row 1: Liked Songs (If any) */}
+            {playlistSongs.length > 0 && (
+              <section>
+                <h2 className="mb-2" style={{ fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  ❤️ Liked Songs
+                </h2>
+                <div className="scroll-container no-scrollbar" style={{ scrollSnapType: 'x mandatory' }}>
+                  {playlistSongs.map(song => (
+                    <div key={`liked-${song.id}`} className="scroll-item" style={{ scrollSnapAlign: 'start' }}>
+                      <SongCard song={song} playlist={playlistSongs} />
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Row 2: All Songs */}
+            <section>
               <h2 className="mb-2" style={{ fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                🎶 All Songs
+                🎶 Library Inventory
               </h2>
-              <div className="scroll-container no-scrollbar">
+              <div className="scroll-container no-scrollbar" style={{ scrollSnapType: 'x mandatory' }}>
                 {loadingSongs ? (
-                  <div style={{ padding: '2rem', color: 'var(--text-muted)' }}>Loading...</div>
+                  <div style={{ padding: '2rem', textAlign: 'center', width: '100%', color: 'var(--text-muted)' }}>
+                      <div className="spinner" style={{ margin: '0 auto 10px auto' }}></div>
+                      Loading library...
+                  </div>
                 ) : allSongs.length > 0 ? (
                   allSongs.map(song => (
-                    <div key={`all-${song.id}`} className="scroll-item">
+                    <div key={`all-${song.id}`} className="scroll-item" style={{ scrollSnapAlign: 'start' }}>
                       <SongCard song={song} playlist={allSongs} />
                     </div>
                   ))
                 ) : (
-                  <div style={{ padding: '2rem', color: 'var(--text-muted)' }}>No songs found.</div>
+                  <div className="card-flat" style={{ padding: '2rem', textAlign: 'center', width: '100%', color: 'var(--text-muted)', background: 'rgba(255,255,255,0.02)' }}>
+                    No songs in library yet.
+                  </div>
                 )}
               </div>
             </section>
-          </>
-          </>
+
+            {/* Row 3: Genres/Emotions */}
+            {['Motivation', 'Party', 'Love', 'Sad'].map(emo => {
+              const emoSongs = allSongs.filter(s => s.emotion === emo);
+              if (emoSongs.length === 0) return null;
+              return (
+                <section key={emo}>
+                  <h2 className="mb-2" style={{ fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {emo === 'Love' ? '💝' : emo === 'Sad' ? '😢' : emo === 'Motivation' ? '⚡' : '🥳'} {emo} Vibes
+                  </h2>
+                  <div className="scroll-container no-scrollbar" style={{ scrollSnapType: 'x mandatory' }}>
+                    {emoSongs.map(song => (
+                      <div key={`emo-${emo}-${song.id}`} className="scroll-item" style={{ scrollSnapAlign: 'start' }}>
+                        <SongCard song={song} playlist={emoSongs} />
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              );
+            })}
+          </div>
         )}
 
         {/* Search/Filter Grid - Only shows when actively filtering */}

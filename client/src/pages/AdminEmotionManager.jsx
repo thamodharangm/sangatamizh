@@ -243,25 +243,25 @@ const AdminEmotionManager = () => {
         key={song.id} 
         className={hasChange ? 'table-row-changed' : ''}
       >
-        <td className="table-cell-song">
-          <div className="table-song-content">
+        <td className="table-cell-song-mini">
+          <div className="table-song-content-mini">
             <img 
               src={song.cover_url} 
               alt={song.title}
-              className="table-song-image"
+              className="table-song-image-mini"
             />
-            <div className="table-song-title">{song.title}</div>
+            <div className="table-song-title-mini">{song.title}</div>
           </div>
         </td>
-        <td className="table-cell-artist">{song.artist}</td>
-        <td className="table-cell-emotion">
-          <span className={`emotion-badge ${currentEmotion === 'No emotion' ? 'no-emotion' : 'has-emotion'}`}>
+        <td className="table-cell-artist-mini">{song.artist}</td>
+        <td className="table-cell-emotion-mini">
+          <span className={`emotion-badge-mini ${currentEmotion === 'No emotion' ? 'no-emotion' : 'has-emotion'}`}>
             {currentEmotion}
           </span>
         </td>
-        <td className="table-cell-select">
+        <td className="table-cell-select-mini">
           <select
-            className="emotion-select-desktop"
+            className="emotion-select-mini"
             value={newEmotion || currentEmotion}
             onChange={(e) => updateEmotion(song.id, e.target.value)}
           >
@@ -270,110 +270,105 @@ const AdminEmotionManager = () => {
             ))}
           </select>
         </td>
-        <td className="table-cell-status">
-          {hasChange && (
-            <span className="status-badge">Modified</span>
-          )}
-        </td>
       </tr>
     );
   };
 
   return (
-    <div className="emotion-manager-container">
-      {/* Header Section */}
-      <div className="emotion-header">
-        <div className="header-title-section">
-          <h1 className="page-title">🎭 Emotion Manager</h1>
-          <p className="page-subtitle">Manage and organize song emotions</p>
+    <div className="emotion-manager-container" style={{ 
+      height: '100vh', 
+      display: 'flex', 
+      flexDirection: 'column', 
+      overflow: 'hidden',
+      background: 'var(--bg-main)'
+    }}>
+      {/* Fixed Header Section */}
+      <div className="emotion-header" style={{ flexShrink: 0, padding: '0.5rem 1rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+          <div>
+            <h1 className="page-title" style={{ fontSize: '1.1rem', margin: 0 }}>🎭 Emotion Manager</h1>
+            <p className="page-subtitle" style={{ fontSize: '0.65rem', margin: 0 }}>Organize song emotions</p>
+          </div>
+
+          {/* Action Buttons - Compact */}
+          <div className="action-buttons" style={{ margin: 0, gap: '0.4rem' }}>
+            <button className="btn-action-mini btn-initialize" onClick={initializeEmotions} disabled={saving}>
+              <span>🔄 Init</span>
+            </button>
+            {hasChanges && (
+              <>
+                <button className="btn-action-mini btn-discard" onClick={discardChanges} disabled={saving}>
+                  <span>❌ Clear</span>
+                </button>
+                <button className="btn-action-mini btn-save" onClick={saveChanges} disabled={saving}>
+                  <span>💾 {saving ? '...' : `Save (${Object.keys(changes).length})`}</span>
+                </button>
+              </>
+            )}
+          </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="action-buttons">
-          <button
-            className="btn-action btn-initialize"
-            onClick={initializeEmotions}
-            disabled={saving}
-          >
-            <span className="btn-icon">🔄</span>
-            <span className="btn-text">Initialize</span>
-          </button>
-          {hasChanges && (
-            <>
-              <button
-                className="btn-action btn-discard"
-                onClick={discardChanges}
-                disabled={saving}
-              >
-                <span className="btn-icon">❌</span>
-                <span className="btn-text">Discard</span>
-              </button>
-              <button
-                className="btn-action btn-save"
-                onClick={saveChanges}
-                disabled={saving}
-              >
-                <span className="btn-icon">💾</span>
-                <span className="btn-text">
-                  {saving ? 'Saving...' : `Save (${Object.keys(changes).length})`}
-                </span>
-              </button>
-            </>
-          )}
-        </div>
-
-        {/* Stats Grid */}
-        <div className="stats-grid">
-          <div className="stat-card stat-total">
-            <div className="stat-value">{songs.length}</div>
-            <div className="stat-label">Total Songs</div>
+        {/* Stats Grid - Ultra Compact */}
+        <div className="stats-grid-mini" style={{ 
+          display: 'flex', 
+          gap: '0.3rem', 
+          overflowX: 'auto', 
+          paddingBottom: '0.3rem',
+          marginBottom: '0.4rem'
+        }}>
+          <div className="stat-card-mini total">
+            <span className="label">Total</span>
+            <span className="value">{songs.length}</span>
           </div>
           {emotions.map(emotion => (
-            <div key={emotion} className="stat-card">
-              <div className="stat-value">{emotionCounts[emotion] || 0}</div>
-              <div className="stat-label">{emotion.replace(' songs', '')}</div>
+            <div key={emotion} className="stat-card-mini">
+              <span className="label">{emotion}</span>
+              <span className="value">{emotionCounts[emotion] || 0}</span>
             </div>
           ))}
         </div>
 
-        {/* Search Bar */}
-        <div className="search-wrapper">
-          <input
-            type="text"
-            placeholder="🔍 Search by song or artist..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input"
-          />
-        </div>
-
-        {/* Filter Buttons */}
-        <div className="filter-scroll-container">
-          <button
-            className={`filter-btn ${filter === 'All' ? 'active' : ''}`}
-            onClick={() => setFilter('All')}
-          >
-            All ({songs.length})
-          </button>
-          {emotions.map(emotion => (
+        {/* Search & Filter - Compact */}
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <div style={{ flex: 1 }}>
+            <input
+              type="text"
+              placeholder="Search..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="admin-input-mini"
+              style={{ width: '100%', height: '32px', fontSize: '0.8rem' }}
+            />
+          </div>
+          <div className="filter-scroll-container-mini" style={{ display: 'flex', gap: '0.3rem', overflowX: 'auto', flex: 2 }}>
             <button
-              key={emotion}
-              className={`filter-btn ${filter === emotion ? 'active' : ''}`}
-              onClick={() => setFilter(emotion)}
+              className={`filter-btn-mini ${filter === 'All' ? 'active' : ''}`}
+              onClick={() => setFilter('All')}
             >
-              {emotion.replace(' songs', '')} ({emotionCounts[emotion] || 0})
+              All ({songs.length})
             </button>
-          ))}
-          <button
-            className={`filter-btn ${filter === 'No emotion' ? 'active' : ''}`}
-            onClick={() => setFilter('No emotion')}
-          >
-            None ({emotionCounts['No emotion'] || 0})
-          </button>
+            {emotions.map(emotion => (
+              <button
+                key={emotion}
+                className={`filter-btn-mini ${filter === emotion ? 'active' : ''}`}
+                onClick={() => setFilter(emotion)}
+              >
+                {emotion} ({emotionCounts[emotion] || 0})
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Songs List */}
+      {/* Independently Scrollable Songs List */}
+      <div 
+        className="no-scrollbar" 
+        style={{ 
+          flex: 1, 
+          overflowY: 'auto', 
+          padding: '0 0.5rem 2rem 0.5rem'
+        }}
+      >
       {filteredSongs.length === 0 ? (
         <div className="empty-state">
           <div className="empty-icon">🎵</div>
@@ -382,22 +377,19 @@ const AdminEmotionManager = () => {
         </div>
       ) : (
         <>
-          {/* Mobile View - Cards */}
           {isMobile ? (
             <div className="songs-grid-mobile">
               {filteredSongs.map(renderSongCard)}
             </div>
           ) : (
-            /* Desktop View - Table */
-            <div className="songs-table-container">
-              <table className="songs-table">
+            <div className="songs-table-container-mini">
+              <table className="songs-table-mini">
                 <thead>
                   <tr>
-                    <th>Song</th>
-                    <th>Artist</th>
-                    <th>Current</th>
-                    <th>Change To</th>
-                    <th>Status</th>
+                    <th style={{ width: '40%' }}>Song</th>
+                    <th style={{ width: '25%' }}>Artist</th>
+                    <th style={{ width: '15%' }}>Current</th>
+                    <th style={{ width: '20%' }}>Change To</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -408,7 +400,7 @@ const AdminEmotionManager = () => {
           )}
         </>
       )}
-
+      </div>
     </div>
   );
 };
