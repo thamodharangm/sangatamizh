@@ -4,6 +4,7 @@ import lyricsFinder from 'lyrics-finder';
 import { dbService } from "../services/db.service.js";
 import { storageService } from "../services/storage.service.js";
 import { streamProxy } from "../utils/streamProxy.js";
+import { exec } from "child_process";
 import path from "path";
 import fs from "fs";
 
