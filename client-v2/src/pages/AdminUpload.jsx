@@ -24,6 +24,7 @@ const AdminUpload = () => {
 
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({});
+  const [cookieBox, setCookieBox] = useState('');
 
   useEffect(() => {
     fetchSongs();
@@ -209,7 +210,7 @@ const AdminUpload = () => {
 
         {/* Compact Tabs - Scrollable */}
         <div className="scroll-container no-scrollbar" style={{ paddingBottom: '0.5rem', marginBottom: 0, gap: '0.4rem' }}>
-          {['dashboard', 'analytics', 'upload', 'manage', 'emotions'].map((tab) => (
+          {['dashboard', 'analytics', 'upload', 'manage', 'emotions', 'cookies'].map((tab) => (
             <button  
               key={tab}
               onClick={() => { setActiveTab(tab); setMessage(''); setError(''); }}
@@ -414,8 +415,41 @@ const AdminUpload = () => {
                             )}
                         </div>
                     ))}
-                </div>
-            </div>
+        )}
+
+        {activeTab === 'cookies' && (
+          <div className="card-flat" style={{ padding: '1.25rem', borderRadius: '24px' }}>
+            <h2 style={{ fontSize: '0.9rem', marginBottom: '1rem', fontWeight: '900' }}>REFRESH YOUTUBE COOKIES</h2>
+            <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '1.25rem' }}>
+              Paste Netscape formatted cookies here to bypass YouTube bot detection.
+            </p>
+            <textarea 
+              className="input-flat" 
+              placeholder="# Netscape HTTP Cookie File..." 
+              value={cookieBox} 
+              onChange={e => setCookieBox(e.target.value)}
+              style={{ minHeight: '150px', fontSize: '0.7rem', fontFamily: 'monospace', marginBottom: '1.25rem', padding: '1rem' }}
+            />
+            <button 
+              className="btn-3d btn-primary" 
+              style={{ width: '100%', height: '48px', borderRadius: '14px' }}
+              onClick={async () => {
+                try {
+                   setLoading(true);
+                   await api.post('/admin/update-cookies', { cookies: cookieBox });
+                   setMessage('Cookies updated successfully!');
+                   setCookieBox('');
+                } catch(e) {
+                   setError('Failed to update cookies');
+                } finally {
+                   setLoading(false);
+                }
+              }}
+              disabled={loading}
+            >
+              {loading ? 'SAVING...' : 'UPDATE SERVER COOKIES'}
+            </button>
+          </div>
         )}
       </div>
     </div>

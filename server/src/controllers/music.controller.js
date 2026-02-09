@@ -309,4 +309,17 @@ export const bulkUpdateEmotions = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
+export const updateCookies = async (req, res) => {
+    try {
+        const { cookies } = req.body;
+        if (!cookies) return res.status(400).json({ error: "Cookies content required" });
 
+        const cookiesPath = path.join(process.cwd(), 'cookies.txt');
+        fs.writeFileSync(cookiesPath, cookies, 'utf8');
+        
+        console.log(`[Admin] Cookies updated at: ${new Date().toISOString()}`);
+        res.json({ ok: true, message: "Cookies updated successfully" });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
