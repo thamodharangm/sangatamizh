@@ -19,7 +19,7 @@ export const storageService = {
             const fileBuffer = fs.readFileSync(file.path);
 
             const { data, error } = await supabase.storage
-                .from('Music-app') // Correcting case sensitivity
+                .from('music-app')
                 .upload(filePath, fileBuffer, {
                     contentType: file.mimetype,
                     upsert: true
@@ -29,7 +29,7 @@ export const storageService = {
 
             // Get public URL
             const { data: { publicUrl } } = supabase.storage
-                .from('Music-app')
+                .from('music-app')
                 .getPublicUrl(filePath);
 
             // Cleanup local temp file
@@ -55,11 +55,11 @@ export const storageService = {
         try {
             // Extract path from URL
             // Example: https://xyz.supabase.co/storage/v1/object/public/music-app/songs/123_abc.mp3
-            const parts = url.split('/Music-app/');
+            const parts = url.split('/music-app/');
             if (parts.length > 1) {
                 const filePath = parts[1];
                 await supabase.storage
-                    .from('Music-app')
+                    .from('music-app')
                     .remove([filePath]);
             }
         } catch (err) {

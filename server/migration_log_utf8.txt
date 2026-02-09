@@ -1,0 +1,131 @@
+﻿--- YOUTUBE TO SUPABASE CLOUD MIGRATION ---
+Found 11 YouTube songs to convert to Cloud Files.
+Processing: YouTube Video JZCUL_5U8l4...
+  Downloading audio from YouTube...
+node :   Γ¥î Download failed Error: 
+Error: Command failed: 
+"D:\sangatamizh\server\temp\yt-dlp.exe" 
+--cookies 
+"D:\sangatamizh\server\cookies.txt" -x 
+--audio-format mp3 -o "D:\sangatamizh\ser
+ver\temp\JZCUL_5U8l4.mp3" "https://www.yo
+utube.com/watch?v=JZCUL_5U8l4"
+At line:1 char:1
++ node yt_to_cloud.js > 
+migration_log.txt 2>&1
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~
+    + CategoryInfo          : NotSpecifi 
+   ed: (  Γ¥î Download ...?v=JZCUL_5U8l  
+  4":String) [], RemoteException
+    + FullyQualifiedErrorId : NativeComm 
+   andError
+ 
+WARNING: [youtube] No supported 
+JavaScript runtime could be found. Only 
+deno is enabled by default; to use 
+another runtime add  --js-runtimes 
+RUNTIME[:PATH]  to your command/config. 
+YouTube extraction without a JS runtime 
+has been deprecated, and some formats 
+may be missing. See  https://github.com/y
+t-dlp/yt-dlp/wiki/EJS  for details on 
+installing one
+ERROR: Postprocessing: ffprobe and 
+ffmpeg not found. Please install or 
+provide the path using --ffmpeg-location
+
+    at genericNodeError 
+(node:internal/errors:983:15)
+    at wrappedFn 
+(node:internal/errors:537:14)
+    at ChildProcess.exithandler 
+(node:child_process:414:12)
+    at ChildProcess.emit 
+(node:events:513:28)
+    at maybeClose 
+(node:internal/child_process:1101:16)
+    at ChildProcess._handle.onexit 
+(node:internal/child_process:305:5) {
+  code: 1,
+  killed: false,
+  signal: null,
+  cmd: '"D:\\sangatamizh\\server\\temp\\y
+t-dlp.exe" --cookies 
+"D:\\sangatamizh\\server\\cookies.txt" 
+-x --audio-format mp3 -o "D:\\sangatamizh
+\\server\\temp\\JZCUL_5U8l4.mp3" "https:/
+/www.youtube.com/watch?v=JZCUL_5U8l4"'
+}
+  Γ¥î Download failed Stderr: WARNING: 
+[youtube] No supported JavaScript 
+runtime could be found. Only deno is 
+enabled by default; to use another 
+runtime add  --js-runtimes 
+RUNTIME[:PATH]  to your command/config. 
+YouTube extraction without a JS runtime 
+has been deprecated, and some formats 
+may be missing. See  https://github.com/y
+t-dlp/yt-dlp/wiki/EJS  for details on 
+installing one
+ERROR: Postprocessing: ffprobe and 
+ffmpeg not found. Please install or 
+provide the path using --ffmpeg-location
+
+  Γ¥î Download failed Stdout: [youtube] 
+Extracting URL: https://www.youtube.com/w
+atch?v=JZCUL_5U8l4
+[youtube] JZCUL_5U8l4: Downloading 
+webpage
+[youtube] JZCUL_5U8l4: Downloading 
+android vr player API JSON
+[info] JZCUL_5U8l4: Downloading 1 
+format(s): 251
+[download] D:\sangatamizh\server\temp\JZC
+UL_5U8l4.webm has already been downloaded
+
+[download] 100% of    3.37MiB
+
+Migration failed: Error: Command failed: 
+"D:\sangatamizh\server\temp\yt-dlp.exe" 
+--cookies 
+"D:\sangatamizh\server\cookies.txt" -x 
+--audio-format mp3 -o "D:\sangatamizh\ser
+ver\temp\JZCUL_5U8l4.mp3" "https://www.yo
+utube.com/watch?v=JZCUL_5U8l4"
+WARNING: [youtube] No supported 
+JavaScript runtime could be found. Only 
+deno is enabled by default; to use 
+another runtime add  --js-runtimes 
+RUNTIME[:PATH]  to your command/config. 
+YouTube extraction without a JS runtime 
+has been deprecated, and some formats 
+may be missing. See  https://github.com/y
+t-dlp/yt-dlp/wiki/EJS  for details on 
+installing one
+ERROR: Postprocessing: ffprobe and 
+ffmpeg not found. Please install or 
+provide the path using --ffmpeg-location
+
+    at genericNodeError 
+(node:internal/errors:983:15)
+    at wrappedFn 
+(node:internal/errors:537:14)
+    at ChildProcess.exithandler 
+(node:child_process:414:12)
+    at ChildProcess.emit 
+(node:events:513:28)
+    at maybeClose 
+(node:internal/child_process:1101:16)
+    at ChildProcess._handle.onexit 
+(node:internal/child_process:305:5) {
+  code: 1,
+  killed: false,
+  signal: null,
+  cmd: '"D:\\sangatamizh\\server\\temp\\y
+t-dlp.exe" --cookies 
+"D:\\sangatamizh\\server\\cookies.txt" 
+-x --audio-format mp3 -o "D:\\sangatamizh
+\\server\\temp\\JZCUL_5U8l4.mp3" "https:/
+/www.youtube.com/watch?v=JZCUL_5U8l4"'
+}

@@ -31,36 +31,50 @@ const downloadAndPush = async () => {
             console.log(`  Downloading audio from YouTube...`);
             const cookiesPath = path.join(process.cwd(), 'cookies.txt');
             const cookieFlag = fs.existsSync(cookiesPath) ? `--cookies "${cookiesPath}"` : '';
+            const YTDLP_PATH = path.join(process.cwd(), 'temp', 'yt-dlp.exe');
             
-            const downloadCmd = `yt-dlp ${cookieFlag} -x --audio-format mp3 -o "${tempPath}" "https://www.youtube.com/watch?v=${videoId}"`;
+            // Download best audio without conversion (avoiding ffmpeg dependency)
+            const downloadCmd = `"${YTDLP_PATH}" ${cookieFlag} -f "ba" -o "${path.join(process.cwd(), 'temp', `${videoId}.%(ext)s`)}" "https://www.youtube.com/watch?v=${videoId}"`;
             
             await new Promise((resolve, reject) => {
                 exec(downloadCmd, (err, stdout, stderr) => {
                     if (err) {
-                        console.error('  ❌ Download failed:', stderr || err.message);
+                        console.error('  ❌ Download failed Error:', err);
                         return reject(err);
                     }
                     resolve();
                 });
             });
 
-            if (fs.existsSync(tempPath)) {
-                console.log(`  Uploading to Supabase Storage...`);
+            // Find the downloaded file (could be .webm, .m4a, etc.)
+            const files = fs.readdirSync(path.join(process.cwd(), 'temp'));
+            const downloadedFile = files.find(f => f.startsWith(videoId) && f !== videoId && !f.endsWith('.exe'));
+
+            if (downloadedFile) {
+                const actualTempPath = path.join(process.cwd(), 'temp', downloadedFile);
+                const ext = path.extname(downloadedFile);
+                const mimetype = ext === '.m4a' ? 'audio/mp4' : (ext === '.webm' ? 'audio/webm' : 'audio/mpeg');
+
+                console.log(`  Uploading to Supabase Storage (${downloadedFile})...`);
                 const mockFile = {
-                    path: tempPath,
-                    originalname: `${videoId}.mp3`,
-                    filename: `${videoId}.mp3`,
-                    mimetype: 'audio/mpeg'
+                    path: actualTempPath,
+                    originalname: downloadedFile,
+                    filename: downloadedFile,
+                    mimetype: mimetype
                 };
                 
                 const cloudUrl = await storageService.uploadFile(mockFile, 'songs');
                 console.log(`  ✅ Uploaded: ${cloudUrl}`);
 
-                // Update DB to point to the new Cloud URL instead of YouTube
-                song.url = cloudUrl;
-                song.is_youtube = false;
-                await dbService.addSong(song);
+                // Update DB (Use updateSong instead of addSong for existing records)
+                await dbService.updateSong(song.id, {
+                   url: cloudUrl,
+                   is_youtube: false
+                });
                 console.log(`  ✅ Database updated.`);
+                
+                // Cleanup
+                try { fs.unlinkSync(actualTempPath); } catch (e) {}
             }
         }
 
