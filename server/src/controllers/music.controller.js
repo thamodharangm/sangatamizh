@@ -61,8 +61,8 @@ export const getYTMeta = async (req, res) => {
 };
 
 export const uploadFromYoutube = async (req, res) => {
+    const { url, title, artist, category, emotion, coverUrl, lyrics } = req.body;
     try {
-        const { url, title, artist, category, emotion, coverUrl, lyrics } = req.body;
         if (!url) return res.status(400).json({ error: "URL required" });
 
         console.log(`[Admin] Starting YouTube migration for: ${url}`);
