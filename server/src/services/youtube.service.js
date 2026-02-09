@@ -138,7 +138,7 @@ export const streamYouTubeAudio = async (url, req, res) => {
         
         // Get the direct audio URL using yt-dlp
         // Added --force-ipv4 and User-Agent to avoid 403 Forbidden / Rate limits
-        const cmd = `"${YTDLP_PATH}" -f "bestaudio[ext=m4a]/bestaudio[ext=mp3]/bestaudio" -g --no-warnings --force-ipv4 --add-header "User-Agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" "${url}"`;
+        const cmd = `"${YTDLP_PATH}" -f "ba[ext=m4a]/ba[ext=mp3]/ba" -g --no-warnings --force-ipv4 --add-header "User-Agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" "${url}"`;
         
         console.log(`[YouTubeService] Running: ${cmd}`);
         
