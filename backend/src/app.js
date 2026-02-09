@@ -77,6 +77,7 @@ app.use('/api/emotions', emotionRoutes);
 app.use('/api/debug', debugRoutes);
 
 // Health Check
-app.get('/', (req, res) => res.send('Sangatamizh Music Backend v2'));
+app.get('/', (req, res) => res.send('Sangatamizh Music Backend v2 (OLD FOLDER)'));
+app.get('/health', (req, res) => res.json({ ok: true, status: "stable", folder: "backend-OLD" }));
 
 module.exports = app;

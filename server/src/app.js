@@ -5,6 +5,9 @@ import musicRoutes from "./routes/music.routes.js";
 
 const app = express();
 
+// Health Check (Top level)
+app.get("/health", (_, res) => res.json({ ok: true, status: "stable", folder: "server" }));
+
 // CORS configuration
 const allowedOrigins = [
   "http://localhost:5173", 
@@ -34,7 +37,7 @@ app.use(express.json());
 app.use("/api", musicRoutes);
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
-app.get("/health", (_, res) => res.json({ ok: true, status: "stable" }));
+app.get("/health", (_, res) => res.json({ ok: true, status: "stable", folder: "server" }));
 
 export default app;
 
