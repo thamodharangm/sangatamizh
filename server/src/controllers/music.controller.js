@@ -4,7 +4,8 @@ import lyricsFinder from 'lyrics-finder';
 import { dbService } from "../services/db.service.js";
 import { storageService } from "../services/storage.service.js";
 import { streamProxy } from "../utils/streamProxy.js";
-import { exec } from "child_process";
+import cp from "child_process";
+const { exec } = cp;
 import path from "path";
 import fs from "fs";
 
@@ -82,9 +83,10 @@ export const uploadFromYoutube = async (req, res) => {
         const downloadCmd = `"${YTDLP_RUN}" ${cookieFlag} -f "ba" -o "${outputPattern}" "${url}"`;
         
         console.log(`[Admin] Downloading: ${downloadCmd}`);
+        console.log(`[Debug] cp defined: ${!!cp}, exec defined: ${!!cp.exec}`);
         
         await new Promise((resolve, reject) => {
-            exec(downloadCmd, (err) => {
+            cp.exec(downloadCmd, (err) => {
                 if (err) return reject(err);
                 resolve();
             });
