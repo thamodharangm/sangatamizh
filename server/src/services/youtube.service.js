@@ -85,7 +85,8 @@ export const getYouTubeMetadata = async (url) => {
     try {
         const cookiesPath = path.join(process.cwd(), 'cookies.txt');
         const cookieFlag = fs.existsSync(cookiesPath) ? `--cookies "${cookiesPath}"` : '';
-        const cmd = `"${YTDLP_PATH}" ${cookieFlag} --dump-json --skip-download --no-warnings "${url}"`;
+        const userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36";
+        const cmd = `"${YTDLP_PATH}" ${cookieFlag} --dump-json --skip-download --no-warnings --force-ipv4 --user-agent "${userAgent}" "${url}"`;
         const jsonOutput = await new Promise((resolve, reject) => {
             exec(cmd, { maxBuffer: 1024 * 1024 * 10 }, (error, stdout) => {
                 if (error) {
@@ -141,7 +142,8 @@ export const streamYouTubeAudio = async (url, req, res) => {
         const cookiesPath = path.join(process.cwd(), 'cookies.txt');
         const cookieFlag = fs.existsSync(cookiesPath) ? `--cookies "${cookiesPath}"` : '';
         
-        const cmd = `"${YTDLP_PATH}" ${cookieFlag} -f "ba[ext=m4a]/ba[ext=mp3]/ba" -g --no-warnings --force-ipv4 --add-header "User-Agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" "${url}"`;
+        const userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36";
+        const cmd = `"${YTDLP_PATH}" ${cookieFlag} -f "ba[ext=m4a]/ba[ext=mp3]/ba" -g --no-warnings --force-ipv4 --add-header "User-Agent:${userAgent}" "${url}"`;
         
         console.log(`[YouTubeService] Running: ${cmd}`);
         

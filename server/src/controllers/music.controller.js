@@ -80,7 +80,8 @@ export const uploadFromYoutube = async (req, res) => {
         const cookieFlag = fs.existsSync(cookiesPath) ? `--cookies "${cookiesPath}"` : '';
         const YTDLP_RUN = IS_GLOBAL ? 'yt-dlp' : YTDLP_PATH;
 
-        const downloadCmd = `"${YTDLP_RUN}" ${cookieFlag} -f "ba" -o "${outputPattern}" "${url}"`;
+        const userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36";
+        const downloadCmd = `"${YTDLP_RUN}" ${cookieFlag} -f "ba" --force-ipv4 --user-agent "${userAgent}" --no-warnings -o "${outputPattern}" "${url}"`;
         
         console.log(`[Admin] Downloading: ${downloadCmd}`);
         console.log(`[Debug] cp defined: ${!!cp}, exec defined: ${!!cp.exec}`);
