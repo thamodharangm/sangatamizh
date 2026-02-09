@@ -11,6 +11,7 @@ import {
     logLogin,
     getAnalyticsStats,
     getLyrics,
+    updateSong,
     initializeEmotions,
     bulkUpdateEmotions,
     updateCookies
