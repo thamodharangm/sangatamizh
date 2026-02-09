@@ -128,13 +128,29 @@ export const uploadFromYoutube = async (req, res) => {
 
         const saved = await dbService.addSong(newSong);
         
-        // Final cleanup
-        try { fs.unlinkSync(actualTempPath); } catch (e) {}
-
-        res.json({ ok: true, song: saved });
     } catch (err) {
-        console.error("[Admin] YT Upload Error:", err);
-        res.status(500).json({ error: err.message });
+        console.error("[Admin] YT Migration failed, falling back to Link-only entry:", err.message);
+        
+        // Final fallback: If download fails, just add as a YouTube link so it can be synced later
+        try {
+            const videoId = url.match(/(?:v=|youtu\.be\/|embed\/|watch\?v=)([\w-]{11})/)?.[1];
+            const fallbackSong = {
+                id: 'yt_' + Date.now().toString(),
+                title: title || "YouTube Song (Sync Pending)",
+                artist: artist || "YouTube",
+                lyrics: lyrics || "",
+                category: category || "Tamil",
+                emotion: emotion || "Neutral",
+                url: url, // Original YT Link
+                cover_url: coverUrl || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+                is_youtube: true, 
+                created_at: new Date().toISOString()
+            };
+            const saved = await dbService.addSong(fallbackSong);
+            res.json({ ok: true, message: "Added as YouTube Link (Server blocked, use PRO Sync locally)", song: saved });
+        } catch (dbErr) {
+            res.status(500).json({ error: "Failed to add song link: " + dbErr.message });
+        }
     }
 };
 
