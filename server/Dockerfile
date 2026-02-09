@@ -4,9 +4,13 @@ FROM node:20-slim
 # Install system dependencies: Python3, FFmpeg for yt-dlp
 RUN apt-get update && apt-get install -y \
     python3 \
+    python3-pip \
     ffmpeg \
     curl \
     && rm -rf /var/lib/apt/lists/*
+
+# Install yt-dlp globally
+RUN pip3 install --break-system-packages yt-dlp
 
 # Set Working Directory
 WORKDIR /app

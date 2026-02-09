@@ -14,11 +14,21 @@ if (!fs.existsSync(TEMP_DIR)) {
     fs.mkdirSync(TEMP_DIR, { recursive: true });
 }
 
-const YTDLP_PATH = path.join(TEMP_DIR, process.platform === 'win32' ? 'yt-dlp.exe' : 'yt-dlp');
+// Check if yt-dlp is available in PATH (global install)
+const checkGlobalYtDlp = () => {
+    return new Promise((resolve) => {
+        exec('yt-dlp --version', (error) => {
+            resolve(!error);
+        });
+    });
+};
+
+const IS_GLOBAL = await checkGlobalYtDlp();
+const YTDLP_PATH = IS_GLOBAL ? 'yt-dlp' : path.join(TEMP_DIR, process.platform === 'win32' ? 'yt-dlp.exe' : 'yt-dlp');
 
 // Initialize yt-dlp binary if missing
 const initYtDlp = async () => {
-    if (fs.existsSync(YTDLP_PATH)) return;
+    if (IS_GLOBAL || fs.existsSync(YTDLP_PATH)) return;
 
     try {
         console.log('[YouTubeService] Downloading yt-dlp...');

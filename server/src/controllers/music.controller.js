@@ -3,6 +3,7 @@ import { getYouTubeMetadata, streamYouTubeAudio } from "../services/youtube.serv
 import lyricsFinder from 'lyrics-finder';
 import { dbService } from "../services/db.service.js";
 import { storageService } from "../services/storage.service.js";
+import { streamProxy } from "../utils/streamProxy.js";
 import path from "path";
 import fs from "fs";
 
@@ -93,9 +94,9 @@ export const streamSong = async (req, res) => {
             return streamYouTubeAudio(song.url, req, res);
         }
 
-        if (song.url.startsWith('http')) {
-            // It's a cloud storage URL, redirect to it or proxy stream
-            return res.redirect(song.url);
+        if (song.url && (song.url.startsWith('http') || song.url.startsWith('https'))) {
+            // It's a cloud storage URL, proxy it to avoid CORS issues
+            return streamProxy(song.url, req, res);
         }
 
         const filePath = path.join(process.cwd(), song.url);
