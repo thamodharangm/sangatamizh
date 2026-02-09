@@ -48,9 +48,30 @@ const proSync = async () => {
             if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
 
             const outputPattern = path.join(tempDir, `${videoId}.%(ext)s`);
+
+            // 1. Download & Metadata fetch locally (using your Home IP)
+            console.log('  Step 1: Extracting real Title/Artist and Downloading...');
             
-            // 1. Download locally (using your Home IP)
-            console.log('  Step 1: Downloading from YouTube (Local Net)...');
+            let metaTitle = song.title;
+            let metaArtist = song.artist;
+
+            const metaCmd = `${YTDLP_RUN} --dump-json --skip-download --no-warnings "https://www.youtube.com/watch?v=${videoId}"`;
+            
+            try {
+                const metaOutput = await new Promise((resolve, reject) => {
+                    exec(metaCmd, (err, stdout) => {
+                        if (err) return reject(err);
+                        resolve(stdout);
+                    });
+                });
+                const json = JSON.parse(metaOutput);
+                metaTitle = json.title || song.title;
+                metaArtist = json.uploader || song.artist;
+                console.log(`    Found: ${metaTitle} by ${metaArtist}`);
+            } catch (e) {
+                console.log('    ⚠️ Could not fetch metadata, using defaults.');
+            }
+
             const downloadCmd = `${YTDLP_RUN} -f "ba" --no-warnings -o "${outputPattern}" "https://www.youtube.com/watch?v=${videoId}"`;
             
             try {
@@ -65,7 +86,7 @@ const proSync = async () => {
                 continue; 
             }
 
-            // 2. Find the downloaded file (it might have different extensions like .m4a, .webm)
+            // 2. Find the downloaded file
             const files = fs.readdirSync(tempDir);
             const downloadedFile = files.find(f => f.startsWith(videoId));
             
@@ -96,10 +117,12 @@ const proSync = async () => {
             const { data: { publicUrl } } = supabase.storage.from('music-app').getPublicUrl(cloudPath);
 
             // 4. Update Database
-            console.log('  Step 3: Updating Database...');
+            console.log('  Step 3: Updating Database (Title/Artist/URL)...');
             const { error: updateError } = await supabase
                 .from('songs')
                 .update({ 
+                    title: metaTitle,
+                    artist: metaArtist,
                     url: publicUrl, 
                     is_youtube: false 
                 })
@@ -110,7 +133,7 @@ const proSync = async () => {
                 continue;
             }
 
-            console.log('  ✅ Success: Song migrated to Cloud!');
+            console.log(`  ✅ Success: ${metaTitle} migrated!`);
             
             // Cleanup local file
             try { fs.unlinkSync(actualTempPath); } catch (e) {}
