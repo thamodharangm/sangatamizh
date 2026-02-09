@@ -6,6 +6,7 @@ import musicRoutes from "./routes/music.routes.js";
 const app = express();
 
 // Health Check (Top level)
+app.get("/", (_, res) => res.send("🎵 Sangatamizh Music API is Live!"));
 app.get("/health", (_, res) => res.json({ ok: true, status: "stable", folder: "server" }));
 
 // CORS configuration
