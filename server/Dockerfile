@@ -18,11 +18,12 @@ RUN npm install
 # Copy App Source
 COPY . .
 
-# Expose Port (Render uses 10000 or PORT env)
-EXPOSE 3002
+# Expose Port (Render uses 10000 by default)
+EXPOSE 10000
 
 # Environment Variables setup (handled by Render UI usually)
 ENV NODE_ENV=production
+ENV PORT=10000
 
 # Start Command
 CMD [ "npm", "start" ]
