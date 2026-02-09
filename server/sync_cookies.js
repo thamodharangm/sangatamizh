@@ -38,7 +38,8 @@ const syncCookies = async () => {
         console.log('Step 1: Extracting cookies from Chrome browser...');
         
         // Command to extract cookies using yt-dlp
-        const extractCmd = `${YTDLP_RUN} --cookies-from-browser chrome --cookies "${tempCookieFile}" --no-warnings --stop-before-video "https://www.youtube.com"`;
+        // Using --skip-download to just get cookies without processing video
+        const extractCmd = `${YTDLP_RUN} --cookies-from-browser chrome --cookies "${tempCookieFile}" --no-warnings --skip-download "https://www.youtube.com"`;
         
         await new Promise((resolve, reject) => {
             exec(extractCmd, (err, stdout, stderr) => {
