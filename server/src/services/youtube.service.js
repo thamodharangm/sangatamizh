@@ -114,15 +114,35 @@ export const getYouTubeMetadata = async (url) => {
 
         if (!json) throw new Error('Failed to parse yt-dlp output');
 
-        return {
+        // Import title parser dynamically
+        const { parseYouTubeMetadata } = await import('./titleParser.service.js');
+        
+        // Parse title intelligently
+        const parsed = parseYouTubeMetadata({
             title: json.title,
-            artist: json.uploader,
-            coverUrl: json.thumbnail,
+            uploader: json.uploader,
+            thumbnail: json.thumbnail,
             duration: json.duration,
+            description: json.description || ''
+        });
+
+        return {
+            // Main fields
+            title: parsed.song,           // Song name (cleaned)
+            movie: parsed.movie,          // Movie name (extracted)
+            artist: parsed.uploader || json.uploader,  // Keep original uploader
+            
+            // Cover and metadata
+            coverUrl: parsed.thumbnail,
+            duration: parsed.duration,
             videoId,
-            suggestedEmotion: "Feel Good",
-            suggestedCategory: "Tamil",
-            emotionConfidence: 0.85
+            
+            // Suggestions
+            suggestedCategory: parsed.genre || 'Tamil',
+            suggestedEmotion: parsed.emotion || 'Feel Good',
+            
+            // Original for reference
+            rawTitle: json.title
         };
     } catch (err) {
         console.warn('[YouTubeService] yt-dlp metadata failed, using fallback:', err.message);

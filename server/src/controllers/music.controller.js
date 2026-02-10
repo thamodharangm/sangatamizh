@@ -23,18 +23,15 @@ export const getHomeSections = async (req, res) => {
         const { userId } = req.query;
         const songs = await dbService.getSongs();
         
-        // This part still uses smart logic from songs list + analytics
-        // Note: For large apps, we'd do this via SQL, but for now this works.
-        const sectionsData = await dbService.isCloud ? 
-            { plays: [] } : // Placeholder until we add cloud analytics fetch logic if needed
-            JSON.parse(fs.readFileSync(path.join(process.cwd(), "src", "analytics.json"), "utf8") || '{"plays":[]}');
+        // Fetch real recent plays if userId is provided
+        let recent = [];
+        if (userId) {
+            recent = await dbService.getRecentPlays(userId, 8);
+        }
 
-        // Note: Analytics cloud fetch is simplified here. 
-        // We'll prioritize showing trending/recent from songs list directly if analytics fail.
-        
         res.json({
             trending: songs.slice(0, 10),
-            recent: [] // Will populate once we have more usage
+            recent: recent
         });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -181,26 +178,40 @@ export const streamSong = async (req, res) => {
 
 export const uploadSong = async (req, res) => {
   try {
-    const audioFile = req.files['audio'] ? req.files['audio'][0] : null;
-    const coverFile = req.files['cover'] ? req.files['cover'][0] : null;
-    
-    if (!audioFile) return res.status(400).json({ error: "No audio file" });
+    console.log('[Upload] Request Body:', req.body);
+    console.log('[Upload] Request Files:', req.files ? Object.keys(req.files) : 'No files');
 
-    const { title, artist, album, category, emotion } = req.body;
+    const { title, artist, album, category, emotion, audioUrl, coverUrl: externalCoverUrl } = req.body;
     
-    // Upload to Storage (Supabase or Local)
-    const audioUrl = await storageService.uploadFile(audioFile, 'songs');
-    const coverUrl = coverFile ? await storageService.uploadFile(coverFile, 'covers') : "https://via.placeholder.com/500";
+    let finalAudioUrl = audioUrl;
+    let finalCoverUrl = externalCoverUrl || "https://via.placeholder.com/500";
+
+    // Handle File Uploads if present
+    const audioFile = req.files && req.files['audio'] ? req.files['audio'][0] : null;
+    const coverFile = req.files && req.files['cover'] ? req.files['cover'][0] : null;
+
+    if (audioFile) {
+        finalAudioUrl = await storageService.uploadFile(audioFile, 'songs');
+    }
+    
+    if (coverFile) {
+        finalCoverUrl = await storageService.uploadFile(coverFile, 'covers');
+    }
+
+    if (!finalAudioUrl) {
+        return res.status(400).json({ error: "No audio source provided (Upload file or provide URL)" });
+    }
     
     const newSong = {
         id: Date.now().toString(),
-        title: title || audioFile.originalname,
+        title: title || (audioFile ? audioFile.originalname : "Unknown Title"),
         artist: artist || "Unknown Artist",
         album: album || "Single",
         category: category || "General",
         emotion: emotion || "Neutral",
-        url: audioUrl,
-        cover_url: coverUrl,
+        url: finalAudioUrl,
+        cover_url: finalCoverUrl,
+        is_youtube: finalAudioUrl.includes('youtube.com') || finalAudioUrl.includes('youtu.be'),
         created_at: new Date().toISOString()
     };
 
@@ -256,17 +267,8 @@ export const logLogin = async (req, res) => {
 
 export const getAnalyticsStats = async (req, res) => {
     try {
-        const songs = await dbService.getSongs();
-        // Simplified for cloud mode, full implementation would require more SQL
-        res.json({
-            totalLogins: 100, // Placeholder
-            totalSongs: songs.length,
-            totalPlays: 500, // Placeholder
-            activeUsers: 10,  // Placeholder
-            chartData: [],
-            topPlayed: [],
-            topLiked: []
-        });
+        const stats = await dbService.getAnalyticsStats();
+        res.json(stats);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

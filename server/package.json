@@ -5,7 +5,8 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "dev": "nodemon src/index.js"
+    "dev": "nodemon src/index.js",
+    "sync": "node pro_sync.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.95.3",

@@ -108,4 +108,20 @@ router.get("/likes/songs", async (req, res) => {
     }
 });
 
+// ========== PLAYLIST ENDPOINTS ==========
+import { 
+  getUserPlaylists, 
+  createPlaylist, 
+  addSongToPlaylist, 
+  removeSongFromPlaylist, 
+  deletePlaylist 
+} from "../controllers/playlistController.js";
+
+router.get("/playlists", getUserPlaylists);
+router.post("/playlists", createPlaylist);
+router.put("/playlists", addSongToPlaylist); // Alias for App.jsx compatibility
+router.put("/playlists/add", addSongToPlaylist);
+router.put("/playlists/remove", removeSongFromPlaylist);
+router.delete("/playlists/:id", deletePlaylist);
+
 export default router;

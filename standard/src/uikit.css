@@ -1,0 +1,165 @@
+:root {
+  /* Duolingo UI Kit Palette */
+  --color-green: #58CC02;
+  --color-green-depth: #46A302;
+  --color-blue: #1CB0F6;
+  --color-blue-depth: #1899D6;
+  --color-pink: #FF4B4B;
+  --color-pink-depth: #D13B3B;
+  --color-yellow: #FFC800;
+  --color-yellow-depth: #E5A500;
+  --color-white: #FFFFFF;
+  --color-gray-light: #E5E5E5;
+  --color-gray-medium: #AFAFAF;
+  --color-gray-dark: #4B4B4B;
+  
+  --bg-main: #FFFFFF;
+  --bg-card: #FFFFFF;
+  --text-main: #4B4B4B;
+  --text-muted: #AFAFAF;
+  --border-light: #E5E5E5;
+  
+  --radius-xl: 20px;
+  --radius-lg: 16px;
+  --radius-md: 14px;
+}
+
+[data-theme='dark'] {
+  --bg-main: #111B21;
+  --bg-card: #202F36;
+  --text-main: #FFFFFF;
+  --text-muted: #8E9BA7;
+  --border-light: #37464F;
+  --color-gray-dark: #FFFFFF;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Outfit', 'Nunito', sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  line-height: 1.5;
+}
+
+/* --- TEXT STYLES --- */
+h1, h2, h3 { 
+  font-weight: 900; 
+  text-transform: capitalize;
+  letter-spacing: -0.5px;
+}
+
+/* --- TACTILE COMPONENTS --- */
+
+.btn-tactile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1.5rem;
+  height: 50px;
+  border-radius: var(--radius-md);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.1s;
+  position: relative;
+  user-select: none;
+  font-size: 0.95rem;
+  margin-bottom: 5px; /* Space for depth */
+}
+
+.btn-green {
+  background: var(--color-green);
+  color: white;
+  box-shadow: 0 5px 0 var(--color-green-depth);
+}
+.btn-green:active {
+  transform: translateY(5px);
+  box-shadow: 0 0 0 var(--color-green-depth);
+}
+
+.btn-blue {
+  background: var(--color-blue);
+  color: white;
+  box-shadow: 0 5px 0 var(--color-blue-depth);
+}
+.btn-blue:active {
+  transform: translateY(5px);
+  box-shadow: 0 0 0 var(--color-blue-depth);
+}
+
+.btn-secondary {
+  background: var(--bg-card);
+  color: var(--color-blue);
+  border: 2px solid var(--border-light);
+  box-shadow: 0 5px 0 var(--border-light);
+}
+.btn-secondary:active {
+  transform: translateY(5px);
+  box-shadow: 0 0 0 var(--border-light);
+}
+
+/* Tactile Card */
+.card-tactile {
+  background: var(--bg-card);
+  border: 2px solid var(--border-light);
+  border-radius: var(--radius-xl);
+  padding: 1.5rem;
+  box-shadow: 0 4px 0 var(--border-light);
+  transition: transform 0.2s;
+}
+
+/* Input Toggles */
+.toggle-tactile {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+.toggle-tactile input { opacity: 0; width: 0; height: 0; }
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: var(--border-light);
+  transition: .4s;
+  border-radius: 34px;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px; width: 26px;
+  left: 4px; bottom: 4px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+input:checked + .slider { background-color: var(--color-green); }
+input:checked + .slider:before { transform: translateX(26px); }
+
+/* Progress */
+.progress-tactile {
+  height: 18px;
+  background: var(--border-light);
+  border-radius: 20px;
+  overflow: hidden;
+  position: relative;
+}
+.progress-tactile-fill {
+  height: 100%;
+  border-radius: 20px;
+  box-shadow: 0 -4px 0 rgba(0,0,0,0.15) inset;
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

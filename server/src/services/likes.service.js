@@ -10,7 +10,7 @@ class LikesService {
      */
     async toggleLike(userId, songId) {
         const result = await dbService.toggleLike(userId, songId);
-        return { isLiked: result.liked };
+        return { liked: result.liked };
     }
 
     /**

@@ -2,43 +2,49 @@ import express from "express";
 import cors from "cors";
 import path from "path";
 import musicRoutes from "./routes/music.routes.js";
+import supabaseAdminRoutes from "./routes/supabase.admin.routes.js";
 
 const app = express();
 
-// Health Check (Top level)
-app.get("/", (_, res) => res.send("🎵 Sangatamizh Music API is Live!"));
-app.get("/health", (_, res) => res.json({ ok: true, status: "stable", folder: "server" }));
-
-// CORS configuration
-const allowedOrigins = [
-  "http://localhost:5173", 
-  "http://localhost:5174",
-  process.env.CLIENT_URL,
-  process.env.MOBILE_CLIENT_URL
-].filter(Boolean);
-
+// 1. GLOBAL MIDDLEWARE (MUST be before routes)
 app.use(cors({
   origin: (origin, callback) => {
-    // For debugging: Log the incoming origin
-    if (origin) {
-      console.log(`[CORS] Request from origin: ${origin}`);
-    } else {
-      console.log(`[CORS] Request with no origin (Server-side/Mobile)`);
-    }
+    // 1. Allow mobile/server-side (no origin)
+    if (!origin) return callback(null, true);
+    
+    // 2. Define your production domains here and in .env
+    const allowed = [
+      'http://localhost:5173',
+      'http://localhost:5174',
+      'http://localhost:5175',
+      'http://127.0.0.1:5173',
+      'http://127.0.0.1:5175',
+      process.env.CLIENT_URL,
+      process.env.ADMIN_URL
+    ].filter(Boolean);
 
-    // Always allow in this phase to stop the "Not allowed by CORS" errors
-    callback(null, true);
+    // 3. Check if current origin is allowed or in same family
+    const isAllowed = allowed.some(a => origin.startsWith(a)) || origin.includes('vercel.app');
+    
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      console.log(`[CORS] Rejected: ${origin}`);
+      callback(null, true); // Still allowing for now but logging
+    }
   },
   credentials: true
 }));
 
 app.use(express.json());
-
-// Routes mounted at /api to match frontend calls (e.g. api.get('/songs'))
-app.use("/api", musicRoutes);
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
+// 2. HEALTH & INFO ROUTES
+app.get("/", (_, res) => res.send("🎵 Sangatamizh Music API is Live!"));
 app.get("/health", (_, res) => res.json({ ok: true, status: "stable", folder: "server" }));
 
-export default app;
+// 3. API ROUTES
+app.use("/api", musicRoutes);
+app.use("/api/supabase", supabaseAdminRoutes);
 
+export default app;
